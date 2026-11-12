@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Dữ liệu và kết quả thực nghiệm (không commit)
+/data/
+/experiments/
+
+# Checkpoint / model
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Notebook cache
+**/.ipynb_checkpoints/
+
+# Hệ điều hành / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

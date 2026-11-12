@@ -240,7 +240,21 @@ Dự án sử dụng một repository chung và Git Branch để phân chia côn
 - Báo cáo nghiên cứu và slide thuyết trình.
 - README hướng dẫn cài đặt và chạy project.
 
-## 11. Project Status
+## 11. Cài đặt và tải dữ liệu
+
+Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync                                             # cài môi trường
+uv run python -m src.data.download --dataset all    # tải RealWaste + TrashNet
+uv run pytest                                       # chạy test
+uv run ruff check .                                 # lint
+```
+
+Dữ liệu được tải vào `data/raw/` và không commit. Chi tiết nguồn, giấy phép, cấu trúc
+thư mục và các tùy chọn tải: [docs/datasets.md](docs/datasets.md).
+
+## 12. Project Status
 
 **Status:** In Progress
 

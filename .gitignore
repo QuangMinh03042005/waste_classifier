@@ -7,8 +7,11 @@ __pycache__/
 .ruff_cache/
 
 # Dữ liệu và kết quả thực nghiệm (không commit)
-/data/
+/data/*
+!/data/splits/
+!/data/splits/**
 /experiments/
+/dist/
 
 # Checkpoint / model
 *.pt

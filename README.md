@@ -254,6 +254,8 @@ uv run ruff check .                                 # lint
 Dữ liệu được tải vào `data/raw/` và không commit. Chi tiết nguồn, giấy phép, cấu trúc
 thư mục và các tùy chọn tải: [docs/datasets.md](docs/datasets.md).
 
+Training trên GPU: xem [docs/colab.md](docs/colab.md).
+
 ## 12. Project Status
 
 **Status:** In Progress

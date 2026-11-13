@@ -28,15 +28,28 @@ uv run streamlit run app/main.py # demo
 - Lệnh train/eval cụ thể: xem README. Nếu README chưa có, **không tự bịa** — ghi TBD và hỏi.
 - Mọi entrypoint nhận `--config`, không nhận hyperparameter qua CLI rời rạc.
 
+### Local vs Colab
+
+- Local: EDA, phân tích, test, smoke test. Colab: training trên GPU.
+- Setup Colab: chạy `notebooks/colab_setup.ipynb`.
+- Đường dẫn lấy từ env: `WASTE_DATA_ROOT`, `WASTE_EXPERIMENTS_ROOT`, `WASTE_SPLITS_DIR`
+  (xem `src/utils/paths.py`). Không hardcode `/content/...` trong code.
+- Trên Colab dùng torch/torchvision có sẵn; chỉ cài `requirements-colab.txt`.
+- Dữ liệu trên Drive là một bundle `waste_raw_v1.zip`; giải nén ra local disk của Colab.
+- Kết quả ghi trực tiếp vào Drive qua `WASTE_EXPERIMENTS_ROOT`.
+- Chi tiết: `docs/colab.md`.
+
 ## 3. Cấu trúc & quyền sửa
 
 ```text
 configs/rq{1,2,3}/   # config thí nghiệm
-data/                # raw, processed, splits (không commit)
+data/                # raw, processed, splits (chỉ commit splits CSV)
 src/                 # module dùng chung: data, models, training, utils
 research/rq{1,2,3}/  # code đặc thù từng RQ
 experiments/rq{1,2,3}/ # kết quả chạy (không commit)
 notebooks/rq{1,2,3}/ # notebook theo từng RQ (chỉ commit bản sạch)
+scripts/             # script tiện ích (đóng gói dữ liệu, ...)
+dist/                # bundle dữ liệu để upload Drive (không commit)
 app/                 # Streamlit demo
 tests/               # pytest
 docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rqX/ chứa PDF
@@ -74,7 +87,8 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 
 ## 5. Luật dữ liệu (bất biến)
 
-- Không commit dataset, split, checkpoint, cache (`data/`, `experiments/` nằm trong `.gitignore`).
+- Không commit dataset ảnh, checkpoint, cache. `data/raw/`, `data/processed/` và `experiments/` nằm trong `.gitignore`.
+- `data/splits/**.csv` được commit để local và Colab dùng đúng một split, tránh lệch kết quả.
 - Label mapping và split do pipeline sinh ra, lưu ở `data/splits/` kèm version.
 - Split một lần, dùng lại cho mọi thí nghiệm so sánh.
 - Kiểm tra ảnh trùng lặp trước khi split; không để dữ liệu liên quan nằm ở 2 split.

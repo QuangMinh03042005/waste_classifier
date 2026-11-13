@@ -1,0 +1,62 @@
+schema_version: "1.0"
+plan_id: rq2_augmentation_class_weighting
+rq: rq2
+title: "Ablation Data Augmentation và Class Weighting"
+author: "Dương Tấn Cường"
+created_at: "2026-11-13"
+status: active
+
+question: >-
+  Data Augmentation và Class Weighting đóng góp bao nhiêu vào Macro-F1 của
+  MobileNetV3_small trên bài toán 5 lớp?
+hypothesis: >-
+  Full model (augmentation + class weighting) đạt Macro-F1 cao hơn từng ablation;
+  class weighting cải thiện recall của lớp thiểu số (Glass, Cardboard).
+expected_result: >-
+  Full cao hơn no-augmentation rõ rệt về Macro-F1; class weighting tăng recall lớp
+  thiểu số nhưng có thể giảm nhẹ accuracy toàn cục.
+failure_plan: >-
+  Nếu ablation không cải thiện, ghi nhận và phân tích theo lớp cùng đường cong
+  train/validation. Không chọn biến thể dựa trên test set.
+
+baseline:
+  experiment: rq2_mobilenetv3s_full
+  description: "MobileNetV3_small + augmentation + class weighting (mô hình đầy đủ)."
+
+variants:
+  - experiment: rq2_mobilenetv3s_noaug
+    change: "Bỏ Data Augmentation, giữ nguyên class weighting."
+    fixed:
+      - "split v1, MobileNetV3_small pretrained ImageNet"
+      - "class weighting theo tần suất lớp, clip [0.5, 3.0]"
+      - "input 224x224, AdamW, batch 64, tối đa 30 epoch"
+      - "seed 42, 123, 2024"
+  - experiment: rq2_mobilenetv3s_nocw
+    change: "Bỏ Class Weighting, giữ nguyên Data Augmentation."
+    fixed:
+      - "split v1, MobileNetV3_small pretrained ImageNet"
+      - "augmentation: RandomResizedCrop, HFlip, rotation, color jitter"
+      - "input 224x224, AdamW, batch 64, tối đa 30 epoch"
+      - "seed 42, 123, 2024"
+
+comparison:
+  metric: macro_f1
+  secondary: [accuracy, balanced_accuracy, per_class_recall]
+  test_policy: "Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần cho mỗi biến thể."
+  success_criterion: "Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed)."
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "held-out của từng nguồn"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024]
+
+budget:
+  max_epochs: 30
+  batch_size: 64
+  estimated_minutes_per_run: 30
+
+risks: "Class weighting có thể làm tăng false positive ở lớp đa số."
+notes: "Báo cáo per-class recall cho từng biến thể để thấy tác động lên lớp thiểu số."

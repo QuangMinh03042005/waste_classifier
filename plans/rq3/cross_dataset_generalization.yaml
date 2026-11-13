@@ -1,0 +1,65 @@
+schema_version: "1.0"
+plan_id: rq3_cross_dataset_generalization
+rq: rq3
+title: "Tổng quát hóa chéo nguồn dữ liệu"
+author: "Lê Thành Duy"
+created_at: "2026-11-13"
+status: active
+
+question: >-
+  Việc kết hợp dữ liệu từ RealWaste và TrashNet có cải thiện khả năng tổng quát hóa
+  trên nguồn dữ liệu còn lại so với huấn luyện đơn nguồn không?
+hypothesis: >-
+  Huấn luyện trên dữ liệu kết hợp cải thiện Macro-F1 cross-dataset so với huấn luyện
+  chỉ trên một nguồn, đặc biệt khi kiểm thử trên TrashNet.
+expected_result: >-
+  Pooled model cao hơn single-source trên cả hai test set ngoài miền; mức cải thiện
+  lớn hơn ở TrashNet do nền ảnh đơn giản.
+failure_plan: >-
+  Nếu pooled không cải thiện, phân tích domain shift, phân phối lớp và chất lượng ảnh.
+  Báo cáo cả trường hợp giả thuyết bị bác bỏ.
+
+baseline:
+  experiment: rq3_train_realwaste_test_trashnet
+  description: "Huấn luyện trên RealWaste, kiểm thử toàn bộ TrashNet."
+
+variants:
+  - experiment: rq3_train_trashnet_test_realwaste
+    change: "Đảo chiều nguồn: huấn luyện trên TrashNet, kiểm thử toàn bộ RealWaste."
+    fixed:
+      - "5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet"
+      - "không augmentation, không class weighting"
+      - "AdamW, batch 64, tối đa 30 epoch, early stopping patience 7"
+      - "seed 42, 123, 2024"
+  - experiment: rq3_train_pooled_test_each
+    change: "Huấn luyện trên dữ liệu kết hợp 2 nguồn, kiểm thử riêng từng nguồn."
+    fixed:
+      - "split v1 cho phần train/val; test của mỗi nguồn giữ nguyên"
+      - "5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet"
+      - "không augmentation, không class weighting"
+      - "AdamW, batch 64, tối đa 30 epoch, early stopping patience 7"
+      - "seed 42, 123, 2024"
+
+comparison:
+  metric: macro_f1
+  secondary: [accuracy, balanced_accuracy, per_class_f1]
+  test_policy: "Test ngoài miền chỉ đánh giá một lần; không dùng để chọn epoch."
+  success_criterion: >-
+    Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai
+    test set RealWaste và TrashNet.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "nguồn còn lại hoặc held-out từng nguồn tùy biến thể"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024]
+
+budget:
+  max_epochs: 30
+  batch_size: 64
+  estimated_minutes_per_run: 35
+
+risks: "Khác biệt bối cảnh và phân phối lớp giữa 2 nguồn có thể làm phương sai giữa seed cao."
+notes: "Báo cáo kèm confusion matrix và per-class F1 cho từng nguồn kiểm thử."

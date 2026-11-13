@@ -1,0 +1,56 @@
+schema_version: "1.0"
+plan_id: rq1_model_comparison
+rq: rq1
+title: "So sánh Custom CNN và MobileNetV3_small"
+author: "Đinh Quang Minh"
+created_at: "2026-11-13"
+status: active
+
+question: >-
+  Transfer learning với MobileNetV3_small có cải thiện Macro-F1 so với Custom CNN
+  huấn luyện từ đầu trên cùng split dữ liệu không?
+hypothesis: >-
+  MobileNetV3_small pretrained ImageNet đạt Macro-F1 cao hơn Custom CNN ít nhất 0.02
+  và ổn định trên cả 3 seed.
+expected_result: >-
+  MobileNetV3_small cao hơn baseline ở cả 3 seed; chênh lệch rõ nhất ở các lớp Glass
+  và Paper, nơi đặc trưng texture/kết cấu quan trọng.
+failure_plan: >-
+  Nếu không cải thiện, báo cáo trung thực kết quả, phân tích overfitting/underfitting
+  và chi phí tính toán. Không thay đổi tiêu chí hoặc chọn seed sau khi xem test.
+
+baseline:
+  experiment: rq1_customcnn
+  description: "Custom CNN huấn luyện từ đầu, cùng split, preprocessing và ngân sách huấn luyện."
+
+variants:
+  - experiment: rq1_mobilenetv3s_full
+    change: "Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet."
+    fixed:
+      - "split v1, stratified theo (dataset, class), chống trùng bằng pHash"
+      - "input 224x224, normalize mean/std ImageNet"
+      - "không augmentation, không class weighting"
+      - "AdamW, batch 64, tối đa 30 epoch, early stopping patience 7"
+      - "seed 42, 123, 2024"
+
+comparison:
+  metric: macro_f1
+  secondary: [accuracy, balanced_accuracy]
+  test_policy: "Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần sau khi khóa cấu hình."
+  success_criterion: "Macro-F1 trung bình cao hơn baseline >= 0.02 và cao hơn ở >= 2/3 seed."
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "held-out của từng nguồn"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024]
+
+budget:
+  max_epochs: 30
+  batch_size: 64
+  estimated_minutes_per_run: 30
+
+risks: "MobileNetV3_small có thể underfit nếu fine-tune quá ít epoch."
+notes: "Ghi lại số tham số, thời gian train và latency cho cả hai mô hình."

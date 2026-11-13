@@ -9,6 +9,7 @@ máy và CSV để đưa vào báo cáo. Code: `src/utils/run_logger.py`,
 ```text
 experiments/<rq>/<run_id>/
 ├── run.json                 # metadata, config, trạng thái, kết quả tóm tắt
+├── plan.yaml                # bản copy kế hoạch thí nghiệm đã commit
 ├── config.yaml              # bản copy config
 ├── environment.json         # git, python, torch, CUDA, GPU, versions
 ├── history.jsonl            # 1 dòng / epoch / phase

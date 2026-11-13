@@ -105,6 +105,15 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 - Không ghi đè hay xóa run cũ. Chạy lại thì tạo run mới.
 - Thí nghiệm chính báo cáo mean ± std trên ≥3 seed.
 
+### Kế hoạch thí nghiệm
+
+- Trước mỗi run: tạo/cập nhật plan trong `plans/rqX/`, commit, rồi mới chạy.
+- Training bắt buộc truyền `--plan`; dùng `src/training/run.py::start_run` để kiểm tra và snapshot.
+- Chỉ chạy plan `status: active`; không sửa giả thuyết/tiêu chí sau khi xem test.
+- Mỗi variant chỉ thay một biến; ghi rõ biến cố định trong `fixed`.
+- Sinh `docs/experiment_matrix.md` bằng `scripts/experiment_matrix.py`, commit lại khi plan đổi.
+- Schema chi tiết: `docs/experiment_plans.md`.
+
 ### Logging
 
 - Dùng `RunLogger` (`src/utils/run_logger.py`); không tự tạo file log ngoài schema.

@@ -99,11 +99,21 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 
 - Mỗi lần chạy tạo thư mục mới: `experiments/rqX/<exp_id>_s<seed>/`.
 - `<exp_id>` dạng `rq1_customcnn`, `rq2_mobilenetv3s_aug`, `rq2_mobilenetv3s_noaug_nocw`.
-- Mỗi run lưu: bản copy config, seed, git commit hash, `metrics.json`, log, checkpoint, confusion matrix, learning curves.
+- Mỗi run lưu: `run.json`, `config.yaml`, `environment.json`, `history.jsonl`, `metrics.json`, checkpoint `last.pt`/`best.pt`, `predictions/test.csv`.
 - Mỗi thí nghiệm chỉ thay đổi **một** biến; ghi rõ các biến giữ cố định.
 - Cập nhật `docs/experiment_matrix.md` trước khi chạy thí nghiệm mới.
 - Không ghi đè hay xóa run cũ. Chạy lại thì tạo run mới.
 - Thí nghiệm chính báo cáo mean ± std trên ≥3 seed.
+
+### Logging
+
+- Dùng `RunLogger` (`src/utils/run_logger.py`); không tự tạo file log ngoài schema.
+- Ghi JSON atomic, `history.jsonl` append và flush mỗi dòng.
+- Checkpoint: `last.pt` mỗi epoch (resume), `best.pt` khi val Macro-F1 cải thiện; không lưu mỗi epoch.
+- Test chỉ đánh giá một lần cuối run; ghi `metrics.json` + `predictions/test.csv`.
+- Lỗi phải ghi `error.json` và đặt status `failed`.
+- Bảng kết quả sinh bằng `scripts/collect_results.py`, không sửa tay số liệu.
+- Schema chi tiết: `docs/logging.md`.
 
 ## 7. Đánh giá & artifact
 

@@ -32,6 +32,7 @@ uv run streamlit run app/main.py # demo
 
 - Local: EDA, phân tích, test, smoke test. Colab: training trên GPU.
 - Setup Colab: chạy `notebooks/colab_setup.ipynb`.
+- Chọn branch RQ trong form `BRANCH` của notebook; kết quả gắn với commit hash, không chỉ tên branch.
 - Đường dẫn lấy từ env: `WASTE_DATA_ROOT`, `WASTE_EXPERIMENTS_ROOT`, `WASTE_SPLITS_DIR`
   (xem `src/utils/paths.py`). Không hardcode `/content/...` trong code.
 - Trên Colab dùng torch/torchvision có sẵn; chỉ cài `requirements-colab.txt`.

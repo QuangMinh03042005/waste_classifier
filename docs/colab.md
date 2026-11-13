@@ -40,7 +40,7 @@ Bundle giữ tiền tố `raw/`, nên giải nén vào `/content/data` sẽ tạ
 Mở `notebooks/colab_setup.ipynb`, chọn Runtime → GPU (T4), chạy lần lượt:
 
 1. Mount Drive.
-2. Clone/pull repo.
+2. Chọn branch RQ ở form `BRANCH` (mặc định `main`) rồi clone/pull repo.
 3. Cài `uv` + `requirements-colab.txt`.
 4. Giải nén bundle vào `/content/data`.
 5. Kiểm tra GPU và số lượng ảnh.
@@ -88,4 +88,7 @@ rồi chạy notebook phân tích. Không commit `experiments/`.
   ảnh nhỏ từ Drive.
 - **Split:** `data/splits/**.csv` được commit vào git để local và Colab dùng đúng một
   split, tránh lệch kết quả.
+- **Branch:** chọn branch RQ trong form `BRANCH` của notebook. Branch chưa merge thì
+  chọn `feature/...`; sau khi merge dùng `main`. Kết quả luôn gắn với commit hash trong
+  `environment.json`, không chỉ tên branch.
 - **Dữ liệu:** không commit dataset; Drive để chế độ private.

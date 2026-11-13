@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-11-13T07:22:59.328259+00:00",
+  "seed": 42,
+  "ratios": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "phash_threshold": 5,
+  "classes": [
+    "cardboard",
+    "glass",
+    "metal",
+    "paper",
+    "plastic"
+  ],
+  "counts": {
+    "total": 5482,
+    "by_split": {
+      "test": 823,
+      "train": 3833,
+      "val": 826
+    },
+    "by_dataset": {
+      "realwaste": 3092,
+      "trashnet": 2390
+    },
+    "by_class": {
+      "cardboard": 864,
+      "glass": 921,
+      "metal": 1200,
+      "paper": 1094,
+      "plastic": 1403
+    },
+    "by_split_class": {
+      "train": {
+        "cardboard": 603,
+        "glass": 645,
+        "metal": 839,
+        "paper": 766,
+        "plastic": 980
+      },
+      "val": {
+        "cardboard": 131,
+        "glass": 138,
+        "metal": 181,
+        "paper": 164,
+        "plastic": 212
+      },
+      "test": {
+        "cardboard": 130,
+        "glass": 138,
+        "metal": 180,
+        "paper": 164,
+        "plastic": 211
+      }
+    }
+  },
+  "groups": {
+    "total": 5447,
+    "duplicate_images": 35,
+    "largest": 3
+  }
+}

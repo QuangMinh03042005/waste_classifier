@@ -247,12 +247,15 @@ Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/).
 ```bash
 uv sync                                             # cài môi trường
 uv run python -m src.data.download --dataset all    # tải RealWaste + TrashNet
+uv run python scripts/make_splits.py                # tạo data/splits/v1
 uv run pytest                                       # chạy test
 uv run ruff check .                                 # lint
 ```
 
 Dữ liệu được tải vào `data/raw/` và không commit. Chi tiết nguồn, giấy phép, cấu trúc
-thư mục và các tùy chọn tải: [docs/datasets.md](docs/datasets.md).
+thư mục và các tùy chọn tải: [docs/datasets.md](docs/datasets.md). Mapping nhãn và
+split: [docs/label_mapping.md](docs/label_mapping.md),
+[docs/splits.md](docs/splits.md).
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Log và schema kết quả:

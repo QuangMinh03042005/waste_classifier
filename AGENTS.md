@@ -89,10 +89,11 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 ## 5. Luật dữ liệu (bất biến)
 
 - Không commit dataset ảnh, checkpoint, cache. `data/raw/`, `data/processed/` và `experiments/` nằm trong `.gitignore`.
-- `data/splits/**.csv` được commit để local và Colab dùng đúng một split, tránh lệch kết quả.
-- Label mapping và split do pipeline sinh ra, lưu ở `data/splits/` kèm version.
+- `data/splits/**/split.csv` và `summary.json` được commit để local và Colab dùng đúng một split.
+- Mapping nhãn nằm ở `src/data/labels.py`; 5 lớp chuẩn: cardboard, glass, metal, paper, plastic.
+- Tạo split bằng `uv run python scripts/make_splits.py`; split v1 dùng seed 42, tỷ lệ 70/15/15, pHash ≤ 5.
+- Không sửa split v1 sau khi đã chạy thí nghiệm; thay đổi thì tạo version mới.
 - Split một lần, dùng lại cho mọi thí nghiệm so sánh.
-- Kiểm tra ảnh trùng lặp trước khi split; không để dữ liệu liên quan nằm ở 2 split.
 - **Test set chỉ dùng cho đánh giá cuối.** Cấm dùng test để chọn epoch, threshold, hyperparameter hay biến thể ablation.
 
 ## 6. Luật thực nghiệm (bất biến)

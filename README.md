@@ -255,7 +255,8 @@ uv run ruff check .                                 # lint
 Dữ liệu được tải vào `data/raw/` và không commit. Chi tiết nguồn, giấy phép, cấu trúc
 thư mục và các tùy chọn tải: [docs/datasets.md](docs/datasets.md). Mapping nhãn và
 split: [docs/label_mapping.md](docs/label_mapping.md),
-[docs/splits.md](docs/splits.md).
+[docs/splits.md](docs/splits.md). Dataset/transform:
+[docs/data_pipeline.md](docs/data_pipeline.md).
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Log và schema kết quả:

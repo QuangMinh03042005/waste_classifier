@@ -92,6 +92,7 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 - `data/splits/**/split.csv` và `summary.json` được commit để local và Colab dùng đúng một split.
 - Mapping nhãn nằm ở `src/data/labels.py`; 5 lớp chuẩn: cardboard, glass, metal, paper, plastic.
 - Tạo split bằng `uv run python scripts/make_splits.py`; split v1 dùng seed 42, tỷ lệ 70/15/15, pHash ≤ 5.
+- Dataset/transforms dùng chung ở `src/data/dataset.py` và `src/data/transforms.py`; không tự viết lại transform trong notebook.
 - Không sửa split v1 sau khi đã chạy thí nghiệm; thay đổi thì tạo version mới.
 - Split một lần, dùng lại cho mọi thí nghiệm so sánh.
 - **Test set chỉ dùng cho đánh giá cuối.** Cấm dùng test để chọn epoch, threshold, hyperparameter hay biến thể ablation.

@@ -300,6 +300,17 @@ def write_split_csv(rows: list[SplitRow], path: Path) -> Path:
     return path
 
 
+def read_split_csv(path: Path) -> list[SplitRow]:
+    """Đọc split.csv trả về danh sách SplitRow."""
+    with Path(path).open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        required = {"path", "dataset", "label", "raw_label", "split", "group_id"}
+        missing = required - set(reader.fieldnames or [])
+        if missing:
+            raise SplitError(f"{path}: thiếu cột {sorted(missing)}")
+        return [SplitRow(**row) for row in reader]
+
+
 def _counts(values: Iterable[str]) -> dict[str, int]:
     return dict(sorted(Counter(values).items()))
 

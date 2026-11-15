@@ -21,7 +21,7 @@ failure_plan: >-
 
 baseline:
   experiment: rq1_customcnn
-  description: "Custom CNN huấn luyện từ đầu, cùng split, preprocessing và ngân sách huấn luyện."
+  description: "Custom CNN huấn luyện từ đầu: channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3 (chọn qua validation-only)."
 
 variants:
   - experiment: rq1_mobilenetv3s_full

@@ -193,6 +193,39 @@ def build_markdown(
             summary_rows,
         )
     )
+
+    if summary_rows:
+        ranked = sorted(
+            summary_rows,
+            key=lambda row: (
+                row[2] if row[2] is not None else -1.0,
+                -(row[4] or 0),
+            ),
+            reverse=True,
+        )
+        best = ranked[0]
+        if (
+            len(ranked) > 1
+            and best[2] is not None
+            and ranked[1][2] is not None
+            and best[2] - ranked[1][2] < 0.005
+            and (ranked[1][4] or float("inf")) < (best[4] or float("inf"))
+        ):
+            best = ranked[1]
+
+        lines.extend(
+            [
+                "",
+                "## Kết luận",
+                "",
+                f"- Chọn **{best[0]}** với val Macro-F1 trung bình "
+                f"**{best[2]:.4f}** (std {_fmt(best[3])}), {best[4]} tham số.",
+                "- Đây là kết quả chọn trên validation; test chưa được đánh giá.",
+                "- Dùng cấu hình này cho RQ1 với 30 epoch × 3 seed ở bước tiếp theo.",
+            ]
+        )
+        if best[1] < 3:
+            lines.append("- Lưu ý: ứng viên này mới có ít hơn 3 seed.")
     return "\n".join(lines)
 
 

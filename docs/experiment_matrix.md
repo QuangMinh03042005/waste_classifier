@@ -1,6 +1,6 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-15T13:17:05.973067+00:00`
+- Tạo lúc: `2026-11-15T16:57:34.097994+00:00`
 - Số plan: 4
 - Số experiment: 12
 
@@ -19,10 +19,10 @@
 
 | Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| rq1_customcnn_cand_b | baseline | — | — | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | active |
-| rq1_customcnn_cand_a | variant | Giảm kênh còn 24-48-96-192 để kiểm tra capacity tối thiểu. | split v1, input 224x224, không augmentation, không class weighting; convs/stage 1-2-2-2, AdamW lr 1e-3, batch 64, 12 epoch; seed 42 cho sàng lọc; top-2 chạy thêm seed 123, 2024 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | active |
-| rq1_customcnn_cand_c | variant | Tăng dropout từ 0.3 lên 0.5. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2; AdamW lr 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | active |
-| rq1_customcnn_cand_d | variant | Tăng kênh lên 48-96-192-384 để kiểm tra capacity cao hơn. | split v1, input 224x224, không augmentation, không class weighting; convs/stage 1-2-2-2, dropout 0.3; AdamW lr 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | active |
+| rq1_customcnn_cand_b | baseline | — | — | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | completed |
+| rq1_customcnn_cand_a | variant | Giảm kênh còn 24-48-96-192 để kiểm tra capacity tối thiểu. | split v1, input 224x224, không augmentation, không class weighting; convs/stage 1-2-2-2, AdamW lr 1e-3, batch 64, 12 epoch; seed 42 cho sàng lọc; top-2 chạy thêm seed 123, 2024 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | completed |
+| rq1_customcnn_cand_c | variant | Tăng dropout từ 0.3 lên 0.5. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2; AdamW lr 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | completed |
+| rq1_customcnn_cand_d | variant | Tăng kênh lên 48-96-192-384 để kiểm tra capacity cao hơn. | split v1, input 224x224, không augmentation, không class weighting; convs/stage 1-2-2-2, dropout 0.3; AdamW lr 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | completed |
 
 ### `rq1_model_comparison` — So sánh Custom CNN và MobileNetV3_small
 

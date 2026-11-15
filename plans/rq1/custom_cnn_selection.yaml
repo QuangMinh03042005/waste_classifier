@@ -4,7 +4,7 @@ rq: rq1
 title: "Chọn cấu hình Custom CNN baseline (validation-only)"
 author: "Đinh Quang Minh"
 created_at: "2026-11-15"
-status: active
+status: completed
 
 question: >-
   Cấu hình Custom CNN nào cho cân bằng tốt nhất giữa val Macro-F1, số tham số và
@@ -65,4 +65,4 @@ budget:
   estimated_minutes_per_run: 8
 
 risks: "Val chỉ có 826 ảnh nên chênh lệch nhỏ có thể do nhiễu seed."
-notes: "Ghi bảng kết quả vào docs/model_selection.md trước khi cập nhật plan RQ1."
+notes: "Kết quả: B đạt val Macro-F1 0.8207 ± 0.0055 trên 3 seed; chọn B (32-64-128-256, dropout 0.3)."

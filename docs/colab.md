@@ -95,6 +95,8 @@ rồi chạy notebook phân tích. Không commit `experiments/`.
 
 ## 6. Tải kết quả về local
 
+Bước này **chỉ dùng trên Colab**. Local chỉ cần thư mục `experiments/`, không tạo zip.
+
 Sau khi chạy xong một batch, gom tất cả run vào một zip:
 
 ```bash

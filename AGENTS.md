@@ -22,7 +22,6 @@ uv run pytest                    # chạy test
 uv run ruff check .              # lint
 uv run ruff format .             # format
 uv run python -m research.rq1.train --config configs/rq1/<config>.yaml --plan plans/rq1/<plan>.yaml
-uv run python scripts/export_experiments.py --rq rq1   # gom kết quả thành 1 zip
 uv run streamlit run app/main.py # demo
 ```
 
@@ -40,6 +39,7 @@ uv run streamlit run app/main.py # demo
 - Trên Colab dùng torch/torchvision có sẵn; chỉ cài `requirements-colab.txt`.
 - Dữ liệu trên Drive là một bundle `waste_raw_v1.zip`; giải nén ra local disk của Colab.
 - Kết quả ghi trực tiếp vào Drive qua `WASTE_EXPERIMENTS_ROOT`.
+- Chỉ trên Colab mới export zip để tải về; local giữ nguyên `experiments/`.
 - Chi tiết: `docs/colab.md`.
 
 ## 3. Cấu trúc & quyền sửa

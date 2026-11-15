@@ -1,4 +1,6 @@
-"""Gom các run thực nghiệm thành một file zip.
+"""Gom các run thực nghiệm thành một file zip (chỉ dùng trên Colab).
+
+Local chỉ cần giữ thư mục `experiments/`; zip dùng để tải kết quả từ Colab về máy.
 
 Cách dùng:
     uv run python scripts/export_experiments.py --rq rq1

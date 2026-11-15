@@ -1,0 +1,68 @@
+schema_version: "1.0"
+plan_id: rq1_custom_cnn_selection
+rq: rq1
+title: "Chọn cấu hình Custom CNN baseline (validation-only)"
+author: "Đinh Quang Minh"
+created_at: "2026-11-15"
+status: active
+
+question: >-
+  Cấu hình Custom CNN nào cho cân bằng tốt nhất giữa val Macro-F1, số tham số và
+  chi phí tính toán trên split v1?
+hypothesis: >-
+  Cấu hình B (32-64-128-256, dropout 0.3) có val Macro-F1 cao nhất hoặc tương đương
+  cấu hình D nhưng ít tham số/FLOPs hơn.
+expected_result: >-
+  A underfit nhẹ; B và D tương đương về val Macro-F1; C (dropout 0.5) hội tụ chậm hơn.
+  Chọn B nếu chênh lệch val Macro-F1 so với D nhỏ hơn 0.005.
+failure_plan: >-
+  Nếu mọi ứng viên có val Macro-F1 < 0.60, dừng và kiểm tra lại dữ liệu, learning rate,
+  augmentation trước khi chốt baseline. Không đánh giá test để chọn cấu hình.
+
+baseline:
+  experiment: rq1_customcnn_cand_b
+  description: "32-64-128-256, convs/stage 1-2-2-2, dropout 0.3."
+
+variants:
+  - experiment: rq1_customcnn_cand_a
+    change: "Giảm kênh còn 24-48-96-192 để kiểm tra capacity tối thiểu."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "convs/stage 1-2-2-2, AdamW lr 1e-3, batch 64, 12 epoch"
+      - "seed 42 cho sàng lọc; top-2 chạy thêm seed 123, 2024"
+  - experiment: rq1_customcnn_cand_c
+    change: "Tăng dropout từ 0.3 lên 0.5."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2"
+      - "AdamW lr 1e-3, batch 64, 12 epoch, seed 42"
+  - experiment: rq1_customcnn_cand_d
+    change: "Tăng kênh lên 48-96-192-384 để kiểm tra capacity cao hơn."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "convs/stage 1-2-2-2, dropout 0.3"
+      - "AdamW lr 1e-3, batch 64, 12 epoch, seed 42"
+
+comparison:
+  metric: val_macro_f1
+  secondary: [val_loss, params, flops]
+  test_policy: "Không đánh giá test trong bước chọn cấu hình (evaluate_test=false)."
+  success_criterion: >-
+    Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005,
+    chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "không sử dụng trong bước selection"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024]
+
+budget:
+  max_epochs: 12
+  batch_size: 64
+  estimated_minutes_per_run: 8
+
+risks: "Val chỉ có 826 ảnh nên chênh lệch nhỏ có thể do nhiễu seed."
+notes: "Ghi bảng kết quả vào docs/model_selection.md trước khi cập nhật plan RQ1."

@@ -260,7 +260,9 @@ split: [docs/label_mapping.md](docs/label_mapping.md),
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Log và schema kết quả:
-[docs/logging.md](docs/logging.md).
+[docs/logging.md](docs/logging.md). Model và training:
+[docs/models.md](docs/models.md), [docs/training.md](docs/training.md),
+[docs/model_selection.md](docs/model_selection.md).
 
 ## 12. Project Status
 

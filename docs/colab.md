@@ -57,7 +57,7 @@ Mọi entrypoint đọc các biến này qua `src/utils/paths.py`, không cần 
 ## 3. Chạy training
 
 ```bash
-python -m research.rqX.train --config configs/rqX/<config>.yaml
+python -m research.rqX.train --config configs/rqX/<config>.yaml --plan plans/rqX/<plan>.yaml
 ```
 
 Kết quả ghi trực tiếp vào Drive:

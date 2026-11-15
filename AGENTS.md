@@ -21,12 +21,13 @@ uv sync                          # cài môi trường
 uv run pytest                    # chạy test
 uv run ruff check .              # lint
 uv run ruff format .             # format
-uv run python -m research.rq1.train --config configs/rq1/<config>.yaml
+uv run python -m research.rq1.train --config configs/rq1/<config>.yaml --plan plans/rq1/<plan>.yaml
 uv run streamlit run app/main.py # demo
 ```
 
 - Lệnh train/eval cụ thể: xem README. Nếu README chưa có, **không tự bịa** — ghi TBD và hỏi.
 - Mọi entrypoint nhận `--config`, không nhận hyperparameter qua CLI rời rạc.
+- Training bắt buộc `--plan`; smoke test dùng `--epochs 1 --limit-batches 1`, không dùng cho kết quả báo cáo.
 
 ### Local vs Colab
 

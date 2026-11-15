@@ -22,6 +22,7 @@ uv run pytest                    # chạy test
 uv run ruff check .              # lint
 uv run ruff format .             # format
 uv run python -m research.rq1.train --config configs/rq1/<config>.yaml --plan plans/rq1/<plan>.yaml
+uv run python scripts/export_experiments.py --rq rq1   # gom kết quả thành 1 zip
 uv run streamlit run app/main.py # demo
 ```
 

@@ -93,3 +93,13 @@ experiments/rq1/<experiment>_s<seed>/
 python scripts/collect_results.py --rq rq1 --markdown
 python scripts/selection_report.py
 ```
+
+## Export kết quả
+
+```bash
+python scripts/export_experiments.py --rq rq1
+python scripts/export_experiments.py --experiment rq1_customcnn --checkpoints all --force
+```
+
+Zip có cấu trúc `experiments/...`, kèm `experiments/_export/manifest.json`; giải nén
+tại repo root là dùng được ngay. Mặc định chỉ gồm `best.pt`.

@@ -92,3 +92,30 @@ rồi chạy notebook phân tích. Không commit `experiments/`.
   chọn `feature/...`; sau khi merge dùng `main`. Kết quả luôn gắn với commit hash trong
   `environment.json`, không chỉ tên branch.
 - **Dữ liệu:** không commit dataset; Drive để chế độ private.
+
+## 6. Tải kết quả về local
+
+Sau khi chạy xong một batch, gom tất cả run vào một zip:
+
+```bash
+python scripts/export_experiments.py \
+  --rq rq1 \
+  --output "$WASTE_EXPERIMENTS_ROOT/exports/waste_experiments_rq1.zip"
+```
+
+Hoặc để script tự tải qua trình duyệt Colab:
+
+```python
+!python scripts/export_experiments.py --rq rq1 --download
+```
+
+Mặc định chỉ gồm `checkpoints/best.pt`; dùng `--checkpoints all` nếu cần cả `last.pt` để resume.
+
+Giải nén tại repo root:
+
+```bash
+unzip waste_experiments_rq1.zip -d /path/to/waste_classifier
+```
+
+Dữ liệu vào đúng `experiments/rq1/...`. Manifest chi tiết nằm ở
+`experiments/_export/manifest.json`.

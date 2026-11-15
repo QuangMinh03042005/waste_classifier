@@ -264,6 +264,12 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 [docs/models.md](docs/models.md), [docs/training.md](docs/training.md),
 [docs/model_selection.md](docs/model_selection.md).
 
+Xuất kết quả thực nghiệm thành một file zip:
+
+```bash
+uv run python scripts/export_experiments.py --rq rq1
+```
+
 ## 12. Project Status
 
 **Status:** In Progress

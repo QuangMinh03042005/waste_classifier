@@ -1,0 +1,66 @@
+schema_version: "1.0"
+plan_id: rq1_mobilenet_selection
+rq: rq1
+title: "Chọn cấu hình fine-tune MobileNetV3_small (validation-only)"
+author: "Đinh Quang Minh"
+created_at: "2026-11-16"
+status: active
+
+question: >-
+  Chiến lược freeze/unfreeze và dropout nào cho MobileNetV3_small pretrained hiệu quả
+  nhất trên validation, với cùng split và ngân sách?
+hypothesis: >-
+  M2 (freeze 3, unfreeze 2) hoặc M1 (full fine-tune) đạt val Macro-F1 cao nhất;
+  M4 freeze quá lâu sẽ underfit trong 12 epoch.
+expected_result: >-
+  M1/M2 tương đương; M3 (dropout 0.3) thấp hơn nhẹ; M4 thấp hơn do chỉ fine-tune 7 epoch.
+failure_plan: >-
+  Nếu top-2 vẫn tăng ở epoch 12, chạy tiếp 30 epoch trước khi kết luận. Không dùng test.
+
+baseline:
+  experiment: rq1_mobilenet_m2_freeze3
+  description: "Freeze 3 epoch, mở 2 block cuối, dropout 0.2."
+
+variants:
+  - experiment: rq1_mobilenet_m1_full_ft
+    change: "Bỏ freeze, full fine-tune từ epoch 1."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "pretrained ImageNet, dropout 0.2, AdamW LR 1e-3, batch 64"
+      - "12 epoch, seed 42; top-2 chạy thêm seed 123, 2024"
+  - experiment: rq1_mobilenet_m3_dropout03
+    change: "Tăng dropout classifier lên 0.3."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "pretrained ImageNet, freeze 3 epoch, mở 2 block cuối"
+      - "AdamW LR 1e-3, batch 64, 12 epoch, seed 42"
+  - experiment: rq1_mobilenet_m4_freeze5
+    change: "Freeze 5 epoch, mở 3 block cuối."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "pretrained ImageNet, dropout 0.2"
+      - "AdamW LR 1e-3, batch 64, 12 epoch, seed 42"
+
+comparison:
+  metric: val_macro_f1
+  secondary: [val_loss, train_val_gap, duration_sec]
+  test_policy: "Không đánh giá test trong bước chọn cấu hình."
+  success_criterion: >-
+    Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable
+    params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "không sử dụng trong selection"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024]
+
+budget:
+  max_epochs: 12
+  batch_size: 64
+  estimated_minutes_per_run: 6
+
+risks: "12 epoch có thể chưa đủ để phân biệt M1 và M2."
+notes: "Cấu hình thắng sẽ được dùng cho arm MobileNet pretrained của RQ1."

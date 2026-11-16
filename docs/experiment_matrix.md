@@ -1,10 +1,31 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-15T16:57:34.097994+00:00`
-- Số plan: 4
-- Số experiment: 12
+- Tạo lúc: `2026-11-16T05:49:59.859118+00:00`
+- Số plan: 6
+- Số experiment: 24
 
 ## RQ1 – Model Architecture
+
+### `rq1_custom_cnn_debug` — Debug và chọn cấu hình Custom CNN (validation-only)
+
+- **Câu hỏi:** Custom CNN B có đang underfit/overfit hoặc gặp vấn đề optimization không, và cấu hình nào (budget, LR, batch size, weight decay, residual) cho val Macro-F1 tốt nhất?
+- **Giả thuyết:** Cấu hình B hiện tại chưa hội tụ ở 12 epoch; tăng lên 30-50 epoch sẽ cải thiện rõ. Residual có thể tăng val Macro-F1 nhưng không vượt quá 0.01.
+- **Kết quả kỳ vọng:** D1 (50 epoch) cao hơn D0; D2/D3 cho thấy LR 1e-3 gần tối ưu; D4/D5 thay đổi nhỏ; R1 residual không vượt trội rõ nếu dữ liệu chỉ ~5.5k ảnh.
+- **Nếu giả thuyết sai:** Nếu overfit 1 batch thất bại, dừng và sửa pipeline. Nếu val vẫn thấp sau 50 epoch, kiểm tra lại dữ liệu/transform và ghi nhận giới hạn. Không dùng test.
+- **Metric:** val_macro_f1
+- **Test policy:** Không đánh giá test trong bước debug.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/custom_cnn_debug.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_customcnn_d0 | baseline | — | — | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_d1 | variant | Tăng budget lên 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_d2 | variant | Giảm learning rate xuống 3e-4. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_d3 | variant | Tăng learning rate lên 3e-3. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_d4 | variant | Giảm batch size xuống 32. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_d5 | variant | Tăng weight decay lên 1e-3. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, batch 64, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_r1 | variant | Thêm residual connection ở mỗi stage. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
 
 ### `rq1_custom_cnn_selection` — Chọn cấu hình Custom CNN baseline (validation-only)
 
@@ -24,12 +45,30 @@
 | rq1_customcnn_cand_c | variant | Tăng dropout từ 0.3 lên 0.5. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2; AdamW lr 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | completed |
 | rq1_customcnn_cand_d | variant | Tăng kênh lên 48-96-192-384 để kiểm tra capacity cao hơn. | split v1, input 224x224, không augmentation, không class weighting; convs/stage 1-2-2-2, dropout 0.3; AdamW lr 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn cấu hình có mean val Macro-F1 cao nhất trên top-2 × 3 seed; nếu chênh < 0.005, chọn cấu hình ít tham số/FLOPs hơn và ít overfit hơn. | 42, 123, 2024 | completed |
 
-### `rq1_model_comparison` — So sánh Custom CNN và MobileNetV3_small
+### `rq1_mobilenet_selection` — Chọn cấu hình fine-tune MobileNetV3_small (validation-only)
 
-- **Câu hỏi:** Transfer learning với MobileNetV3_small có cải thiện Macro-F1 so với Custom CNN huấn luyện từ đầu trên cùng split dữ liệu không?
-- **Giả thuyết:** MobileNetV3_small pretrained ImageNet đạt Macro-F1 cao hơn Custom CNN ít nhất 0.02 và ổn định trên cả 3 seed.
-- **Kết quả kỳ vọng:** MobileNetV3_small cao hơn baseline ở cả 3 seed; chênh lệch rõ nhất ở các lớp Glass và Paper, nơi đặc trưng texture/kết cấu quan trọng.
-- **Nếu giả thuyết sai:** Nếu không cải thiện, báo cáo trung thực kết quả, phân tích overfitting/underfitting và chi phí tính toán. Không thay đổi tiêu chí hoặc chọn seed sau khi xem test.
+- **Câu hỏi:** Chiến lược freeze/unfreeze và dropout nào cho MobileNetV3_small pretrained hiệu quả nhất trên validation, với cùng split và ngân sách?
+- **Giả thuyết:** M2 (freeze 3, unfreeze 2) hoặc M1 (full fine-tune) đạt val Macro-F1 cao nhất; M4 freeze quá lâu sẽ underfit trong 12 epoch.
+- **Kết quả kỳ vọng:** M1/M2 tương đương; M3 (dropout 0.3) thấp hơn nhẹ; M4 thấp hơn do chỉ fine-tune 7 epoch.
+- **Nếu giả thuyết sai:** Nếu top-2 vẫn tăng ở epoch 12, chạy tiếp 30 epoch trước khi kết luận. Không dùng test.
+- **Metric:** val_macro_f1
+- **Test policy:** Không đánh giá test trong bước chọn cấu hình.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/mobilenet_selection.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_mobilenet_m2_freeze3 | baseline | — | — | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
+| rq1_mobilenet_m1_full_ft | variant | Bỏ freeze, full fine-tune từ epoch 1. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, AdamW LR 1e-3, batch 64; 12 epoch, seed 42; top-2 chạy thêm seed 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
+| rq1_mobilenet_m3_dropout03 | variant | Tăng dropout classifier lên 0.3. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, freeze 3 epoch, mở 2 block cuối; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
+| rq1_mobilenet_m4_freeze5 | variant | Freeze 5 epoch, mở 3 block cuối. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
+
+### `rq1_model_comparison` — So sánh Custom CNN, MobileNetV3_small scratch và pretrained
+
+- **Câu hỏi:** Transfer learning với MobileNetV3_small có cải thiện Macro-F1 so với Custom CNN huấn luyện từ đầu trên cùng split dữ liệu không; phần cải thiện đến từ kiến trúc hay từ pretrained weights?
+- **Giả thuyết:** MobileNetV3_small pretrained đạt Macro-F1 cao hơn Custom CNN ít nhất 0.02 và cao hơn MobileNetV3_small from scratch; khoảng cách với scratch lớn hơn khoảng cách giữa scratch và Custom CNN.
+- **Kết quả kỳ vọng:** Pretrained > scratch > Custom CNN. Chênh lệch rõ nhất ở Glass và Paper, nơi đặc trưng texture quan trọng và pretrained features có lợi.
+- **Nếu giả thuyết sai:** Nếu pretrained không cải thiện, hoặc scratch ≈ pretrained, báo cáo trung thực và phân tích nguyên nhân (domain shift, kích thước dữ liệu, overfitting). Không đổi tiêu chí hoặc chọn seed sau khi xem test.
 - **Metric:** macro_f1
 - **Test policy:** Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần sau khi khóa cấu hình.
 - **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
@@ -37,8 +76,9 @@
 
 | Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| rq1_customcnn | baseline | — | — | macro_f1 | Macro-F1 trung bình cao hơn baseline >= 0.02 và cao hơn ở >= 2/3 seed. | 42, 123, 2024 | active |
-| rq1_mobilenetv3s_full | variant | Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet. | split v1, stratified theo (dataset, class), chống trùng bằng pHash; input 224x224, normalize mean/std ImageNet; không augmentation, không class weighting; AdamW, batch 64, tối đa 30 epoch, early stopping patience 7; seed 42, 123, 2024 | macro_f1 | Macro-F1 trung bình cao hơn baseline >= 0.02 và cao hơn ở >= 2/3 seed. | 42, 123, 2024 | active |
+| rq1_customcnn | baseline | — | — | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 2025 | active |
+| rq1_mobilenetv3s_full | variant | Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet. | split v1, stratified theo (dataset, class), chống trùng bằng pHash; input 224x224, normalize mean/std ImageNet; không augmentation, không class weighting; budget epoch giống Custom CNN (30 hoặc 50 theo kết quả debug); AdamW, batch 64, early stopping patience 7; seed 42, 123, 2024, 7, 2025 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 2025 | active |
+| rq1_mobilenetv3s_scratch | variant | MobileNetV3_small from scratch để tách ảnh hưởng của kiến trúc khỏi pretrained weights. | split v1, input 224x224, không augmentation, không class weighting; không freeze, dropout 0.2, AdamW LR 1e-3, batch 64; budget epoch giống Custom CNN (30 hoặc 50); seed 42, 123, 2024, 7, 2025 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 2025 | active |
 
 ## RQ2 – Data Augmentation & Class Weighting
 

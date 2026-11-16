@@ -93,3 +93,30 @@ experiments/rq1/<experiment>_s<seed>/
 python scripts/collect_results.py --rq rq1 --markdown
 python scripts/selection_report.py
 ```
+
+## Debug và selection
+
+Custom CNN:
+
+```bash
+python scripts/selection_report.py \
+  --config-dir configs/rq1/debug \
+  --prefix rq1_customcnn_ \
+  --experiments rq1_customcnn_d0 rq1_customcnn_d1 rq1_customcnn_d2 \
+    rq1_customcnn_d3 rq1_customcnn_d4 rq1_customcnn_d5 rq1_customcnn_r1 \
+  --title "Debug Custom CNN" \
+  --output docs/customcnn_debug.md
+```
+
+MobileNet:
+
+```bash
+python scripts/selection_report.py \
+  --config-dir configs/rq1/selection/mobilenet \
+  --prefix rq1_mobilenet_ \
+  --title "Chọn cấu hình MobileNetV3_small" \
+  --id-prefix rq1_mobilenet_ \
+  --output docs/mobilenet_selection.md
+```
+
+Cả hai chỉ dùng validation (`evaluate_test: false`).

@@ -1,0 +1,86 @@
+schema_version: "1.0"
+plan_id: rq1_custom_cnn_debug
+rq: rq1
+title: "Debug và chọn cấu hình Custom CNN (validation-only)"
+author: "Đinh Quang Minh"
+created_at: "2026-11-16"
+status: active
+
+question: >-
+  Custom CNN B có đang underfit/overfit hoặc gặp vấn đề optimization không, và cấu hình
+  nào (budget, LR, batch size, weight decay, residual) cho val Macro-F1 tốt nhất?
+hypothesis: >-
+  Cấu hình B hiện tại chưa hội tụ ở 12 epoch; tăng lên 30-50 epoch sẽ cải thiện rõ.
+  Residual có thể tăng val Macro-F1 nhưng không vượt quá 0.01.
+expected_result: >-
+  D1 (50 epoch) cao hơn D0; D2/D3 cho thấy LR 1e-3 gần tối ưu; D4/D5 thay đổi nhỏ;
+  R1 residual không vượt trội rõ nếu dữ liệu chỉ ~5.5k ảnh.
+failure_plan: >-
+  Nếu overfit 1 batch thất bại, dừng và sửa pipeline. Nếu val vẫn thấp sau 50 epoch,
+  kiểm tra lại dữ liệu/transform và ghi nhận giới hạn. Không dùng test.
+
+baseline:
+  experiment: rq1_customcnn_d0
+  description: "Custom CNN B, 30 epoch, LR 1e-3, batch 64, weight decay 1e-4."
+
+variants:
+  - experiment: rq1_customcnn_d1
+    change: "Tăng budget lên 50 epoch."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42"
+  - experiment: rq1_customcnn_d2
+    change: "Giảm learning rate xuống 3e-4."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "30 epoch, batch 64, weight decay 1e-4, seed 42"
+  - experiment: rq1_customcnn_d3
+    change: "Tăng learning rate lên 3e-3."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "30 epoch, batch 64, weight decay 1e-4, seed 42"
+  - experiment: rq1_customcnn_d4
+    change: "Giảm batch size xuống 32."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "30 epoch, AdamW LR 1e-3, weight decay 1e-4, seed 42"
+  - experiment: rq1_customcnn_d5
+    change: "Tăng weight decay lên 1e-3."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "30 epoch, AdamW LR 1e-3, batch 64, seed 42"
+  - experiment: rq1_customcnn_r1
+    change: "Thêm residual connection ở mỗi stage."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "30 epoch, AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42"
+
+comparison:
+  metric: val_macro_f1
+  secondary: [val_loss, train_val_gap, params, duration_sec]
+  test_policy: "Không đánh giá test trong bước debug."
+  success_criterion: >-
+    D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định
+    thì dùng residual. Chỉ thay một yếu tố mỗi biến thể.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "không sử dụng trong debug"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42]
+
+budget:
+  max_epochs: 50
+  batch_size: 64
+  estimated_minutes_per_run: 20
+
+risks: "Val 826 ảnh có thể gây nhiễu; cần kiểm tra lại top-2 với seed khác trước khi khóa."
+notes: "Sau debug, cập nhật config final và plan RQ1 trước khi chạy test."

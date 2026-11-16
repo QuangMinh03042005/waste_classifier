@@ -40,11 +40,19 @@ def load_candidates(config_dir: Path) -> dict[str, dict[str, Any]]:
     return candidates
 
 
-def scan_runs(experiments_root: Path, prefix: str = PREFIX) -> list[dict[str, Any]]:
+def scan_runs(
+    experiments_root: Path,
+    prefix: str = PREFIX,
+    *,
+    experiments: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    wanted = set(experiments or [])
     runs: list[dict[str, Any]] = []
     for run_file in sorted((experiments_root / "rq1").glob(f"{prefix}*_s*/run.json")):
         run = json.loads(run_file.read_text(encoding="utf-8"))
         if run.get("status") != "completed":
+            continue
+        if wanted and run.get("experiment") not in wanted:
             continue
         metrics_file = run_file.with_name("metrics.json")
         metrics = (
@@ -90,10 +98,17 @@ def _table(columns: list[str], rows: list[list[Any]]) -> list[str]:
 
 
 def build_markdown(
-    candidates: dict[str, dict[str, Any]], runs: list[dict[str, Any]]
+    candidates: dict[str, dict[str, Any]],
+    runs: list[dict[str, Any]],
+    *,
+    title: str = "Chọn cấu hình Custom CNN",
+    id_prefix: str = "rq1_customcnn_",
 ) -> str:
+    def short_id(name: str) -> str:
+        return name.replace(id_prefix, "")
+
     lines = [
-        "# Chọn cấu hình Custom CNN",
+        f"# {title}",
         "",
         "Bước chọn cấu hình chỉ dùng **validation**, không đánh giá test "
         "(`evaluate_test: false`).",
@@ -104,7 +119,7 @@ def build_markdown(
 
     candidate_rows = [
         [
-            experiment.replace("rq1_customcnn_", ""),
+            short_id(experiment),
             values.get("channels"),
             values.get("convs_per_stage"),
             values.get("dropout"),
@@ -140,7 +155,7 @@ def build_markdown(
 
     run_rows = [
         [
-            run["experiment"].replace("rq1_customcnn_", ""),
+            short_id(run["experiment"]),
             run["seed"],
             run["val_macro_f1"],
             run["val_loss"],
@@ -178,7 +193,7 @@ def build_markdown(
         std = statistics.stdev(scores) if len(scores) > 1 else None
         summary_rows.append(
             [
-                experiment.replace("rq1_customcnn_", ""),
+                short_id(experiment),
                 len(scores),
                 mean,
                 std,
@@ -247,6 +262,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("docs/model_selection.md"),
     )
     parser.add_argument("--prefix", type=str, default=PREFIX)
+    parser.add_argument(
+        "--experiments",
+        nargs="+",
+        default=None,
+        help="Chỉ lấy các experiment này (dùng cho debug report).",
+    )
+    parser.add_argument(
+        "--title",
+        type=str,
+        default="Chọn cấu hình Custom CNN",
+    )
+    parser.add_argument("--id-prefix", type=str, default="rq1_customcnn_")
     return parser
 
 
@@ -257,9 +284,22 @@ def main(argv: list[str] | None = None) -> int:
 
     args = build_parser().parse_args(argv)
     candidates = load_candidates(args.config_dir)
-    runs = scan_runs(args.experiments_root, args.prefix)
+    runs = scan_runs(
+        args.experiments_root,
+        args.prefix,
+        experiments=args.experiments,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(build_markdown(candidates, runs) + "\n", encoding="utf-8")
+    args.output.write_text(
+        build_markdown(
+            candidates,
+            runs,
+            title=args.title,
+            id_prefix=args.id_prefix,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     print(f"Đã ghi báo cáo: {args.output} ({len(runs)} run)")
     return 0
 

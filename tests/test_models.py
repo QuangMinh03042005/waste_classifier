@@ -36,6 +36,16 @@ def test_custom_cnn_rejects_invalid_config() -> None:
         CustomCNN(dropout=1.0)
 
 
+def test_custom_cnn_residual_forward() -> None:
+    model = build_custom_cnn(residual=True)
+    model.eval()
+    with torch.no_grad():
+        output = model(torch.zeros(2, 3, 64, 64))
+    assert output.shape == (2, 5)
+    assert model.residual is True
+    assert count_parameters(model) > count_parameters(build_custom_cnn(residual=False))
+
+
 def test_mobilenet_replaces_classifier() -> None:
     model = build_mobilenet_v3_small(pretrained=False, num_classes=5, dropout=0.3)
     assert model.classifier[-1].out_features == 5

@@ -12,8 +12,11 @@ model = build_custom_cnn(
     channels=(32, 64, 128, 256),
     convs_per_stage=(1, 2, 2, 2),
     dropout=0.3,
+    residual=False,
 )
 ```
+
+`residual=True` thêm skip connection cấp stage (1×1 conv khi đổi số kênh), tăng nhẹ số tham số. Đây là biến thể debug R1.
 
 | Stage | Layers | Output |
 |---|---|---|
@@ -77,6 +80,7 @@ model:
   channels: [32, 64, 128, 256]
   convs_per_stage: [1, 2, 2, 2]
   dropout: 0.3
+  residual: false
 ```
 
 ```yaml

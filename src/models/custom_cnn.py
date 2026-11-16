@@ -17,6 +17,33 @@ class ConvBlock(nn.Sequential):
         )
 
 
+class ResidualStage(nn.Module):
+    """Stage gồm nhiều ConvBlock + skip connection + MaxPool."""
+
+    def __init__(self, in_channels: int, out_channels: int, conv_count: int) -> None:
+        super().__init__()
+        layers: list[nn.Module] = []
+        channels = in_channels
+        for _ in range(conv_count):
+            layers.append(ConvBlock(channels, out_channels))
+            channels = out_channels
+        self.body = nn.Sequential(*layers)
+        self.shortcut: nn.Module = (
+            nn.Identity()
+            if in_channels == out_channels
+            else nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+                nn.BatchNorm2d(out_channels),
+            )
+        )
+        self.pool = nn.MaxPool2d(kernel_size=2)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        residual = self.shortcut(x)
+        out = torch.relu(self.body(x) + residual)
+        return self.pool(out)
+
+
 class CustomCNN(nn.Module):
     """CNN huấn luyện từ đầu.
 
@@ -30,6 +57,7 @@ class CustomCNN(nn.Module):
         channels: tuple[int, ...] = (32, 64, 128, 256),
         convs_per_stage: tuple[int, ...] = (1, 2, 2, 2),
         dropout: float = 0.3,
+        residual: bool = False,
     ) -> None:
         super().__init__()
         if len(channels) != 4:
@@ -44,17 +72,23 @@ class CustomCNN(nn.Module):
         self.channels = tuple(channels)
         self.convs_per_stage = tuple(convs_per_stage)
         self.num_classes = num_classes
+        self.residual = bool(residual)
 
         self.stem = ConvBlock(3, channels[0])
-        stages: list[nn.Sequential] = []
+        stages: list[nn.Module] = []
         in_channels = channels[0]
         for out_channels, conv_count in zip(channels, convs_per_stage, strict=True):
-            layers: list[nn.Module] = []
-            for _ in range(conv_count):
-                layers.append(ConvBlock(in_channels, out_channels))
-                in_channels = out_channels
-            layers.append(nn.MaxPool2d(kernel_size=2))
-            stages.append(nn.Sequential(*layers))
+            if self.residual:
+                stages.append(ResidualStage(in_channels, out_channels, conv_count))
+            else:
+                layers: list[nn.Module] = []
+                channels_cursor = in_channels
+                for _ in range(conv_count):
+                    layers.append(ConvBlock(channels_cursor, out_channels))
+                    channels_cursor = out_channels
+                layers.append(nn.MaxPool2d(kernel_size=2))
+                stages.append(nn.Sequential(*layers))
+            in_channels = out_channels
         self.stages = nn.ModuleList(stages)
 
         self.pool = nn.AdaptiveAvgPool2d(1)
@@ -88,6 +122,7 @@ def build_custom_cnn(
     channels: tuple[int, ...] | list[int] = (32, 64, 128, 256),
     convs_per_stage: tuple[int, ...] | list[int] = (1, 2, 2, 2),
     dropout: float = 0.3,
+    residual: bool = False,
     **_: object,
 ) -> CustomCNN:
     """Factory cho Custom CNN; bỏ qua kwargs không liên quan."""
@@ -96,4 +131,5 @@ def build_custom_cnn(
         channels=tuple(channels),
         convs_per_stage=tuple(convs_per_stage),
         dropout=dropout,
+        residual=residual,
     )

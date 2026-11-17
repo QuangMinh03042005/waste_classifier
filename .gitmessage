@@ -1,0 +1,10 @@
+
+# <scope>: <mô tả tiếng Việt>
+#
+# scope: feat | fix | data | docs | test | chore
+# Ví dụ:
+#   data: thêm split v1
+#   fix: sửa lỗi RNG khi resume trên CUDA
+#   docs: cập nhật hướng dẫn chạy Colab
+#
+# Dòng đầu tối đa ~72 ký tự. Không dùng tiếng Anh hoặc tiếng Việt không dấu.

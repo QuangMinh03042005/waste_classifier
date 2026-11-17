@@ -139,7 +139,10 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 
 - Nhánh: `main`, `feature/shared-pipeline`, `feature/rq1-model-comparison`, `feature/rq2-ablation`, `feature/rq3-generalization`.
 - Không push trực tiếp vào `main`; mọi thay đổi qua PR.
-- Commit message: `<scope>: <mô tả>` (vd: `rq1: add MobileNetV3_small baseline config`).
+- Commit message: `<scope>: <mô tả tiếng Việt>`; scope giữ tiếng Anh ngắn: `feat`, `fix`, `data`, `docs`, `test`, `chore`.
+- Ví dụ: `data: thêm split v1`, `fix: sửa lỗi RNG khi resume trên CUDA`.
+- Từ nay **không dùng commit message tiếng Anh hoặc tiếng Việt không dấu**.
+- Có thể dùng template: `git config commit.template .gitmessage`.
 - Trước khi commit: `uv run ruff check .` và `uv run pytest`; notebook phải sạch output và đã có PDF tương ứng.
 
 ## 9. Trung thực học thuật

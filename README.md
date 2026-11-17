@@ -214,6 +214,7 @@ Dự án sử dụng một repository chung và Git Branch để phân chia côn
 5. Không commit dataset, checkpoint lớn và file cache lên Git.
 6. Các thí nghiệm phải lưu cấu hình và kết quả riêng biệt.
 7. Không chỉnh sửa hoặc ghi đè kết quả thực nghiệm cũ.
+8. Commit message dùng tiếng Việt theo dạng `<scope>: <mô tả>`; scope: `feat`, `fix`, `data`, `docs`, `test`, `chore`.
 
 ## 9. Công nghệ sử dụng
 

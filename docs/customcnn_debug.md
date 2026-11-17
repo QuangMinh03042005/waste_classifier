@@ -23,4 +23,29 @@ Bước chọn cấu hình chỉ dùng **validation**, không đánh giá test (
 
 ## Kết quả
 
-_Chưa có run completed. Chạy các config trong `configs/rq1/selection/`._
+| ID | Seed | Val Macro-F1 | Val Loss | Best epoch | Params | Duration (s) | Commit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| d0 | 42 | 0.8579 | 0.4474 | 30 | 1174501 | 834.5820 | c01de168 |
+| d1 | 42 | 0.8746 | 0.4121 | 48 | 1174501 | 1417.2560 | c01de168 |
+| d2 | 42 | 0.8616 | 0.4852 | 21 | 1174501 | 781.2080 | c01de168 |
+| d4 | 42 | 0.8590 | 0.4494 | 29 | 1174501 | 887.2520 | c01de168 |
+| d5 | 42 | 0.8622 | 0.4519 | 28 | 1174501 | 899.9390 | c01de168 |
+| r1 | 42 | 0.8595 | 0.4272 | 30 | 1218405 | 923.1010 | c01de168 |
+
+## Tổng hợp theo ứng viên
+
+| ID | Số seed | Val Macro-F1 mean | Std | Params |
+| --- | --- | --- | --- | --- |
+| d0 | 1 | 0.8579 |  | 1174501 |
+| d1 | 1 | 0.8746 |  | 1174501 |
+| d2 | 1 | 0.8616 |  | 1174501 |
+| d4 | 1 | 0.8590 |  | 1174501 |
+| d5 | 1 | 0.8622 |  | 1174501 |
+| r1 | 1 | 0.8595 |  | 1218405 |
+
+## Kết luận
+
+- Chọn **d1** với val Macro-F1 trung bình **0.8746** (std ), 1174501 tham số.
+- Đây là kết quả chọn trên validation; test chưa được đánh giá.
+- Dùng cấu hình này cho RQ1 với budget cuối × 5 seed ở bước tiếp theo.
+- Lưu ý: ứng viên này mới có ít hơn 3 seed.

@@ -40,6 +40,18 @@ variants:
       - "split v1, input 224x224, không augmentation, không class weighting"
       - "pretrained ImageNet, dropout 0.2"
       - "AdamW LR 1e-3, batch 64, 12 epoch, seed 42"
+  - experiment: rq1_mobilenet_m1_full_ft_50
+    change: "Xác nhận M1 (full fine-tune) ở final budget 50 epoch."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "pretrained ImageNet, dropout 0.2, không freeze"
+      - "AdamW LR 1e-3, batch 64, seed 42, 123, 2024"
+  - experiment: rq1_mobilenet_m4_freeze5_50
+    change: "Xác nhận M4 (freeze 5, mở 3 block) ở final budget 50 epoch."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "pretrained ImageNet, dropout 0.2, freeze 5 epoch"
+      - "AdamW LR 1e-3, batch 64, seed 42, 123, 2024"
 
 comparison:
   metric: val_macro_f1
@@ -47,7 +59,8 @@ comparison:
   test_policy: "Không đánh giá test trong bước chọn cấu hình."
   success_criterion: >-
     Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable
-    params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch.
+    params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch
+    trước khi khóa cấu hình.
 
 data:
   train_datasets: [realwaste, trashnet]
@@ -58,9 +71,9 @@ data:
 seeds: [42, 123, 2024]
 
 budget:
-  max_epochs: 12
+  max_epochs: 50
   batch_size: 64
-  estimated_minutes_per_run: 6
+  estimated_minutes_per_run: 20
 
-risks: "12 epoch có thể chưa đủ để phân biệt M1 và M2."
-notes: "Cấu hình thắng sẽ được dùng cho arm MobileNet pretrained của RQ1."
+risks: "12 epoch có thể chưa đủ để phân biệt M1 và M2; cần xác nhận ở 50 epoch."
+notes: "12 epoch: M1=0.8811, M4=0.8577, M2=0.8505, M3=0.8421. Xác nhận M1/M4 ở 50 epoch (final budget) trước khi khóa."

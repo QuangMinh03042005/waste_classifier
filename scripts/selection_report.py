@@ -236,7 +236,7 @@ def build_markdown(
                 f"- Chọn **{best[0]}** với val Macro-F1 trung bình "
                 f"**{best[2]:.4f}** (std {_fmt(best[3])}), {best[4]} tham số.",
                 "- Đây là kết quả chọn trên validation; test chưa được đánh giá.",
-                "- Dùng cấu hình này cho RQ1 với 30 epoch × 3 seed ở bước tiếp theo.",
+                "- Dùng cấu hình này cho RQ1 với budget cuối × 5 seed ở bước tiếp theo.",
             ]
         )
         if best[1] < 3:

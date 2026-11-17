@@ -83,4 +83,4 @@ budget:
   estimated_minutes_per_run: 20
 
 risks: "Val 826 ảnh có thể gây nhiễu; cần kiểm tra lại top-2 với seed khác trước khi khóa."
-notes: "Sau debug, cập nhật config final và plan RQ1 trước khi chạy test."
+notes: "Kết quả seed 42: D0=0.8579 (30 epoch), D1=0.8746 (50 epoch), D2=0.8616, D4=0.8590, D5=0.8622, R1=0.8595. Chọn B 50 epoch, không residual. D3 lỗi RNG khi resume, cần chạy lại."

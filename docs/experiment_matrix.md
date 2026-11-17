@@ -1,8 +1,8 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-16T05:49:59.859118+00:00`
+- Tạo lúc: `2026-11-17T03:38:54.994908+00:00`
 - Số plan: 6
-- Số experiment: 24
+- Số experiment: 26
 
 ## RQ1 – Model Architecture
 
@@ -58,10 +58,12 @@
 
 | Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| rq1_mobilenet_m2_freeze3 | baseline | — | — | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
-| rq1_mobilenet_m1_full_ft | variant | Bỏ freeze, full fine-tune từ epoch 1. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, AdamW LR 1e-3, batch 64; 12 epoch, seed 42; top-2 chạy thêm seed 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
-| rq1_mobilenet_m3_dropout03 | variant | Tăng dropout classifier lên 0.3. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, freeze 3 epoch, mở 2 block cuối; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
-| rq1_mobilenet_m4_freeze5 | variant | Freeze 5 epoch, mở 3 block cuối. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Nếu top-2 còn tăng ở epoch 12, xác nhận lại ở 30 epoch. | 42, 123, 2024 | active |
+| rq1_mobilenet_m2_freeze3 | baseline | — | — | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | active |
+| rq1_mobilenet_m1_full_ft | variant | Bỏ freeze, full fine-tune từ epoch 1. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, AdamW LR 1e-3, batch 64; 12 epoch, seed 42; top-2 chạy thêm seed 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | active |
+| rq1_mobilenet_m3_dropout03 | variant | Tăng dropout classifier lên 0.3. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, freeze 3 epoch, mở 2 block cuối; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | active |
+| rq1_mobilenet_m4_freeze5 | variant | Freeze 5 epoch, mở 3 block cuối. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | active |
+| rq1_mobilenet_m1_full_ft_50 | variant | Xác nhận M1 (full fine-tune) ở final budget 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, không freeze; AdamW LR 1e-3, batch 64, seed 42, 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | active |
+| rq1_mobilenet_m4_freeze5_50 | variant | Xác nhận M4 (freeze 5, mở 3 block) ở final budget 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, freeze 5 epoch; AdamW LR 1e-3, batch 64, seed 42, 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | active |
 
 ### `rq1_model_comparison` — So sánh Custom CNN, MobileNetV3_small scratch và pretrained
 

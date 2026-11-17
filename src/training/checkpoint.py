@@ -54,14 +54,17 @@ def capture_rng_state() -> dict[str, Any]:
 
 def restore_rng_state(state: dict[str, Any]) -> None:
     """Khôi phục trạng thái RNG đã lưu."""
+    def _cpu(value: Any) -> Any:
+        return value.detach().cpu() if isinstance(value, torch.Tensor) else value
+
     if "torch" in state:
-        torch.set_rng_state(state["torch"])
+        torch.set_rng_state(_cpu(state["torch"]))
     if "python" in state:
         random.setstate(state["python"])
     if "numpy" in state:
         np.random.set_state(state["numpy"])
     if "cuda" in state and torch.cuda.is_available():
-        torch.cuda.set_rng_state_all(state["cuda"])
+        torch.cuda.set_rng_state_all([_cpu(item) for item in state["cuda"]])
 
 
 def _cpu_state_dict(model: nn.Module) -> dict[str, torch.Tensor]:

@@ -16,11 +16,11 @@ model:
   num_classes: 5
   pretrained: true
   dropout: 0.2
-  freeze_epochs: 3
+  freeze_epochs: 0
   unfreeze_blocks: 2
 
 training:
-  epochs: 30
+  epochs: 50
   optimizer: adamw
   lr: 0.001
   weight_decay: 0.0001

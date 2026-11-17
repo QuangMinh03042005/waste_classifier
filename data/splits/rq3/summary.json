@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-11-17T05:44:03.022342+00:00",
+  "source_split": "D:\\workspace\\waste_classifier\\data\\splits\\v1\\split.csv",
+  "protocols": {
+    "rw_to_tn": {
+      "train_dataset": "realwaste",
+      "test_dataset": "trashnet",
+      "counts": {
+        "test": 2390,
+        "train": 2163,
+        "val": 466
+      },
+      "by_split_dataset": {
+        "test/trashnet": 2390,
+        "train/realwaste": 2163,
+        "val/realwaste": 466
+      },
+      "excluded_groups": {}
+    },
+    "tn_to_rw": {
+      "train_dataset": "trashnet",
+      "test_dataset": "realwaste",
+      "counts": {
+        "test": 3092,
+        "train": 1670,
+        "val": 360
+      },
+      "by_split_dataset": {
+        "test/realwaste": 3092,
+        "train/trashnet": 1670,
+        "val/trashnet": 360
+      },
+      "excluded_groups": {}
+    },
+    "pooled": {
+      "counts": {
+        "test": 823,
+        "train": 3833,
+        "val": 826
+      },
+      "by_split_dataset": {
+        "test/realwaste": 463,
+        "test/trashnet": 360,
+        "train/realwaste": 2163,
+        "train/trashnet": 1670,
+        "val/realwaste": 466,
+        "val/trashnet": 360
+      }
+    }
+  }
+}

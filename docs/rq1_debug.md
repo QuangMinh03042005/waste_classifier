@@ -46,6 +46,25 @@ Tất cả dùng seed 42, `evaluate_test: false`.
 - D2/D3 tốt hơn rõ → cập nhật LR.
 - Không dùng test trong bất kỳ bước nào.
 
+## Kết quả seed 42
+
+| ID | Thay đổi | Val Macro-F1 | Best epoch |
+|---|---|---:|---:|
+| D0 | Baseline 30 epoch | 0.8579 | 30 |
+| **D1** | **Baseline 50 epoch** | **0.8746** | **48** |
+| D2 | LR 3e-4 | 0.8616 | 21 |
+| D3 | LR 3e-3 | 0.8413 | 30 |
+| D4 | Batch 32 | 0.8590 | 29 |
+| D5 | Weight decay 1e-3 | 0.8622 | 28 |
+| R1 | Residual | 0.8595 | 30 |
+
+## Kết luận debug
+
+- Chọn **50 epoch**, LR `1e-3`, batch 64, weight decay `1e-4`.
+- **Không dùng residual** (R1 chỉ hơn D0 0.0016).
+- D3 xác nhận LR `3e-3` quá cao.
+- Final config dùng `early_stopping_patience: 10` cho khớp D1.
+
 ## Sau debug
 
 1. Chốt kiến trúc, LR, batch size, weight decay, budget.

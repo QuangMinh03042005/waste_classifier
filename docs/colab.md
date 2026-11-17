@@ -121,3 +121,5 @@ unzip waste_experiments_rq1.zip -d /path/to/waste_classifier
 
 Dữ liệu vào đúng `experiments/rq1/...`. Manifest chi tiết nằm ở
 `experiments/_export/manifest.json`.
+
+Khi chạy batch dài, dùng `scripts/run_batch.py --export` để tự skip/resume và tạo zip cuối batch.

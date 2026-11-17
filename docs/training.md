@@ -120,3 +120,42 @@ python scripts/selection_report.py \
 ```
 
 Cả hai chỉ dùng validation (`evaluate_test: false`).
+
+## Chạy batch
+
+Thay vì tự viết loop:
+
+```bash
+python scripts/run_batch.py \
+  --configs configs/rq1/debug/customcnn_d0.yaml configs/rq1/debug/customcnn_d1_50ep.yaml \
+  --plan plans/rq1/custom_cnn_debug.yaml \
+  --seeds 42
+```
+
+Batch runner tự:
+
+- Skip run đã `completed`.
+- Resume run dở nếu có `last.pt`.
+- Báo lỗi nếu run dở không có checkpoint.
+- Tùy chọn `--clean-incomplete`, `--continue-on-error`, `--export`.
+
+## Đánh giá checkpoint ngoài miền
+
+```bash
+python -m research.evaluate \
+  --config configs/rq1/rq1_mobilenetv3s_full.yaml \
+  --checkpoint experiments/rq1/<run>/checkpoints/best.pt \
+  --split-csv data/splits/rq3/pooled.csv \
+  --split test --datasets realwaste \
+  --output-dir experiments/rq1/<run>/evaluations/realwaste
+```
+
+Dùng cho RQ3 P3: train pooled một lần, evaluate riêng RealWaste và TrashNet.
+
+## Phân tích RQ1
+
+```bash
+python scripts/analyze_rq1.py
+```
+
+Sinh `docs/rq1_results.md` + hình trong `docs/rq1_analysis/`.

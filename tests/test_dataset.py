@@ -61,6 +61,24 @@ def test_dataset_filters_split(tmp_path: Path) -> None:
     image, label = dataset[0]
     assert image.shape == (3, 224, 224)
     assert label in (1, 3)
+
+
+def test_dataset_all_split_and_dataset_filter(tmp_path: Path) -> None:
+    split_csv = make_split_csv(tmp_path)
+    dataset = WasteDataset(
+        data_root=tmp_path / "data",
+        split_csv=split_csv,
+        split="all",
+        datasets=["realwaste"],
+    )
+    assert len(dataset) == 12
+    with pytest.raises(ValueError, match="Không có ảnh"):
+        WasteDataset(
+            data_root=tmp_path / "data",
+            split_csv=split_csv,
+            split="test",
+            datasets=["trashnet"],
+        )
     assert dataset.sample(0).split == "train"
 
 

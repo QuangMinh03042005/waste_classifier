@@ -4,7 +4,7 @@ rq: rq1
 title: "Debug và chọn cấu hình Custom CNN (validation-only)"
 author: "Đinh Quang Minh"
 created_at: "2026-11-16"
-status: active
+status: completed
 
 question: >-
   Custom CNN B có đang underfit/overfit hoặc gặp vấn đề optimization không, và cấu hình
@@ -83,4 +83,4 @@ budget:
   estimated_minutes_per_run: 20
 
 risks: "Val 826 ảnh có thể gây nhiễu; cần kiểm tra lại top-2 với seed khác trước khi khóa."
-notes: "Kết quả seed 42: D0=0.8579 (30 epoch), D1=0.8746 (50 epoch), D2=0.8616, D4=0.8590, D5=0.8622, R1=0.8595. Chọn B 50 epoch, không residual. D3 lỗi RNG khi resume, cần chạy lại."
+notes: "Kết quả seed 42: D0=0.8579 (30 epoch), D1=0.8746 (50 epoch), D2=0.8616, D3=0.8413 (LR 3e-3), D4=0.8590, D5=0.8622, R1=0.8595. Chọn B 50 epoch, LR 1e-3, không residual."

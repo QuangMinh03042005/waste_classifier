@@ -78,3 +78,24 @@ Script tự kiểm tra:
 - Tỷ lệ tổng bằng 1.
 - Split chỉ chứa `train`/`val`/`test`.
 - Báo lỗi nếu gặp nhãn gốc lạ (tránh mapping sai âm thầm).
+
+## Split cho RQ3
+
+Sinh bằng:
+
+```bash
+uv run python scripts/make_rq3_splits.py
+```
+
+Kết quả trong `data/splits/rq3/`:
+
+| File | Train | Val | Test |
+|---|---:|---:|---:|
+| `rw_to_tn.csv` | RealWaste 2.163 | RealWaste 466 | **toàn bộ TrashNet 2.390** |
+| `tn_to_rw.csv` | TrashNet 1.670 | TrashNet 360 | **toàn bộ RealWaste 3.092** |
+| `pooled.csv` | 3.833 | 826 | 823 (test từng nguồn) |
+
+- Không sửa split v1.
+- Nếu một group chứa ảnh từ cả 2 nguồn, group đó bị loại khỏi cross-dataset split để chống leakage.
+- Với P1/P2, test là toàn bộ nguồn còn lại vì nguồn đó không xuất hiện trong train.
+- Với P3, train pooled bằng `pooled.csv`; đánh giá riêng từng nguồn trên split test.

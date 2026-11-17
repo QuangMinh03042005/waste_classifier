@@ -1,6 +1,6 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-17T03:38:54.994908+00:00`
+- Tạo lúc: `2026-11-17T05:44:15.538813+00:00`
 - Số plan: 6
 - Số experiment: 26
 
@@ -19,13 +19,13 @@
 
 | Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| rq1_customcnn_d0 | baseline | — | — | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
-| rq1_customcnn_d1 | variant | Tăng budget lên 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
-| rq1_customcnn_d2 | variant | Giảm learning rate xuống 3e-4. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
-| rq1_customcnn_d3 | variant | Tăng learning rate lên 3e-3. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
-| rq1_customcnn_d4 | variant | Giảm batch size xuống 32. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
-| rq1_customcnn_d5 | variant | Tăng weight decay lên 1e-3. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, batch 64, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
-| rq1_customcnn_r1 | variant | Thêm residual connection ở mỗi stage. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | active |
+| rq1_customcnn_d0 | baseline | — | — | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
+| rq1_customcnn_d1 | variant | Tăng budget lên 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
+| rq1_customcnn_d2 | variant | Giảm learning rate xuống 3e-4. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
+| rq1_customcnn_d3 | variant | Tăng learning rate lên 3e-3. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
+| rq1_customcnn_d4 | variant | Giảm batch size xuống 32. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
+| rq1_customcnn_d5 | variant | Tăng weight decay lên 1e-3. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, batch 64, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
+| rq1_customcnn_r1 | variant | Thêm residual connection ở mỗi stage. | split v1, input 224x224, không augmentation, không class weighting; channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; 30 epoch, AdamW LR 1e-3, batch 64, weight decay 1e-4, seed 42 | val_macro_f1 | D1 > D0 thêm >= 0.01 thì final dùng 50 epoch. Nếu R1 > D0 thêm >= 0.01 và ổn định thì dùng residual. Chỉ thay một yếu tố mỗi biến thể. | 42 | completed |
 
 ### `rq1_custom_cnn_selection` — Chọn cấu hình Custom CNN baseline (validation-only)
 

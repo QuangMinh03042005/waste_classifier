@@ -22,7 +22,10 @@ SPLITS = ("train", "val", "test")
 
 
 class WasteDataset(Dataset):
-    """Dataset cho một split, trả về (image_tensor, label_index)."""
+    """Dataset cho một split, trả về (image_tensor, label_index).
+
+    `split="all"` dùng để đánh giá ngoài miền trên toàn bộ một nguồn dữ liệu.
+    """
 
     def __init__(
         self,
@@ -33,20 +36,29 @@ class WasteDataset(Dataset):
         class_names: Sequence[str] = CANONICAL_CLASSES,
         transform=None,
         validate_paths: bool = True,
+        datasets: Sequence[str] | None = None,
     ) -> None:
-        if split not in SPLITS:
-            raise ValueError(f"split phải thuộc {SPLITS}, nhận {split!r}")
+        if split not in (*SPLITS, "all"):
+            raise ValueError(f"split phải thuộc {(*SPLITS, 'all')}, nhận {split!r}")
 
         self.data_root = Path(data_root)
         self.split_csv = Path(split_csv)
         self.split = split
+        self.datasets = tuple(datasets) if datasets else None
         self.class_names = tuple(class_names)
         self.class_to_index = {name: index for index, name in enumerate(self.class_names)}
 
         rows = read_split_csv(self.split_csv)
-        self.samples = [row for row in rows if row.split == split]
+        if self.datasets:
+            rows = [row for row in rows if row.dataset in self.datasets]
+        if split != "all":
+            rows = [row for row in rows if row.split == split]
+        self.samples = rows
         if not self.samples:
-            raise ValueError(f"Split {split!r} không có ảnh nào trong {self.split_csv}")
+            raise ValueError(
+                f"Không có ảnh nào cho split={split!r}, datasets={self.datasets} "
+                f"trong {self.split_csv}"
+            )
 
         unknown = sorted({row.label for row in self.samples} - set(self.class_names))
         if unknown:
@@ -110,6 +122,7 @@ def create_datasets(
     image_size: int = DEFAULT_IMAGE_SIZE,
     augmentation: bool = True,
     validate_paths: bool = True,
+    datasets: Sequence[str] | None = None,
 ) -> dict[str, WasteDataset]:
     """Tạo dataset cho cả 3 split với transform tương ứng."""
     return {
@@ -124,6 +137,7 @@ def create_datasets(
                 augmentation=augmentation,
             ),
             validate_paths=validate_paths,
+            datasets=datasets,
         )
         for split in SPLITS
     }
@@ -140,6 +154,7 @@ def create_dataloaders(
     augmentation: bool = True,
     pin_memory: bool | None = None,
     seed: int = 42,
+    datasets: Sequence[str] | None = None,
 ) -> dict[str, DataLoader]:
     """Tạo DataLoader cho train/val/test."""
     if batch_size <= 0:
@@ -147,19 +162,20 @@ def create_dataloaders(
     if pin_memory is None:
         pin_memory = torch.cuda.is_available()
 
-    datasets = create_datasets(
+    created = create_datasets(
         data_root=data_root,
         split_csv=split_csv,
         class_names=class_names,
         image_size=image_size,
         augmentation=augmentation,
+        datasets=datasets,
     )
 
     generator = torch.Generator()
     generator.manual_seed(seed)
 
     loaders: dict[str, DataLoader] = {}
-    for split, dataset in datasets.items():
+    for split, dataset in created.items():
         is_train = split == "train"
         loaders[split] = DataLoader(
             dataset,

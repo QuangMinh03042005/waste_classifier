@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Đo params/FLOPs/latency.")
     parser.add_argument("--runs", nargs="+", type=Path, default=None)
     parser.add_argument("--experiments-root", type=Path, default=default_experiments_root())
-    parser.add_argument("--output", type=Path, default=Path("docs/rq1_efficiency.md"))
+    parser.add_argument("--output", type=Path, default=Path("docs/RQ1/rq1_efficiency.md"))
     parser.add_argument("--device", type=str, default=None)
     return parser
 

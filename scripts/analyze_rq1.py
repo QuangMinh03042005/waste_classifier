@@ -348,8 +348,8 @@ def build_markdown(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Phân tích RQ1.")
     parser.add_argument("--experiments-root", type=Path, default=default_experiments_root())
-    parser.add_argument("--output-md", type=Path, default=Path("docs/rq1_results.md"))
-    parser.add_argument("--figures-dir", type=Path, default=Path("docs/rq1_analysis"))
+    parser.add_argument("--output-md", type=Path, default=Path("docs/RQ1/rq1_results.md"))
+    parser.add_argument("--figures-dir", type=Path, default=Path("docs/RQ1/rq1_analysis"))
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):

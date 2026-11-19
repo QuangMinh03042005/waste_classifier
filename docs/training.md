@@ -105,7 +105,7 @@ python scripts/selection_report.py \
   --experiments rq1_customcnn_d0 rq1_customcnn_d1 rq1_customcnn_d2 \
     rq1_customcnn_d3 rq1_customcnn_d4 rq1_customcnn_d5 rq1_customcnn_r1 \
   --title "Debug Custom CNN" \
-  --output docs/customcnn_debug.md
+  --output docs/RQ1/customcnn_debug.md
 ```
 
 MobileNet:
@@ -116,7 +116,7 @@ python scripts/selection_report.py \
   --prefix rq1_mobilenet_ \
   --title "Chọn cấu hình MobileNetV3_small" \
   --id-prefix rq1_mobilenet_ \
-  --output docs/mobilenet_selection.md
+  --output docs/RQ1/mobilenet_selection.md
 ```
 
 Cả hai chỉ dùng validation (`evaluate_test: false`).
@@ -158,7 +158,7 @@ Dùng cho RQ3 P3: train pooled một lần, evaluate riêng RealWaste và TrashN
 python scripts/analyze_rq1.py
 ```
 
-Sinh `docs/rq1_results.md` + hình trong `docs/rq1_analysis/`.
+Sinh `docs/RQ1/rq1_results.md` + hình trong `docs/RQ1/rq1_analysis/`.
 
 ## Đo efficiency
 

@@ -259,7 +259,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/model_selection.md"),
+        default=Path("docs/RQ1/model_selection.md"),
     )
     parser.add_argument("--prefix", type=str, default=PREFIX)
     parser.add_argument(

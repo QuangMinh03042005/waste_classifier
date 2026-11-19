@@ -263,8 +263,8 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 [docs/experiment_plans.md](docs/experiment_plans.md). Log và schema kết quả:
 [docs/logging.md](docs/logging.md). Model và training:
 [docs/models.md](docs/models.md), [docs/training.md](docs/training.md),
-[docs/model_selection.md](docs/model_selection.md),
-[docs/rq1_overview.md](docs/rq1_overview.md).
+[docs/RQ1/model_selection.md](docs/RQ1/model_selection.md),
+[docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md).
 
 ## 12. Project Status
 

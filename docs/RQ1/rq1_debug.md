@@ -5,7 +5,7 @@ giới hạn kiến trúc — **trước khi đánh giá test**.
 
 - Plan: `plans/rq1/custom_cnn_debug.yaml`
 - Config: `configs/rq1/debug/`
-- Báo cáo sinh tự động: `docs/customcnn_debug.md`
+- Báo cáo sinh tự động: `docs/RQ1/customcnn_debug.md`
 
 ## Phases
 

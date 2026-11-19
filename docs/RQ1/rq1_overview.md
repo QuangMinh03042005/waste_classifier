@@ -358,7 +358,7 @@ Cấu hình chốt:
 - Weight decay 1e-4.
 - Không residual.
 
-Chi tiết: `docs/customcnn_debug.md` và `docs/model_selection.md`.
+Chi tiết: `docs/RQ1/customcnn_debug.md` và `docs/RQ1/model_selection.md`.
 
 ### 8.6. Chọn cấu hình MobileNet pretrained
 
@@ -370,7 +370,7 @@ Chi tiết: `docs/customcnn_debug.md` và `docs/model_selection.md`.
 - Freeze 5, mở 3 block.
 
 Hai cấu hình tốt nhất được xác nhận ở 50 epoch trước khi khóa.
-Chi tiết: `docs/mobilenet_selection.md`.
+Chi tiết: `docs/RQ1/mobilenet_selection.md`.
 
 ### 8.7. Chống leakage và HARKing
 
@@ -437,7 +437,7 @@ Mỗi run lưu:
 - `scripts/measure_efficiency.py`: params, FLOPs, latency, VRAM.
 - `scripts/gradcam.py`: Grad-CAM trên ảnh đúng/sai.
 - `scripts/collect_results.py`: bảng tổng hợp.
-- `docs/rq1_results.md`: kết quả final (cập nhật sau).
+- `docs/RQ1/rq1_results.md`: kết quả final (cập nhật sau).
 
 ## 10. Độ đo
 
@@ -631,12 +631,12 @@ Không đưa số liệu validation vào phần kết quả final.
 
 | File | Nội dung |
 |---|---|
-| `docs/rq1_debug.md` | Debug Custom CNN |
-| `docs/customcnn_debug.md` | Báo cáo debug sinh tự động |
-| `docs/model_selection.md` | Chọn cấu hình Custom CNN |
-| `docs/mobilenet_selection.md` | Chọn cấu hình MobileNet |
-| `docs/rq1_results.md` | Kết quả final (cập nhật sau) |
-| `docs/rq1_efficiency.md` | Params, FLOPs, latency |
+| `docs/RQ1/rq1_debug.md` | Debug Custom CNN |
+| `docs/RQ1/customcnn_debug.md` | Báo cáo debug sinh tự động |
+| `docs/RQ1/model_selection.md` | Chọn cấu hình Custom CNN |
+| `docs/RQ1/mobilenet_selection.md` | Chọn cấu hình MobileNet |
+| `docs/RQ1/rq1_results.md` | Kết quả final (cập nhật sau) |
+| `docs/RQ1/rq1_efficiency.md` | Params, FLOPs, latency |
 | `docs/training.md` | Hướng dẫn chạy |
 | `docs/models.md` | Kiến trúc mô hình |
 | `docs/splits.md` | Split v1 |
@@ -661,5 +661,5 @@ Không đưa số liệu validation vào phần kết quả final.
 ### 15.3. Ghi chú cập nhật
 
 - Tài liệu này mô tả thiết kế và quy trình, không chứa kết quả final.
-- Khi RQ1 chạy xong, cập nhật mục 12.4 và liên kết `docs/rq1_results.md`.
+- Khi RQ1 chạy xong, cập nhật mục 12.4 và liên kết `docs/RQ1/rq1_results.md`.
 - Nếu cấu hình MobileNet cuối thay đổi, cập nhật mục 6.2 và 8.6.

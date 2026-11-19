@@ -1,0 +1,38 @@
+[
+  {
+    "run_id": "rq1_customcnn_d0_s42",
+    "model": "custom_cnn",
+    "params": 1174501,
+    "flops": 5173348864,
+    "gflops": 5.173348864,
+    "latency_ms_batch1": 29.974490000000742,
+    "latency_ms_batch32": 1080.4378550000024,
+    "throughput_images_per_sec": 29.61762201491906,
+    "vram_mb": null,
+    "device": "cpu"
+  },
+  {
+    "run_id": "rq1_customcnn_r1_s42",
+    "model": "custom_cnn",
+    "params": 1218405,
+    "flops": 5327489536,
+    "gflops": 5.327489536,
+    "latency_ms_batch1": 36.0690849999969,
+    "latency_ms_batch32": 1304.9354250000022,
+    "throughput_images_per_sec": 24.522286227305038,
+    "vram_mb": null,
+    "device": "cpu"
+  },
+  {
+    "run_id": "rq1_mobilenet_m1_full_ft_s42",
+    "model": "mobilenet_v3_small",
+    "params": 1522981,
+    "flops": 110983040,
+    "gflops": 0.11098304,
+    "latency_ms_batch1": 10.795179999996662,
+    "latency_ms_batch32": 126.02070500000195,
+    "throughput_images_per_sec": 253.92652739087202,
+    "vram_mb": null,
+    "device": "cpu"
+  }
+]

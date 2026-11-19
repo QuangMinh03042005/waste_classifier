@@ -31,6 +31,7 @@ model = build_custom_cnn(
 - Không softmax; dùng `CrossEntropyLoss`.
 - Khởi tạo Kaiming cho Conv, Xavier cho Linear.
 - Tên layer (`stem`, `stage1..3`, `classifier`) hỗ trợ Grad-CAM sau này.
+- Grad-CAM mặc định dùng stage cuối; có thể chọn layer bằng `--layer stages.3`.
 
 Cấu hình này được chọn qua bước validation-only; xem `docs/model_selection.md`.
 

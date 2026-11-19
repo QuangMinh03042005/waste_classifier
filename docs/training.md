@@ -159,3 +159,30 @@ python scripts/analyze_rq1.py
 ```
 
 Sinh `docs/rq1_results.md` + hình trong `docs/rq1_analysis/`.
+
+## Đo efficiency
+
+```bash
+python scripts/measure_efficiency.py
+```
+
+Mặc định đo các run final `rq1_customcnn`, `rq1_mobilenetv3s_full`, `rq1_mobilenetv3s_scratch`; có thể truyền `--runs` cụ thể. Kết quả: params, GFLOPs, latency batch 1/32, throughput, VRAM.
+
+## Grad-CAM
+
+Trên **validation** (không dùng test trước final):
+
+```bash
+python -m research.evaluate \
+  --config configs/rq1/rq1_customcnn.yaml \
+  --checkpoint experiments/rq1/<run>/checkpoints/best.pt \
+  --split val \
+  --output-dir experiments/rq1/<run>/evaluations/val
+
+python scripts/gradcam.py \
+  --run experiments/rq1/<run> \
+  --predictions experiments/rq1/<run>/evaluations/val/predictions.csv \
+  --num 8
+```
+
+Ảnh lưu ở `experiments/rq1/<run>/figures/gradcam/`.

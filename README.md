@@ -367,6 +367,12 @@ Chưa bắt đầu:
 - [ ] Demo Streamlit.
 - [ ] Báo cáo và slide.
 
+## 13. Ghi chú về hỗ trợ AI
+
+Một phần code, tài liệu và plan được hỗ trợ bởi AI. Nhóm đã kiểm tra, chạy thử, đối
+chiếu kết quả và chịu trách nhiệm nội dung. Kết quả thực nghiệm chỉ lấy từ run thật,
+không lấy từ văn bản do AI sinh.
+
 ---
 
 **Project:** Waste Classification Using CNN  

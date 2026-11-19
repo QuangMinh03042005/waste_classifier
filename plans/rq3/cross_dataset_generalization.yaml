@@ -62,4 +62,4 @@ budget:
   estimated_minutes_per_run: 35
 
 risks: "Khác biệt bối cảnh và phân phối lớp giữa 2 nguồn có thể làm phương sai giữa seed cao."
-notes: "Báo cáo kèm confusion matrix và per-class F1 cho từng nguồn kiểm thử."
+notes: "Báo cáo kèm confusion matrix và per-class F1 cho từng nguồn kiểm thử. Ngưỡng 0.02 tương đương khoảng 16 ảnh đúng trên test 823 ảnh."

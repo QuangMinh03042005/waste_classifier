@@ -59,4 +59,4 @@ budget:
   estimated_minutes_per_run: 30
 
 risks: "Class weighting có thể làm tăng false positive ở lớp đa số."
-notes: "Báo cáo per-class recall cho từng biến thể để thấy tác động lên lớp thiểu số."
+notes: "Báo cáo per-class recall cho từng biến thể để thấy tác động lên lớp thiểu số. Ngưỡng 0.01 tương đương khoảng 8 ảnh đúng trên test 823 ảnh."

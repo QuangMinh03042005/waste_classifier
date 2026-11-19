@@ -29,10 +29,10 @@ def test_build_markdown(tmp_path: Path, plan_factory) -> None:
     write_matrix(tmp_path / "plans", output)
 
     text = output.read_text(encoding="utf-8")
-    assert "Số plan: 2" in build_markdown(plans)
+    assert "Plan core: 2" in build_markdown(plans)
     assert "# Ma trận thí nghiệm" in text
-    assert "Số plan: 2" in text
-    assert "Số experiment: 4" in text
+    assert "Plan core: 2" in text
+    assert "Experiment core: 4" in text
     assert "## RQ1 – Model Architecture" in text
     assert "## RQ2 – Data Augmentation & Class Weighting" in text
     assert "| base1 | baseline |" in text

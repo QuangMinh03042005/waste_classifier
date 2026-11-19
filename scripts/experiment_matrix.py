@@ -1,8 +1,11 @@
 """Sinh ma trận thí nghiệm Markdown từ các plan đã commit.
 
+Tách rõ:
+- Core: plan đang active, dùng cho kết luận chính.
+- Pilot/Selection: plan completed, dùng cho chọn cấu hình/debug.
+
 Cách dùng:
     uv run python scripts/experiment_matrix.py
-    uv run python scripts/experiment_matrix.py --output docs/experiment_matrix.md
 """
 
 from __future__ import annotations
@@ -36,7 +39,7 @@ COLUMNS = [
 
 def _cell(value: object) -> str:
     text = str(value).replace("\n", " ").replace("|", "\\|").strip()
-    return text or "—"
+    return text or "-"
 
 
 def _table(rows: list[list[object]]) -> list[str]:
@@ -56,8 +59,8 @@ def plan_rows(plan: ExperimentPlan) -> list[list[object]]:
         [
             baseline["experiment"],
             "baseline",
-            "—",
-            "—",
+            "-",
+            "-",
             comparison["metric"],
             comparison["success_criterion"],
             ", ".join(str(seed) for seed in plan.seeds),
@@ -80,44 +83,78 @@ def plan_rows(plan: ExperimentPlan) -> list[list[object]]:
     return rows
 
 
+def _plan_block(plan: ExperimentPlan) -> list[str]:
+    data = plan.data
+    lines = [
+        f"### `{plan.plan_id}` - {plan.raw['title']}",
+        "",
+        f"- **Câu hỏi:** {plan.raw['question']}",
+        f"- **Giả thuyết:** {plan.raw['hypothesis']}",
+        f"- **Kết quả kỳ vọng:** {plan.raw['expected_result']}",
+        f"- **Nếu giả thuyết sai:** {plan.raw['failure_plan']}",
+        f"- **Metric:** {plan.raw['comparison']['metric']}",
+        f"- **Test policy:** {plan.raw['comparison']['test_policy']}",
+        f"- **Dữ liệu:** train = {', '.join(data.get('train_datasets', []))}; "
+        f"split = `{data['splits_version']}`; "
+        f"lớp = {', '.join(data['class_names'])}",
+        f"- **File plan:** `{plan.path.as_posix()}`",
+        "",
+    ]
+    lines.extend(_table(plan_rows(plan)))
+    lines.append("")
+    return lines
+
+
+def _rq_group(plans: list[ExperimentPlan], rq: str) -> list[ExperimentPlan]:
+    return sorted((plan for plan in plans if plan.rq == rq), key=lambda item: item.plan_id)
+
+
+def _core_section(plans: list[ExperimentPlan]) -> list[str]:
+    lines = ["## Ma trận core", ""]
+    for rq in sorted(RQ_TITLES):
+        group = _rq_group(plans, rq)
+        if not group:
+            continue
+        lines.extend([f"### {RQ_TITLES[rq]}", ""])
+        for plan in group:
+            lines.extend(_plan_block(plan))
+    return lines
+
+
+def _pilot_section(plans: list[ExperimentPlan]) -> list[str]:
+    lines = [
+        "## Pilot / Selection (completed)",
+        "",
+        "Các plan này dùng validation để chọn cấu hình hoặc debug; không nằm trong kết luận chính.",
+        "",
+    ]
+    for rq in sorted(RQ_TITLES):
+        group = _rq_group(plans, rq)
+        if not group:
+            continue
+        lines.extend([f"### {RQ_TITLES[rq]}", ""])
+        for plan in group:
+            lines.extend(_plan_block(plan))
+    return lines
+
+
 def build_markdown(plans: list[ExperimentPlan]) -> str:
     generated = datetime.now(UTC).isoformat()
+    active = [plan for plan in plans if plan.status == "active"]
+    completed = [plan for plan in plans if plan.status != "active"]
     lines = [
         "# Ma trận thí nghiệm",
         "",
         f"- Tạo lúc: `{generated}`",
-        f"- Số plan: {len(plans)}",
-        f"- Số experiment: {sum(len(plan.experiments) for plan in plans)}",
+        f"- Plan core: {len(active)}",
+        f"- Experiment core: {sum(len(plan.experiments) for plan in active)}",
+        f"- Plan pilot/selection: {len(completed)}",
+        f"- Experiment pilot/selection: {sum(len(plan.experiments) for plan in completed)}",
         "",
     ]
-
-    for rq in sorted(RQ_TITLES):
-        group = [plan for plan in plans if plan.rq == rq]
-        if not group:
-            continue
-        lines.extend([f"## {RQ_TITLES[rq]}", ""])
-        for plan in sorted(group, key=lambda item: item.plan_id):
-            data = plan.data
-            lines.extend(
-                [
-                    f"### `{plan.plan_id}` — {plan.raw['title']}",
-                    "",
-                    f"- **Câu hỏi:** {plan.raw['question']}",
-                    f"- **Giả thuyết:** {plan.raw['hypothesis']}",
-                    f"- **Kết quả kỳ vọng:** {plan.raw['expected_result']}",
-                    f"- **Nếu giả thuyết sai:** {plan.raw['failure_plan']}",
-                    f"- **Metric:** {plan.raw['comparison']['metric']}",
-                    f"- **Test policy:** {plan.raw['comparison']['test_policy']}",
-                    f"- **Dữ liệu:** train = {', '.join(data.get('train_datasets', []))}; "
-                    f"split = `{data['splits_version']}`; "
-                    f"lớp = {', '.join(data['class_names'])}",
-                    f"- **File plan:** `{plan.path.as_posix()}`",
-                    "",
-                ]
-            )
-            lines.extend(_table(plan_rows(plan)))
-            lines.append("")
-
+    lines.extend(_core_section(active))
+    if completed:
+        lines.extend(_pilot_section(completed))
     return "\n".join(lines)
 
 

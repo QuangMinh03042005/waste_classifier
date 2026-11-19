@@ -29,14 +29,14 @@ variants:
     fixed:
       - "split v1, MobileNetV3_small pretrained ImageNet"
       - "class weighting theo tần suất lớp, clip [0.5, 3.0]"
-      - "input 224x224, AdamW, batch 64, tối đa 30 epoch"
+      - "input 224x224, AdamW, batch 64, tối đa 50 epoch"
       - "seed 42, 123, 2024"
   - experiment: rq2_mobilenetv3s_nocw
     change: "Bỏ Class Weighting, giữ nguyên Data Augmentation."
     fixed:
       - "split v1, MobileNetV3_small pretrained ImageNet"
       - "augmentation: RandomResizedCrop, HFlip, rotation, color jitter"
-      - "input 224x224, AdamW, batch 64, tối đa 30 epoch"
+      - "input 224x224, AdamW, batch 64, tối đa 50 epoch"
       - "seed 42, 123, 2024"
 
 comparison:
@@ -54,9 +54,9 @@ data:
 seeds: [42, 123, 2024]
 
 budget:
-  max_epochs: 30
+  max_epochs: 50
   batch_size: 64
-  estimated_minutes_per_run: 30
+  estimated_minutes_per_run: 50
 
 risks: "Class weighting có thể làm tăng false positive ở lớp đa số."
 notes: "Báo cáo per-class recall cho từng biến thể để thấy tác động lên lớp thiểu số."

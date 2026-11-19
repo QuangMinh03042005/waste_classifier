@@ -332,6 +332,7 @@ Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. 
 - Data pipeline: [docs/data_pipeline.md](docs/data_pipeline.md)
 - EDA: [docs/EDA/eda_report.md](docs/EDA/eda_report.md), [notebooks/shared/eda.ipynb](notebooks/shared/eda.ipynb)
 - External validation RQ1: [docs/RQ1/external_validation.md](docs/RQ1/external_validation.md)
+- Cấu trúc báo cáo cuối kỳ: [docs/report/outline.md](docs/report/outline.md)
 - Training: [docs/training.md](docs/training.md), [docs/models.md](docs/models.md)
 - RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
 

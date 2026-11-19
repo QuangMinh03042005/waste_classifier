@@ -1,0 +1,16 @@
+dataset,raw_label,count,canonical,used
+realwaste,Cardboard,461,cardboard,True
+realwaste,Food Organics,411,,False
+realwaste,Glass,420,glass,True
+realwaste,Metal,790,metal,True
+realwaste,Miscellaneous Trash,495,,False
+realwaste,Paper,500,paper,True
+realwaste,Plastic,921,plastic,True
+realwaste,Textile Trash,318,,False
+realwaste,Vegetation,436,,False
+trashnet,cardboard,403,cardboard,True
+trashnet,glass,501,glass,True
+trashnet,metal,410,metal,True
+trashnet,paper,594,paper,True
+trashnet,plastic,482,plastic,True
+trashnet,trash,137,,False

@@ -1,0 +1,36 @@
+{
+  "total": 5482,
+  "by_split": {
+    "test": 823,
+    "train": 3833,
+    "val": 826
+  },
+  "by_dataset": {
+    "realwaste": 3092,
+    "trashnet": 2390
+  },
+  "by_class": {
+    "cardboard": 864,
+    "glass": 921,
+    "metal": 1200,
+    "paper": 1094,
+    "plastic": 1403
+  },
+  "imbalance_ratio": 1.6238425925925926,
+  "duplicate_groups": 33,
+  "duplicate_images": 35,
+  "quality_issues": {
+    "label_conflicts": 7,
+    "too_dark": 0,
+    "too_bright": 4,
+    "blurry": 20,
+    "small": 0,
+    "unreadable": 0
+  },
+  "thresholds": {
+    "brightness_low": 45.0,
+    "brightness_high": 220.0,
+    "blur_low": 25.0,
+    "min_side": 128
+  }
+}

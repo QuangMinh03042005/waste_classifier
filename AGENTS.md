@@ -51,6 +51,7 @@ src/                 # module dùng chung: data, models, training, utils
 research/rq{1,2,3}/  # code đặc thù từng RQ
 experiments/rq{1,2,3}/ # kết quả chạy (không commit)
 notebooks/rq{1,2,3}/ # notebook theo từng RQ (chỉ commit bản sạch)
+notebooks/shared/    # EDA dùng chung (giữ output để trình bày)
 scripts/             # script tiện ích (đóng gói dữ liệu, ...)
 dist/                # bundle dữ liệu để upload Drive (không commit)
 app/                 # Streamlit demo
@@ -81,11 +82,13 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 - Logic mới phát sinh trong notebook mà có thể tái sử dụng → chuyển vào `src/` kèm test, notebook gọi lại.
 - Notebook phải chạy được từ trên xuống dưới; seed và hyperparameter lấy từ config, không hardcode.
 - Mỗi RQ có thư mục riêng: `notebooks/rqX/`. Tên file theo mục đích (vd: `notebooks/rq3/eda_cross_dataset.ipynb`, `notebooks/rq1/train_compare.ipynb`).
+- EDA dùng chung nằm ở `notebooks/shared/`; riêng `notebooks/shared/eda.ipynb` được giữ output để trình bày, không dùng để train.
 - Quy trình commit notebook đã chạy:
   1. Xuất PDF để lưu kết quả: `uv run jupyter nbconvert --to pdf notebooks/rqX/<file>.ipynb --output-dir docs/notebooks/rqX/`
   2. Xóa toàn bộ output: `uv run jupyter nbconvert --clear-output --inplace notebooks/rqX/<file>.ipynb`
   3. Commit cả file `.ipynb` đã sạch và PDF trong `docs/notebooks/rqX/`.
 - Không commit notebook còn output, ảnh nhúng, checkpoint, dataset hay cache (`**/.ipynb_checkpoints/`).
+- Ngoại lệ: `notebooks/shared/eda.ipynb` giữ output để thầy xem; code phân tích vẫn nằm trong `src/data/eda.py`.
 - Nếu thiếu toolchain xuất PDF (LaTeX), dừng lại và báo nhóm — không commit notebook khi chưa có PDF.
 
 ## 5. Luật dữ liệu (bất biến)

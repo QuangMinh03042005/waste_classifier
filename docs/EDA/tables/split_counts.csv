@@ -1,0 +1,4 @@
+split,cardboard,glass,metal,paper,plastic
+test,130,138,180,164,211
+train,603,645,839,766,980
+val,131,138,181,164,212

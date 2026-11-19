@@ -8,45 +8,55 @@ Phân loại rác thải là một bước quan trọng trong quy trình quản 
 
 Với sự phát triển của Deep Learning và Computer Vision, các mô hình Convolutional Neural Network (CNN) có khả năng học đặc trưng trực tiếp từ hình ảnh và thực hiện phân loại tự động.
 
-Dự án này nghiên cứu việc ứng dụng CNN vào bài toán phân loại rác thải thông qua hình ảnh. Bên cạnh việc xây dựng mô hình, nhóm tập trung đánh giá ảnh hưởng của kiến trúc mạng, kỹ thuật Data Augmentation và khả năng tổng quát hóa khi mô hình được huấn luyện, kiểm thử trên các nguồn dữ liệu khác nhau.
+Dự án này nghiên cứu việc ứng dụng CNN vào bài toán phân loại rác thải thông qua hình ảnh. Bên cạnh việc xây dựng mô hình, nhóm tập trung đánh giá ảnh hưởng của kiến trúc mạng, pretrained weights, Data Augmentation, Class Weighting và khả năng tổng quát hóa khi mô hình được huấn luyện, kiểm thử trên các nguồn dữ liệu khác nhau.
 
-Dự án được triển khai bằng **Python và PyTorch**, đồng thời cung cấp giao diện demo để thử nghiệm mô hình sau khi huấn luyện.
+RQ1 được thiết kế với ba nhánh: Custom CNN, MobileNetV3_small huấn luyện từ đầu (scratch) và MobileNetV3_small pretrained ImageNet. Cách này giúp tách ảnh hưởng của **kiến trúc** khỏi ảnh hưởng của **transfer learning**. Ngoài test in-domain, RQ1 còn đánh giá thêm trên bộ GD như một external test.
+
+Dự án được triển khai bằng **Python và PyTorch**, quản lý môi trường bằng `uv`, có logging/checkpoint đầy đủ và cung cấp giao diện demo Streamlit sau khi huấn luyện.
 
 ## 2. Mục tiêu
 
 - Xây dựng mô hình CNN phục vụ bài toán phân loại rác thải qua hình ảnh.
-- So sánh hiệu quả giữa CNN tự xây dựng và mô hình sử dụng Transfer Learning.
+- So sánh hiệu quả giữa CNN tự xây dựng và MobileNetV3_small pretrained.
+- Tách ảnh hưởng của kiến trúc và pretrained weights bằng nhánh MobileNetV3_small scratch.
 - Đánh giá ảnh hưởng của Data Augmentation và Class Weighting đến hiệu quả phân loại.
-- Nghiên cứu khả năng tổng quát hóa của mô hình trên các nguồn dữ liệu khác nhau.
-- Thực hiện các thí nghiệm có kiểm soát, ghi nhận kết quả và phân tích sai số.
-- Xây dựng ứng dụng demo cho phép người dùng tải ảnh và nhận kết quả dự đoán.
+- Nghiên cứu khả năng tổng quát hóa trên các nguồn dữ liệu khác nhau.
+- Đánh giá thêm trên external test GD cho RQ1.
+- Thực hiện thí nghiệm có kiểm soát, ghi log, phân tích lỗi và chi phí tính toán.
+- Xây dựng ứng dụng demo cho phép người dùng tải ảnh và nhận dự đoán.
 
 ## 3. Research Questions
 
-Dự án tập trung vào ba câu hỏi nghiên cứu chính.
-
 ### RQ1 – Model Architecture
 
-**Transfer Learning với MobileNetV3 có cải thiện hiệu quả phân loại rác thải so với CNN tự xây dựng không?**
+**Transfer learning với MobileNetV3_small có cải thiện hiệu quả phân loại rác thải so với Custom CNN không, và phần cải thiện đến từ kiến trúc hay từ pretrained weights?**
 
 Nội dung thực hiện:
 
-- Xây dựng mô hình Custom CNN làm baseline.
-- Sử dụng MobileNetV3 pretrained với ImageNet.
-- So sánh hiệu quả hai mô hình trên cùng điều kiện thực nghiệm.
-- Phân tích hiệu quả phân loại và chi phí tính toán.
+- Custom CNN baseline huấn luyện từ đầu.
+- MobileNetV3_small scratch — cùng kiến trúc nhưng không pretrained.
+- MobileNetV3_small pretrained ImageNet.
+- Cùng split v1, input 224×224, không augmentation, không class weighting.
+- 5 seed: 42, 123, 2024, 7, 2025.
+- Chọn epoch và cấu hình trên validation; test chỉ đánh giá một lần.
+- Báo cáo accuracy, balanced accuracy, Macro-F1, per-class F1, confusion matrix.
+- Báo cáo params, GFLOPs, latency, VRAM.
+- External validation trên GD sau khi khóa mô hình.
 
-### RQ2 – Data Augmentation
+Tài liệu chi tiết: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md).
 
-**Data Augmentation có cải thiện hiệu quả phân loại rác thải bằng MobileNetV3 không?**
+### RQ2 – Data Augmentation & Class Weighting
+
+**Data Augmentation và Class Weighting ảnh hưởng thế nào đến hiệu quả phân loại rác thải?**
 
 Nội dung thực hiện:
 
-- Xây dựng cấu hình Full Model.
-- Thực hiện Ablation Study để đánh giá ảnh hưởng của từng thành phần.
-- So sánh mô hình có và không có Data Augmentation.
-- Đánh giá ảnh hưởng của Class Weighting.
-- Phân tích khả năng tổng quát hóa và hiện tượng Overfitting.
+- Full model: augmentation + class weighting.
+- Ablation: bỏ augmentation.
+- Ablation: bỏ class weighting.
+- Cùng split, cùng MobileNetV3_small, cùng ngân sách huấn luyện.
+- Phân tích per-class recall, đặc biệt ở lớp thiểu số.
+- Phân tích overfitting qua learning curves.
 
 ### RQ3 – Generalization
 
@@ -54,29 +64,32 @@ Nội dung thực hiện:
 
 Nội dung thực hiện:
 
-- Nghiên cứu sự khác biệt giữa các nguồn dữ liệu.
-- Thực hiện Cross-dataset Evaluation.
-- Huấn luyện trên một nguồn dữ liệu và kiểm thử trên nguồn khác.
-- Đánh giá hiệu quả khi kết hợp nhiều nguồn dữ liệu.
-- Phân tích ảnh hưởng của sự khác biệt về bối cảnh và phân phối dữ liệu.
+- Nghiên cứu khác biệt giữa RealWaste và TrashNet.
+- Cross-dataset evaluation: RealWaste → TrashNet và TrashNet → RealWaste.
+- Huấn luyện trên dữ liệu kết hợp, kiểm thử riêng từng nguồn.
+- Phân tích ảnh hưởng của bối cảnh, phân phối lớp và domain shift.
+
+Ghi chú: GD hiện chỉ dùng làm **external test cho RQ1**, không tham gia train RQ3.
 
 ## 4. Dataset
 
-Các dataset dự kiến sử dụng:
+### 4.1. Nguồn dữ liệu
 
-| Dataset   | Số lượng ảnh | Đặc điểm                                     |
-| --------- | -----------: | -------------------------------------------- |
-| RealWaste |        4.752 | Hình ảnh rác thải trong môi trường thực tế   |
-| TrashNet  |        2.527 | Hình ảnh rác thải với nền tương đối đơn giản |
+| Dataset | Vai trò | Tổng ảnh gốc | Ảnh dùng cho 5 lớp | License |
+|---|---|---:|---:|---|
+| RealWaste | Train / validation / test | 4.752 | 3.092 | CC BY 4.0 |
+| TrashNet | Train / validation / test | 2.527 | 2.390 | MIT |
+| GD (Garbage Dataset) | **External test RQ1** | 13.348 | 4.806 sau dedup | MIT |
 
-Nguồn dữ liệu:
+Nguồn:
 
 - [RealWaste – UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/908/realwaste)
 - [TrashNet – GitHub Repository](https://github.com/garythung/trashnet)
+- [GD – Kaggle](https://www.kaggle.com/datasets/sumn2u/garbage-classification-v2)
 
-### Các lớp phân loại dự kiến
+### 4.2. Các lớp phân loại
 
-Nhóm dự kiến sử dụng 5 lớp chung giữa hai dataset:
+5 lớp chung đã xác nhận:
 
 1. Cardboard
 2. Glass
@@ -84,162 +97,218 @@ Nhóm dự kiến sử dụng 5 lớp chung giữa hai dataset:
 4. Paper
 5. Plastic
 
-Danh sách lớp chính thức sẽ được xác nhận sau khi kiểm tra dữ liệu, mapping nhãn và loại bỏ những trường hợp không tương thích.
+Các lớp bị loại:
 
-### Quy trình xử lý dữ liệu
+- RealWaste: Food Organics, Miscellaneous Trash, Textile Trash, Vegetation.
+- TrashNet: trash.
+- GD: biological, battery, trash, shoes, clothes.
 
-- Kiểm tra chất lượng và cấu trúc dataset.
-- Chuẩn hóa tên và mapping nhãn.
-- Kiểm tra ảnh trùng lặp.
-- Resize và normalize hình ảnh.
-- Chia dữ liệu thành Train, Validation và Test.
-- Lưu lại thông tin split để đảm bảo khả năng tái lập thí nghiệm.
+Tổng 1.797 ảnh bị loại khỏi RealWaste + TrashNet; GD chỉ dùng external test.
+
+### 4.3. Phân bố dữ liệu
+
+| Lớp | RealWaste | TrashNet | Tổng |
+|---|---:|---:|---:|
+| Cardboard | 461 | 403 | 864 |
+| Glass | 420 | 501 | 921 |
+| Metal | 790 | 410 | 1.200 |
+| Paper | 500 | 594 | 1.094 |
+| Plastic | 921 | 482 | 1.403 |
+| **Tổng** | **3.092** | **2.390** | **5.482** |
+
+Split v1:
+
+| Split | Số ảnh |
+|---|---:|
+| Train | 3.833 |
+| Validation | 826 |
+| Test | 823 |
+
+- Tỷ lệ 70/15/15, seed 42.
+- Stratified theo `(dataset, class)`.
+- Chống leakage bằng pHash; 35 ảnh trùng được gom group, không tách giữa các split.
+
+### 4.4. GD external test
+
+- 7.010 ảnh GD mapping về 5 lớp.
+- Loại 2.200 ảnh trùng với split v1.
+- Loại 4 ảnh trùng nội bộ.
+- Còn 4.806 ảnh external test.
+- Không dùng GD để train hay chọn mô hình.
+
+Chi tiết: [docs/RQ1/external_validation.md](docs/RQ1/external_validation.md).
+
+### 4.5. Quy trình xử lý dữ liệu
+
+- Kiểm tra cấu trúc, số lượng, license.
+- Mapping nhãn về 5 lớp.
+- Kiểm tra ảnh lỗi, ảnh mờ, ảnh quá sáng.
+- Tính pHash, gom ảnh trùng.
+- Chia train/validation/test theo group.
+- Resize và normalize 224×224.
+- Lưu split CSV để tái lập.
+- EDA: [docs/EDA/eda_report.md](docs/EDA/eda_report.md).
 
 ## 5. Phương pháp thực hiện
 
 ### 5.1. Mô hình
 
-- Custom CNN: mô hình baseline do nhóm xây dựng.
-- MobileNetV3: mô hình pretrained sử dụng Transfer Learning.
+- **Custom CNN**: baseline từ đầu, channels 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3.
+- **MobileNetV3_small scratch**: kiến trúc MobileNetV3_small, không pretrained.
+- **MobileNetV3_small pretrained**: ImageNet `IMAGENET1K_V1`, fine-tune cho 5 lớp.
 
 ### 5.2. Kỹ thuật
 
 - Convolutional Neural Network.
-- Transfer Learning.
+- Transfer learning, freeze/unfreeze.
 - Data Augmentation.
 - Class Weighting.
 - Cross-dataset Evaluation.
 - Ablation Study.
+- Grad-CAM.
+- Đo FLOPs, latency, VRAM.
 
 ### 5.3. Evaluation Metrics
 
-Các chỉ số đánh giá dự kiến:
-
-- Accuracy
-- Precision
-- Recall
-- Macro F1-score
-- Confusion Matrix
-
-Ngoài ra, nhóm có thể ghi nhận thời gian huấn luyện, thời gian suy luận và số lượng tham số của mô hình.
+- Accuracy.
+- Balanced accuracy.
+- Precision, Recall, Macro-F1.
+- Per-class F1 và recall.
+- Confusion Matrix.
+- Params, GFLOPs, latency, throughput, VRAM.
+- Mean ± std trên nhiều seed.
 
 ### 5.4. Experimental Protocol
 
-Để đảm bảo tính khách quan và khả năng tái lập:
-
-- Sử dụng cùng quy trình đánh giá cho các thí nghiệm cần so sánh.
-- Ghi lại cấu hình, random seed và phiên bản dữ liệu.
-- Thực hiện nhiều lần chạy với các seed khác nhau cho những thí nghiệm quan trọng.
-- Báo cáo kết quả trung bình và độ lệch chuẩn khi có nhiều lần chạy.
-- Chỉ sử dụng Test Set cho đánh giá cuối cùng.
-- Không ghi đè kết quả của những lần chạy trước.
+- Cùng split, cùng preprocessing, cùng ngân sách cho các thí nghiệm so sánh.
+- Ghi config, seed, git commit, environment.
+- RQ1 dùng 5 seed; RQ2/RQ3 dùng 3 seed.
+- Chọn epoch theo validation Macro-F1.
+- Chỉ dùng test set cho đánh giá cuối.
+- Không dùng test/external để chọn epoch, threshold hay cấu hình.
+- Không ghi đè kết quả cũ.
+- Plan thí nghiệm được commit trước khi chạy.
 
 ## 6. Phân công công việc
 
-Nhóm gồm 3 thành viên. Mỗi thành viên phụ trách một Research Question, đồng thời sử dụng chung hệ thống xử lý dữ liệu và các module kỹ thuật nền tảng.
+Nhóm gồm 3 thành viên. Mỗi thành viên phụ trách một Research Question, sử dụng chung data pipeline, training engine và logging.
 
-| Thành viên                                 | Research Question        | Phạm vi phụ trách                                                             |
-| ------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------- |
-| Thành viên 1: Đinh Quang Minh (3123580024) | RQ1 – Model Architecture | Custom CNN, MobileNetV3, so sánh kiến trúc và phân tích kết quả               |
-| Thành viên 2: Dương Tấn Cường (3123580004) | RQ2 – Data Augmentation  | Augmentation, Class Weighting, Ablation Study và phân tích kết quả            |
-| Thành viên 3: Lê Thành Duy (3123580007)    | RQ3 – Generalization     | Cross-dataset Evaluation, kết hợp dữ liệu và phân tích khả năng tổng quát hóa |
+| Thành viên | Research Question | Phạm vi phụ trách |
+|---|---|---|
+| Đinh Quang Minh (3123580024) | RQ1 – Model Architecture | Custom CNN, MobileNetV3_small scratch/pretrained, external GD, phân tích kết quả |
+| Dương Tấn Cường (3123580004) | RQ2 – Data Augmentation & Class Weighting | Augmentation, class weighting, ablation study |
+| Lê Thành Duy (3123580007) | RQ3 – Generalization | Cross-dataset evaluation, kết hợp nguồn, phân tích domain shift |
 
 ### Công việc chung
 
-| Công việc                              | Trách nhiệm |
-| -------------------------------------- | ----------- |
-| Xây dựng Data Pipeline                 | Cả nhóm     |
-| Thống nhất preprocessing và data split | Cả nhóm     |
-| Xây dựng Training Engine và Evaluation | Cả nhóm     |
-| Kiểm thử các module dùng chung         | Cả nhóm     |
-| Tích hợp kết quả nghiên cứu            | Cả nhóm     |
-| Hoàn thiện báo cáo và thuyết trình     | Cả nhóm     |
-| Xây dựng ứng dụng demo                 | Cả nhóm     |
+| Công việc | Trách nhiệm |
+|---|---|
+| Data pipeline, split, EDA | Cả nhóm |
+| Training engine, logging, checkpoint | Cả nhóm |
+| Plan thí nghiệm và ma trận RQ | Cả nhóm |
+| Kiểm thử module dùng chung | Cả nhóm |
+| Tích hợp kết quả, phân tích | Cả nhóm |
+| Demo Streamlit | Cả nhóm |
+| Báo cáo và thuyết trình | Cả nhóm |
 
 ## 7. Cấu trúc Repository
 
 ```text
-waste-classification-cnn/
+waste-classifier/
 │
 ├── configs/                 # Cấu hình thí nghiệm
+│   └── rq1/                 # debug, selection, final
+│
+├── data/                    # Không commit dataset
+│   ├── raw/                 # RealWaste, TrashNet
+│   ├── external/            # GD external test
+│   └── splits/              # v1, rq3, external
+│
+├── src/                     # Module dùng chung
+│   ├── data/                # download, split, dataset, transform, EDA, external
+│   ├── models/              # Custom CNN, MobileNet, factory
+│   ├── training/            # runner, metrics, checkpoint, evaluator, Grad-CAM
+│   └── utils/               # paths, config, logging, plan, export
+│
+├── research/                # Entrypoint theo RQ
+│   ├── rq1/train.py
+│   └── evaluate.py
+│
+├── plans/                   # Plan pre-registration
 │   ├── rq1/
 │   ├── rq2/
 │   └── rq3/
 │
-├── data/                    # Dữ liệu (không commit dataset)
-│   ├── raw/
-│   ├── processed/
-│   └── splits/
+├── experiments/             # Kết quả chạy (không commit)
+│   └── rq1/
 │
-├── src/                     # Các module dùng chung
-│   ├── data/
-│   ├── models/
-│   ├── training/
-│   └── utils/
+├── notebooks/
+│   ├── shared/              # EDA
+│   └── rq1/                 # Phân tích RQ1
 │
-├── research/                # Triển khai từng RQ
-│   ├── rq1/
-│   ├── rq2/
-│   └── rq3/
+├── scripts/                 # make_splits, run_batch, export, analysis
+├── tests/                   # pytest
+├── docs/                    # Tài liệu, EDA, RQ1
+├── app/                     # Streamlit demo
 │
-├── experiments/             # Kết quả thực nghiệm
-│   ├── rq1/
-│   ├── rq2/
-│   └── rq3/
-│
-├── app/                     # Ứng dụng demo
-│
-├── requirements.txt
+├── pyproject.toml
+├── uv.lock
+├── requirements-colab.txt
+├── AGENTS.md
 └── README.md
 ```
 
 ## 8. Git Workflow
 
-Dự án sử dụng một repository chung và Git Branch để phân chia công việc.
-
-| Branch                         | Mục đích                         |
-| ------------------------------ | -------------------------------- |
-| `main`                         | Phiên bản code ổn định           |
-| `feature/shared-pipeline`      | Phát triển các module dùng chung |
-| `feature/rq1-model-comparison` | Triển khai RQ1                   |
-| `feature/rq2-ablation`         | Triển khai RQ2                   |
-| `feature/rq3-generalization`   | Triển khai RQ3                   |
+| Branch | Mục đích |
+|---|---|
+| `main` | Phiên bản ổn định |
+| `feature/shared-pipeline` | Module dùng chung |
+| `feature/rq1-model-comparison` | Triển khai RQ1 |
+| `feature/rq2-ablation` | Triển khai RQ2 |
+| `feature/rq3-generalization` | Triển khai RQ3 |
 
 ### Quy tắc làm việc
 
 1. Không push trực tiếp vào `main`.
 2. Mỗi thành viên làm việc trên branch phụ trách.
-3. Mọi thay đổi cần tích hợp vào `main` thông qua Pull Request.
+3. Thay đổi tích hợp vào `main` qua Pull Request.
 4. Thay đổi code dùng chung phải được thông báo và review.
-5. Không commit dataset, checkpoint lớn và file cache lên Git.
-6. Các thí nghiệm phải lưu cấu hình và kết quả riêng biệt.
-7. Không chỉnh sửa hoặc ghi đè kết quả thực nghiệm cũ.
-8. Commit message dùng tiếng Việt theo dạng `<scope>: <mô tả>`; scope: `feat`, `fix`, `data`, `docs`, `test`, `chore`.
+5. Không commit dataset, checkpoint lớn, cache.
+6. Mỗi thí nghiệm lưu config và kết quả riêng.
+7. Không sửa hoặc ghi đè kết quả cũ.
+8. Commit message tiếng Việt dạng `<scope>: <mô tả>`; scope: `feat`, `fix`, `data`, `docs`, `test`, `chore`.
 
 ## 9. Công nghệ sử dụng
 
-| Công nghệ            | Mục đích                                     |
-| -------------------- | -------------------------------------------- |
-| Python               | Ngôn ngữ lập trình                           |
-| PyTorch              | Xây dựng và huấn luyện mô hình Deep Learning |
-| Torchvision          | Model pretrained và xử lý ảnh                |
-| NumPy                | Xử lý dữ liệu số                             |
-| Pandas               | Quản lý kết quả thực nghiệm                  |
-| Matplotlib / Seaborn | Trực quan hóa kết quả                        |
-| Scikit-learn         | Metrics và đánh giá mô hình                  |
-| Streamlit            | Xây dựng ứng dụng demo                       |
-| Git / GitHub         | Quản lý mã nguồn và cộng tác                 |
+| Công nghệ | Mục đích |
+|---|---|
+| Python 3.12 | Ngôn ngữ lập trình |
+| PyTorch | Huấn luyện và suy luận |
+| Torchvision | MobileNetV3, transform, pretrained weights |
+| NumPy | Xử lý số, pHash |
+| Pandas | Tổng hợp kết quả, EDA |
+| Scikit-learn | Metrics, confusion matrix |
+| Matplotlib | Learning curves, confusion matrix, Grad-CAM |
+| uv | Quản lý môi trường và dependency |
+| pytest, ruff | Kiểm thử, lint/format |
+| Jupyter | EDA notebook |
+| Streamlit | Demo |
+| Google Colab / GPU riêng | Huấn luyện |
+| Git / GitHub | Quản lý mã nguồn |
 
 ## 10. Expected Deliverables
 
 - Source code hoàn chỉnh.
-- Các mô hình CNN đã huấn luyện.
-- Bộ cấu hình và kết quả thực nghiệm.
-- Bảng so sánh và phân tích kết quả của ba RQ.
-- Confusion Matrix và các biểu đồ đánh giá.
-- Ứng dụng demo phân loại rác thải.
-- Báo cáo nghiên cứu và slide thuyết trình.
-- README hướng dẫn cài đặt và chạy project.
+- Custom CNN, MobileNetV3_small scratch và pretrained đã huấn luyện.
+- Config, plan và kết quả thực nghiệm.
+- Bảng so sánh và phân tích 3 RQ.
+- Confusion matrix, learning curves, Grad-CAM.
+- External validation trên GD.
+- Báo cáo EDA và nhận xét dữ liệu.
+- Ứng dụng demo Streamlit.
+- Báo cáo nghiên cứu và slide.
+- README hướng dẫn cài đặt và tái lập.
 
 ## 11. Cài đặt và tải dữ liệu
 
@@ -247,43 +316,56 @@ Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync                                             # cài môi trường
-uv run python -m src.data.download --dataset all    # tải RealWaste + TrashNet
+uv run python -m src.data.download --dataset all    # RealWaste + TrashNet
 uv run python scripts/make_splits.py                # tạo data/splits/v1
-uv run pytest                                       # chạy test
+uv run python scripts/run_eda.py                    # EDA
+uv run python scripts/prepare_external_gd.py        # external GD cho RQ1
+uv run pytest                                       # test
 uv run ruff check .                                 # lint
 ```
 
-Dữ liệu được tải vào `data/raw/` và không commit. Chi tiết nguồn, giấy phép, cấu trúc
-thư mục và các tùy chọn tải: [docs/datasets.md](docs/datasets.md). Mapping nhãn và
-split: [docs/label_mapping.md](docs/label_mapping.md),
-[docs/splits.md](docs/splits.md). Dataset/transform:
-[docs/data_pipeline.md](docs/data_pipeline.md). EDA:
-[docs/EDA/eda_report.md](docs/EDA/eda_report.md),
-[notebooks/shared/eda.ipynb](notebooks/shared/eda.ipynb).
+Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. Chi tiết:
 
-External validation RQ1: [docs/RQ1/external_validation.md](docs/RQ1/external_validation.md).
+- Dataset: [docs/datasets.md](docs/datasets.md)
+- Mapping nhãn: [docs/label_mapping.md](docs/label_mapping.md)
+- Split: [docs/splits.md](docs/splits.md)
+- Data pipeline: [docs/data_pipeline.md](docs/data_pipeline.md)
+- EDA: [docs/EDA/eda_report.md](docs/EDA/eda_report.md), [notebooks/shared/eda.ipynb](notebooks/shared/eda.ipynb)
+- External validation RQ1: [docs/RQ1/external_validation.md](docs/RQ1/external_validation.md)
+- Training: [docs/training.md](docs/training.md), [docs/models.md](docs/models.md)
+- RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
-[docs/experiment_plans.md](docs/experiment_plans.md). Log và schema kết quả:
-[docs/logging.md](docs/logging.md). Model và training:
-[docs/models.md](docs/models.md), [docs/training.md](docs/training.md),
-[docs/RQ1/model_selection.md](docs/RQ1/model_selection.md),
-[docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md).
+[docs/experiment_plans.md](docs/experiment_plans.md). Logging:
+[docs/logging.md](docs/logging.md).
 
 ## 12. Project Status
 
 **Status:** In Progress
 
-Các công việc tiếp theo:
+Đã hoàn thành:
 
-- [ ] Kiểm tra và xác nhận dataset.
-- [ ] Hoàn thiện Data Pipeline.
-- [ ] Thống nhất preprocessing và data split.
-- [ ] Xây dựng baseline.
-- [ ] Triển khai các thí nghiệm RQ1, RQ2 và RQ3.
-- [ ] Phân tích và tổng hợp kết quả.
-- [ ] Xây dựng ứng dụng demo.
-- [ ] Hoàn thiện báo cáo và thuyết trình.
+- [x] Xác nhận dataset, mapping 5 lớp.
+- [x] Data pipeline, split v1, kiểm tra leakage.
+- [x] EDA và báo cáo nhận xét dữ liệu.
+- [x] Custom CNN, MobileNetV3_small scratch/pretrained.
+- [x] Training engine, logging, checkpoint, resume.
+- [x] Chọn và debug cấu hình Custom CNN trên validation.
+- [x] External test GD đã chuẩn bị (4.806 ảnh sau dedup).
+
+Đang thực hiện:
+
+- [ ] Xác nhận MobileNetV3_small ở 50 epoch.
+- [ ] RQ1 final: 3 arm × 5 seed.
+- [ ] External validation GD trên checkpoint final RQ1.
+
+Chưa bắt đầu:
+
+- [ ] RQ2: full, no-augmentation, no-class-weighting.
+- [ ] RQ3: cross-dataset và pooled.
+- [ ] Phân tích tổng hợp, hình, kết luận.
+- [ ] Demo Streamlit.
+- [ ] Báo cáo và slide.
 
 ---
 

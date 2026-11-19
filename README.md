@@ -37,7 +37,7 @@ Nội dung thực hiện:
 - MobileNetV3_small scratch — cùng kiến trúc nhưng không pretrained.
 - MobileNetV3_small pretrained ImageNet.
 - Cùng split v1, input 224×224, không augmentation, không class weighting.
-- 5 seed: 42, 123, 2024, 7, 2025.
+- 5 seed: 42, 123, 2024, 7, 3407.
 - Chọn epoch và cấu hình trên validation; test chỉ đánh giá một lần.
 - Báo cáo accuracy, balanced accuracy, Macro-F1, per-class F1, confusion matrix.
 - Báo cáo params, GFLOPs, latency, VRAM.

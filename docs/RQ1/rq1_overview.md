@@ -132,7 +132,7 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 - Không augmentation, không class weighting.
 - AdamW, batch 64, weight decay 1e-4, cosine scheduler.
 - 50 epoch, early stopping theo validation Macro-F1.
-- 5 seed: 42, 123, 2024, 7, 2025.
+- 5 seed cố định: 42, 123, 2024, 7, 3407. Các giá trị được chọn trước khi chạy, dùng giống nhau cho cả 3 arm và không mang ý nghĩa thống kê.
 - Cùng code, metric và quy trình đánh giá.
 
 ### Quy trình

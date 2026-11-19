@@ -35,14 +35,14 @@ variants:
       - "không augmentation, không class weighting"
       - "budget epoch giống Custom CNN (30 hoặc 50 theo kết quả debug)"
       - "AdamW, batch 64, early stopping patience 7"
-      - "seed 42, 123, 2024, 7, 2025"
+      - "seed 42, 123, 2024, 7, 3407"
   - experiment: rq1_mobilenetv3s_scratch
     change: "MobileNetV3_small from scratch để tách ảnh hưởng của kiến trúc khỏi pretrained weights."
     fixed:
       - "split v1, input 224x224, không augmentation, không class weighting"
       - "không freeze, dropout 0.2, AdamW LR 1e-3, batch 64"
       - "budget epoch giống Custom CNN (30 hoặc 50)"
-      - "seed 42, 123, 2024, 7, 2025"
+      - "seed 42, 123, 2024, 7, 3407"
 
 comparison:
   metric: macro_f1
@@ -58,7 +58,7 @@ data:
   splits_version: v1
   class_names: [cardboard, glass, metal, paper, plastic]
 
-seeds: [42, 123, 2024, 7, 2025]
+seeds: [42, 123, 2024, 7, 3407]
 
 budget:
   max_epochs: 50

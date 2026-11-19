@@ -351,11 +351,11 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 - [x] Custom CNN, MobileNetV3_small scratch/pretrained.
 - [x] Training engine, logging, checkpoint, resume.
 - [x] Chọn và debug cấu hình Custom CNN trên validation.
+- [x] Xác nhận và chốt MobileNetV3_small (M1 full fine-tune).
 - [x] External test GD đã chuẩn bị (4.806 ảnh sau dedup).
 
 Đang thực hiện:
 
-- [ ] Xác nhận MobileNetV3_small ở 50 epoch.
 - [ ] RQ1 final: 3 arm × 5 seed.
 - [ ] External validation GD trên checkpoint final RQ1.
 

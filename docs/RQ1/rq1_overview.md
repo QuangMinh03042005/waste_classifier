@@ -268,8 +268,9 @@ Chiến lược fine-tune:
 - Có thể full fine-tune từ epoch đầu, hoặc freeze backbone vài epoch rồi mở một số
   block cuối.
 - Backbone dùng learning rate nhỏ hơn head (scale 0.1).
-- Cấu hình cuối được chọn trên validation ở budget 50 epoch; tài liệu này sẽ cập nhật
-  giá trị chốt cùng kết quả final.
+- Cấu hình cuối: **full fine-tune (freeze_epochs = 0)**, dropout 0.2, 50 epoch.
+- Lựa chọn dựa trên validation: M1 đạt Macro-F1 trung bình cao hơn M4.
+- Chi tiết: `docs/RQ1/mobilenet_selection.md`.
 
 ### 6.3. So sánh quy mô
 
@@ -369,7 +370,14 @@ Chi tiết: `docs/RQ1/customcnn_debug.md` và `docs/RQ1/model_selection.md`.
 - Freeze 3, dropout 0.3.
 - Freeze 5, mở 3 block.
 
-Hai cấu hình tốt nhất được xác nhận ở 50 epoch trước khi khóa.
+Hai cấu hình tốt nhất được xác nhận ở 50 epoch:
+
+| Cấu hình | Val Macro-F1 mean | Std |
+|---|---:|---:|
+| **M1 – full fine-tune** | **0.8929** | 0.0105 |
+| M4 – freeze 5, mở 3 block | 0.8762 | 0.0059 |
+
+Chọn **M1** vì trung bình cao hơn 0.0167, dù phương sai cao hơn.
 Chi tiết: `docs/RQ1/mobilenet_selection.md`.
 
 ### 8.7. Chống leakage và HARKing
@@ -546,30 +554,29 @@ Chi tiết: `docs/RQ1/external_validation.md`.
 - Training engine, logging, checkpoint, resume.
 - Chọn cấu hình Custom CNN trên validation.
 - Debug Custom CNN.
-- Sàng lọc MobileNet trên validation.
+- Sàng lọc và xác nhận MobileNet trên validation.
+- Chốt cấu hình MobileNet pretrained (M1 full fine-tune).
 - Plan RQ1, ma trận thí nghiệm.
 - Công cụ phân tích, efficiency, Grad-CAM.
 
 ### 12.2. Chưa hoàn thành
 
-- Xác nhận MobileNet ở 50 epoch.
-- Chốt cấu hình MobileNet pretrained.
 - Chạy final 3 arm × 5 seed.
 - Đánh giá test một lần.
 - Bảng kết quả final.
 - Hình confusion matrix, curves, Grad-CAM final.
 - Đo efficiency final.
+- External validation GD.
 - Viết kết luận RQ1.
 
 ### 12.3. Kế hoạch chạy
 
-1. Xác nhận MobileNet 50 epoch trên validation.
-2. Chốt cấu hình MobileNet.
-3. Chạy Custom CNN, MobileNet pretrained, MobileNet scratch với 5 seed.
-4. Đánh giá test một lần.
-5. Tổng hợp bảng, hình, phân tích lỗi.
-6. Đo efficiency và Grad-CAM.
-7. Cập nhật tài liệu và báo cáo.
+1. Chạy Custom CNN, MobileNet pretrained, MobileNet scratch với 5 seed.
+2. Đánh giá test một lần.
+3. Tổng hợp bảng, hình, phân tích lỗi.
+4. Đo efficiency và Grad-CAM.
+5. External validation GD.
+6. Cập nhật tài liệu và báo cáo.
 
 ### 12.4. Kết quả final
 

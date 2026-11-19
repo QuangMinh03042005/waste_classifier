@@ -4,7 +4,7 @@ rq: rq1
 title: "Chọn cấu hình fine-tune MobileNetV3_small (validation-only)"
 author: "Đinh Quang Minh"
 created_at: "2026-11-16"
-status: active
+status: completed
 
 question: >-
   Chiến lược freeze/unfreeze và dropout nào cho MobileNetV3_small pretrained hiệu quả
@@ -76,4 +76,4 @@ budget:
   estimated_minutes_per_run: 20
 
 risks: "12 epoch có thể chưa đủ để phân biệt M1 và M2; cần xác nhận ở 50 epoch."
-notes: "12 epoch: M1=0.8811, M4=0.8577, M2=0.8505, M3=0.8421. Xác nhận M1/M4 ở 50 epoch (final budget) trước khi khóa."
+notes: "12 epoch: M1=0.8811, M4=0.8577, M2=0.8505, M3=0.8421. Xác nhận 50 epoch: M1=0.8929 ± 0.0105, M4=0.8762 ± 0.0059. Chọn M1 full fine-tune."

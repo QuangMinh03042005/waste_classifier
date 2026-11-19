@@ -525,6 +525,18 @@ Macro-F1 là metric chính vì dữ liệu mất cân bằng và mỗi lớp qua
 - VRAM.
 - Kết luận về đánh đổi giữa chất lượng và chi phí.
 
+### 11.7. External validation trên GD
+
+Sau khi RQ1 final khóa, ba arm được đánh giá thêm trên GD — nguồn không dùng để train.
+
+- 7.010 ảnh GD mapping về 5 lớp.
+- Loại 2.200 ảnh trùng với split v1 và 4 ảnh trùng nội bộ.
+- Còn 4.806 ảnh external test.
+- Không dùng external để chọn model.
+- Kết quả là mục “External validation”, không thay đổi kết luận chính.
+
+Chi tiết: `docs/RQ1/external_validation.md`.
+
 ## 12. Trạng thái và kế hoạch
 
 ### 12.1. Đã hoàn thành

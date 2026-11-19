@@ -34,8 +34,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--datasets",
         nargs="+",
-        choices=["realwaste", "trashnet"],
         default=None,
+        help="Lọc dataset, ví dụ realwaste, trashnet, gd.",
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=None)

@@ -1,0 +1,20 @@
+{
+  "source": "https://www.kaggle.com/api/v1/datasets/download/sumn2u/garbage-classification-v2",
+  "license": "MIT",
+  "citation": "Kunwar, S. The Garbage Dataset (GD): A Multi-Class Image Benchmark for Automated Waste Segregation.",
+  "original_records": 7010,
+  "excluded_train_overlap": 2200,
+  "excluded_internal_duplicates": 4,
+  "kept": 4806,
+  "threshold": 5,
+  "counts": {
+    "cardboard": 1022,
+    "glass": 1343,
+    "metal": 530,
+    "paper": 765,
+    "plastic": 1146
+  },
+  "created_at": "2026-11-19T01:26:14.087763+00:00",
+  "gd_root": "D:\\workspace\\waste_classifier\\data\\external\\gd\\original",
+  "csv": "D:\\workspace\\waste_classifier\\data\\splits\\external\\gd_test.csv"
+}

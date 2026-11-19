@@ -261,6 +261,8 @@ split: [docs/label_mapping.md](docs/label_mapping.md),
 [docs/EDA/eda_report.md](docs/EDA/eda_report.md),
 [notebooks/shared/eda.ipynb](notebooks/shared/eda.ipynb).
 
+External validation RQ1: [docs/RQ1/external_validation.md](docs/RQ1/external_validation.md).
+
 Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Log và schema kết quả:
 [docs/logging.md](docs/logging.md). Model và training:

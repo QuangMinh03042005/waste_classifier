@@ -361,6 +361,11 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 - [x] External test GD đã chuẩn bị (4.806 ảnh sau dedup).
 - [x] RQ1 final cho Custom CNN và MobileNet pretrained (5 seed).
 - [x] Phân tích RQ1, efficiency, Grad-CAM, external GD.
+- [x] RQ3 cross-dataset (P1, P2) và pooled (P3), 3 seed — 9 run.
+- [x] RQ3 mix-ratio 0/25/50/75% × 3 seed — 12 run (tổng 21 run).
+- [x] Phân tích RQ3: domain shift, chấm công bằng trên held-out, dose-response.
+- [x] Tracking Excel RQ3 và notebook RQ3 kèm PDF.
+- [x] GPU local (Windows, torch cu132) + tài liệu setup.
 
 Đang thực hiện:
 
@@ -371,7 +376,7 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 Chưa bắt đầu:
 
 - [ ] RQ2: full, no-augmentation, no-class-weighting.
-- [ ] RQ3: cross-dataset và pooled.
+- [ ] Viết mục RQ3 trong báo cáo cuối kỳ.
 - [ ] Phân tích tổng hợp, hình, kết luận.
 - [ ] Demo Streamlit.
 - [ ] Báo cáo và slide.

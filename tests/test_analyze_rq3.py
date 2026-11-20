@@ -109,7 +109,7 @@ def test_aggregate_va_so_sanh_pooled(tmp_path: Path) -> None:
     assert set(gaps["test_source"]) == {"realwaste", "trashnet"}
     single_trashnet = gaps[gaps["test_source"] == "trashnet"].set_index("label")
     # Val 0.9, test 1.0 -> gap âm; pooled thấp hơn single-source trên cùng nguồn.
-    assert single_trashnet.loc["Pooled → từng nguồn", "gap"] > single_trashnet.loc[
+    assert single_trashnet.loc["Pooled (TrashNet 100%)", "gap"] > single_trashnet.loc[
         "RealWaste → TrashNet", "gap"
     ]
 

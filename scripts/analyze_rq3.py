@@ -34,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.data.labels import CANONICAL_CLASSES  # noqa: E402
 from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
+from src.utils.paths import splits_dir  # noqa: E402
 
 PROTOCOLS = {
     "rq3_train_realwaste_test_trashnet": {
@@ -47,10 +48,41 @@ PROTOCOLS = {
         "tests": ["realwaste"],
     },
     "rq3_train_pooled_test_each": {
-        "label": "Pooled → từng nguồn",
+        "label": "Pooled (TrashNet 100%)",
         "train": "pooled",
         "tests": ["realwaste", "trashnet"],
     },
+    "rq3_mix_tn00": {
+        "label": "Mix: TrashNet 0%",
+        "train": "realwaste",
+        "tests": ["realwaste", "trashnet"],
+    },
+    "rq3_mix_tn25": {
+        "label": "Mix: TrashNet 25%",
+        "train": "realwaste+trashnet",
+        "tests": ["realwaste", "trashnet"],
+    },
+    "rq3_mix_tn50": {
+        "label": "Mix: TrashNet 50%",
+        "train": "realwaste+trashnet",
+        "tests": ["realwaste", "trashnet"],
+    },
+    "rq3_mix_tn75": {
+        "label": "Mix: TrashNet 75%",
+        "train": "realwaste+trashnet",
+        "tests": ["realwaste", "trashnet"],
+    },
+}
+SINGLE_SOURCE = {
+    "realwaste": "rq3_train_trashnet_test_realwaste",
+    "trashnet": "rq3_train_realwaste_test_trashnet",
+}
+MIX_EXPERIMENTS = {
+    "rq3_mix_tn00": 0,
+    "rq3_mix_tn25": 25,
+    "rq3_mix_tn50": 50,
+    "rq3_mix_tn75": 75,
+    "rq3_train_pooled_test_each": 100,
 }
 SOURCES = ("realwaste", "trashnet")
 SUCCESS_DELTA = 0.02
@@ -119,7 +151,21 @@ def compute_metrics(
     }
 
 
-def _run_rows(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
+def heldout_test_paths(split_csv: Path) -> dict[str, set[str]]:
+    """Đường dẫn ảnh thuộc held-out test của split v1, theo từng nguồn."""
+    if not Path(split_csv).is_file():
+        return {}
+    frame = pd.read_csv(split_csv)
+    return {
+        str(dataset): set(group["path"])
+        for dataset, group in frame[frame["split"] == "test"].groupby("dataset")
+    }
+
+
+def _run_rows(
+    data: dict[str, list[dict[str, Any]]],
+    heldout: dict[str, set[str]] | None = None,
+) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for experiment, runs in data.items():
         info = PROTOCOLS[experiment]
@@ -133,18 +179,23 @@ def _run_rows(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
                 subset = predictions[predictions["dataset"] == source]
                 if subset.empty:
                     continue
-                rows.append(
-                    {
-                        "experiment": experiment,
-                        "label": info["label"],
-                        "train": info["train"],
-                        "test_source": source,
-                        "seed": run["run"].get("seed"),
-                        "best_val_macro_f1": best,
-                        "params": model.get("params"),
-                        **compute_metrics(subset),
-                    }
-                )
+                record = {
+                    "experiment": experiment,
+                    "label": info["label"],
+                    "train": info["train"],
+                    "test_source": source,
+                    "seed": run["run"].get("seed"),
+                    "best_val_macro_f1": best,
+                    "params": model.get("params"),
+                    **compute_metrics(subset),
+                }
+                fair = _fair_subset(subset, source, heldout)
+                if fair is not None:
+                    fair_metrics = compute_metrics(fair)
+                    record["heldout_macro_f1"] = fair_metrics["macro_f1"]
+                    record["heldout_accuracy"] = fair_metrics["accuracy"]
+                    record["n_heldout"] = fair_metrics["n"]
+                rows.append(record)
             if len(info["tests"]) > 1:
                 rows.append(
                     {
@@ -159,6 +210,21 @@ def _run_rows(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
                     }
                 )
     return pd.DataFrame(rows)
+
+
+def _fair_subset(
+    subset: pd.DataFrame,
+    source: str,
+    heldout: dict[str, set[str]] | None,
+) -> pd.DataFrame | None:
+    """Ảnh thuộc held-out test của nguồn; None nếu tập hiện tại đã đúng held-out."""
+    if not heldout or source not in heldout:
+        return None
+    paths = heldout[source]
+    fair = subset[subset["path"].isin(paths)]
+    if fair.empty or len(fair) == len(subset):
+        return None
+    return fair
 
 
 def aggregate(rows: pd.DataFrame) -> pd.DataFrame:
@@ -184,6 +250,11 @@ def aggregate(rows: pd.DataFrame) -> pd.DataFrame:
             values = pd.to_numeric(group[metric], errors="coerce").dropna()
             record[f"{metric}_mean"] = float(values.mean())
             record[f"{metric}_std"] = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+        if "heldout_macro_f1" in group and group["heldout_macro_f1"].notna().any():
+            values = pd.to_numeric(group["heldout_macro_f1"], errors="coerce").dropna()
+            record["heldout_macro_f1_mean"] = float(values.mean())
+            record["heldout_macro_f1_std"] = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+            record["n_heldout"] = int(group["n_heldout"].dropna().iloc[0])
         records.append(record)
     order = {"realwaste": 0, "trashnet": 1, "all": 2}
     frame = pd.DataFrame(records)
@@ -193,14 +264,12 @@ def aggregate(rows: pd.DataFrame) -> pd.DataFrame:
 
 
 def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
-    """So sánh pooled với single-source trên từng nguồn test."""
+    """So sánh pooled (100%) với single-source trên từng nguồn test."""
     if agg.empty:
         return agg
     rows: list[dict[str, Any]] = []
     for source in SOURCES:
-        single = agg[
-            (agg["test_source"] == source) & (agg["experiment"] != "rq3_train_pooled_test_each")
-        ]
+        single = agg[(agg["test_source"] == source) & (agg["experiment"] == SINGLE_SOURCE[source])]
         pooled = agg[
             (agg["test_source"] == source) & (agg["experiment"] == "rq3_train_pooled_test_each")
         ]
@@ -209,19 +278,45 @@ def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
         single_row = single.iloc[0]
         pooled_row = pooled.iloc[0]
         delta = float(pooled_row["macro_f1_mean"]) - float(single_row["macro_f1_mean"])
-        rows.append(
-            {
-                "test_source": source,
-                "single_label": single_row["label"],
-                "single_macro_f1": float(single_row["macro_f1_mean"]),
-                "single_std": float(single_row["macro_f1_std"]),
-                "pooled_macro_f1": float(pooled_row["macro_f1_mean"]),
-                "pooled_std": float(pooled_row["macro_f1_std"]),
-                "delta": delta,
-                "meets_criterion": delta >= SUCCESS_DELTA,
-            }
-        )
+        record = {
+            "test_source": source,
+            "single_label": single_row["label"],
+            "single_macro_f1": float(single_row["macro_f1_mean"]),
+            "single_std": float(single_row["macro_f1_std"]),
+            "pooled_macro_f1": float(pooled_row["macro_f1_mean"]),
+            "pooled_std": float(pooled_row["macro_f1_std"]),
+            "delta": delta,
+            "meets_criterion": delta >= SUCCESS_DELTA,
+        }
+        if "heldout_macro_f1_mean" in agg and pd.notna(single_row.get("heldout_macro_f1_mean")):
+            record["single_heldout"] = float(single_row["heldout_macro_f1_mean"])
+            record["single_heldout_std"] = float(single_row["heldout_macro_f1_std"])
+            record["delta_heldout"] = float(pooled_row["macro_f1_mean"]) - record["single_heldout"]
+        rows.append(record)
     return pd.DataFrame(rows)
+
+
+def dose_response(agg: pd.DataFrame) -> pd.DataFrame:
+    """Macro-F1 theo tỉ lệ TrashNet trong train (0, 25, 50, 75, 100%)."""
+    if agg.empty:
+        return agg
+    frame = agg[agg["experiment"].isin(MIX_EXPERIMENTS)].copy()
+    frame["trashnet_share"] = frame["experiment"].map(MIX_EXPERIMENTS)
+    return (
+        frame[
+            [
+                "trashnet_share",
+                "label",
+                "test_source",
+                "n_seeds",
+                "macro_f1_mean",
+                "macro_f1_std",
+                "n_test",
+            ]
+        ]
+        .sort_values(["test_source", "trashnet_share"])
+        .reset_index(drop=True)
+    )
 
 
 def domain_gap(agg: pd.DataFrame) -> pd.DataFrame:
@@ -337,6 +432,35 @@ def _confusion_panels(data: dict[str, list[dict[str, Any]]], figures: Path) -> l
     return [path.name]
 
 
+def _dose_figure(dose: pd.DataFrame, figures: Path) -> list[str]:
+    if dose.empty:
+        return []
+    figure, axis = plt.subplots(figsize=(7, 4.6))
+    for source in SOURCES:
+        part = dose[dose["test_source"] == source].sort_values("trashnet_share")
+        if part.empty:
+            continue
+        axis.errorbar(
+            part["trashnet_share"],
+            part["macro_f1_mean"],
+            yerr=part["macro_f1_std"],
+            marker="o",
+            capsize=3,
+            label=f"test {source}",
+        )
+    axis.set_xlabel("Tỉ lệ TrashNet trong train (%)")
+    axis.set_ylabel("Macro-F1")
+    axis.set_xticks([0, 25, 50, 75, 100])
+    axis.set_ylim(0, 1)
+    axis.grid(alpha=0.3)
+    axis.legend()
+    figure.tight_layout()
+    path = figures / "dose_response.png"
+    figure.savefig(path, dpi=160)
+    plt.close(figure)
+    return [path.name]
+
+
 def _bar_by_source(agg: pd.DataFrame, figures: Path) -> list[str]:
     subset = agg[agg["test_source"].isin(SOURCES)]
     if subset.empty:
@@ -388,9 +512,34 @@ def _markdown_table(frame: pd.DataFrame, columns: list[str]) -> str:
     return "\n".join(lines)
 
 
+def dose_verdict(dose: pd.DataFrame) -> str:
+    """Kết luận theo tiêu chí đã đăng ký trong plan source_mix."""
+    trashnet = dose[dose["test_source"] == "trashnet"].set_index("trashnet_share")
+    realwaste = dose[dose["test_source"] == "realwaste"].set_index("trashnet_share")
+    if not {0, 25, 50}.issubset(set(trashnet.index)):
+        return "_Chưa đủ mức 0/25/50% để kết luận._"
+    try:
+        gain = float(trashnet.loc[25, "macro_f1_mean"] - trashnet.loc[0, "macro_f1_mean"])
+        at50 = float(trashnet.loc[50, "macro_f1_mean"])
+        drop = float(realwaste.loc[0, "macro_f1_mean"] - realwaste.loc[50, "macro_f1_mean"])
+    except KeyError:
+        return "_Chưa đủ dữ liệu để kết luận._"
+
+    met = gain >= 0.05 and at50 >= 0.80 and drop <= 0.03
+    return "\n".join(
+        [
+            f"- Tăng 0% → 25%: **{gain:+.4f}** Macro-F1 trên TrashNet (tiêu chí ≥ +0.05).",
+            f"- Mức 50%: **{at50:.4f}** trên TrashNet (tiêu chí ≥ 0.80).",
+            f"- RealWaste giảm khi lên 50%: **{drop:+.4f}** (tiêu chí ≤ 0.03).",
+            f"- Tiêu chí plan: **{'đạt' if met else 'chưa đạt'}**.",
+        ]
+    )
+
+
 def build_markdown(
     agg: pd.DataFrame,
     comparison: pd.DataFrame,
+    dose: pd.DataFrame,
     per_class: pd.DataFrame,
     shift: pd.DataFrame,
     figures: list[str],
@@ -433,12 +582,11 @@ def build_markdown(
             "",
             "- **Single-source:** test là **toàn bộ** nguồn còn lại (TrashNet 2.390 hoặc RealWaste "
             "3.092) — mô hình chưa từng thấy nguồn đó, nên đây là test ngoài miền thuần.",
-            "- **Pooled:** test là phần held-out của split v1 theo từng nguồn (TrashNet 360, "
-            "RealWaste 463) — nguồn đó đã xuất hiện trong train, nên đây là test in-domain "
-            "trên phần giữ lại.",
-            "- Vì vậy chênh lệch pooled − single-source phản ánh **cả hai** yếu tố: bổ sung "
-            "dữ liệu và khác biệt bản chất/kích thước test set. Không nên đọc delta như mức "
-            "cải thiện thuần túy của khả năng chuyển miền; cần nêu rõ khi báo cáo.",
+            "- **Pooled (100%) và các mức mix:** test là phần held-out của split v1 theo từng "
+            "nguồn (TrashNet 360, RealWaste 463) — nguồn đó đã xuất hiện trong train ở mức "
+            "tương ứng.",
+            "- So sánh công bằng dùng cách chấm single-source **trên cùng held-out test** "
+            "(mục dưới): chỉ lọc predictions đã có, không đánh giá lại test.",
             "",
         ]
     )
@@ -472,12 +620,38 @@ def build_markdown(
                 "",
             ]
         )
+
+        if "single_heldout" in comparison:
+            fair = pd.DataFrame(
+                {
+                    "Test source": comparison["test_source"],
+                    "Single (held-out, mean ± std)": [
+                        f"{mean:.4f} ± {std:.4f}"
+                        for mean, std in zip(
+                            comparison["single_heldout"],
+                            comparison["single_heldout_std"],
+                            strict=True,
+                        )
+                    ],
+                    "Pooled (mean ± std)": table["Pooled (mean ± std)"],
+                    "Delta held-out": comparison["delta_heldout"].round(4),
+                }
+            )
+            lines.extend(
+                [
+                    "### Trên cùng held-out test",
+                    "",
+                    _markdown_table(fair, list(fair.columns)),
+                    "",
+                ]
+            )
+
         if bool(comparison["meets_criterion"].all()):
             lines.extend(
                 [
                     "**Kết luận:** đạt tiêu chí đã đăng ký (delta ≥ 0.02) trên cả hai nguồn. "
-                    "Đọc kèm lưu ý phương pháp: pooled được test in-domain trên phần held-out, "
-                    "single-source được test ngoài miền trên toàn bộ nguồn còn lại.",
+                    "Delta trên cùng held-out test xác nhận kết luận không phải do khác kích "
+                    "thước test set.",
                     "",
                 ]
             )
@@ -489,6 +663,40 @@ def build_markdown(
                     "",
                 ]
             )
+
+    if not dose.empty:
+        pivot = dose.pivot_table(
+            index="trashnet_share", columns="test_source", values="macro_f1_mean"
+        )
+        spread = dose.pivot_table(
+            index="trashnet_share", columns="test_source", values="macro_f1_std"
+        )
+        rows = []
+        for share in pivot.index:
+            row: dict[str, Any] = {"TrashNet %": int(share)}
+            for source in SOURCES:
+                if source in pivot.columns and pd.notna(pivot.loc[share, source]):
+                    row[f"Macro-F1 {source}"] = (
+                        f"{pivot.loc[share, source]:.4f} ± {spread.loc[share, source]:.4f}"
+                    )
+            rows.append(row)
+        table = pd.DataFrame(rows)
+        lines.extend(
+            [
+                "## Tỉ lệ dữ liệu nguồn thứ hai (mix-ratio)",
+                "",
+                "RealWaste giữ 100% train; cột là tỉ lệ group TrashNet train được thêm vào.",
+                "",
+                _markdown_table(table, list(table.columns)),
+                "",
+                dose_verdict(dose),
+                "",
+                "**Lưu ý:** val dùng cả hai nguồn ở mọi mức tỉ lệ. Với mức 0%, val TrashNet là "
+                "ngoài miền nên epoch được chọn có thể chưa tối ưu cho RealWaste; đọc kèm cột "
+                "Val Macro-F1 và Gap val−test trong bảng tổng hợp.",
+                "",
+            ]
+        )
 
     if not per_class.empty:
         pivot = per_class.pivot_table(
@@ -535,27 +743,36 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-md", type=Path, default=Path("docs/RQ3/rq3_results.md"))
     parser.add_argument("--output-csv", type=Path, default=Path("docs/RQ3/rq3_metrics.csv"))
     parser.add_argument("--figures-dir", type=Path, default=Path("docs/RQ3/rq3_analysis"))
+    parser.add_argument(
+        "--split-csv",
+        type=Path,
+        default=None,
+        help="Split v1 dùng để lấy held-out test khi chấm công bằng (mặc định data/splits/v1).",
+    )
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
+    split_csv = args.split_csv or (splits_dir() / "v1" / "split.csv")
     data = load_runs(args.experiments_root.resolve())
-    rows = _run_rows(data)
+    rows = _run_rows(data, heldout_test_paths(split_csv))
     agg = aggregate(rows)
     comparison = compare_pooled(agg)
+    dose = dose_response(agg)
     per_class = per_class_table(rows)
     shift = prediction_shift(data)
 
     args.figures_dir.mkdir(parents=True, exist_ok=True)
     figures: list[str] = []
     figures.extend(_bar_by_source(agg, args.figures_dir))
+    figures.extend(_dose_figure(dose, args.figures_dir))
     figures.extend(_confusion_panels(data, args.figures_dir))
 
     args.output_md.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.write_text(
-        build_markdown(agg, comparison, per_class, shift, figures) + "\n",
+        build_markdown(agg, comparison, dose, per_class, shift, figures) + "\n",
         encoding="utf-8",
     )
     if not agg.empty:

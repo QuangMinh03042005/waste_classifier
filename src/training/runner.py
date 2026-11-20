@@ -99,9 +99,17 @@ def _make_loader(
     )
 
 
-def _make_optimizer(model: nn.Module, lr: float, weight_decay: float) -> torch.optim.Optimizer:
+def _make_optimizer(
+    model: nn.Module,
+    lr: float,
+    weight_decay: float,
+    backbone_lr_scale: float = 0.1,
+) -> torch.optim.Optimizer:
     groups = build_param_groups(
-        model, base_lr=lr, weight_decay=weight_decay, backbone_lr_scale=0.1
+        model,
+        base_lr=lr,
+        weight_decay=weight_decay,
+        backbone_lr_scale=backbone_lr_scale,
     )
     if not groups:
         raise RuntimeError("Model không có tham số trainable.")
@@ -109,10 +117,27 @@ def _make_optimizer(model: nn.Module, lr: float, weight_decay: float) -> torch.o
 
 
 def _make_scheduler(
-    optimizer: torch.optim.Optimizer, epochs: int, lr: float
+    optimizer: torch.optim.Optimizer,
+    epochs: int,
+    lr: float,
+    warmup_epochs: int = 0,
 ) -> torch.optim.lr_scheduler.LRScheduler:
-    return torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=max(epochs, 1), eta_min=lr * 0.01
+    epochs = max(epochs, 1)
+    warmup = min(max(warmup_epochs, 0), max(epochs - 1, 0))
+    if warmup == 0:
+        return torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=epochs, eta_min=lr * 0.01
+        )
+    warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+        optimizer, start_factor=0.1, total_iters=warmup
+    )
+    cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=max(epochs - warmup, 1), eta_min=lr * 0.01
+    )
+    return torch.optim.lr_scheduler.SequentialLR(
+        optimizer,
+        schedulers=[warmup_scheduler, cosine],
+        milestones=[warmup],
     )
 
 
@@ -273,6 +298,8 @@ def _run(
     epochs = int(train_cfg["epochs"])
     lr = float(train_cfg.get("lr", 1e-3))
     weight_decay = float(train_cfg.get("weight_decay", 1e-4))
+    backbone_lr_scale = float(train_cfg.get("backbone_lr_scale", 0.1))
+    warmup_epochs = int(train_cfg.get("warmup_epochs", 0))
     patience_limit = int(train_cfg.get("early_stopping_patience", 7))
     monitor = str(train_cfg.get("monitor", "val_macro_f1"))
     if monitor != "val_macro_f1":
@@ -378,8 +405,8 @@ def _run(
     else:
         criterion = nn.CrossEntropyLoss()
 
-    optimizer = _make_optimizer(model, lr, weight_decay)
-    scheduler = _make_scheduler(optimizer, epochs, lr)
+    optimizer = _make_optimizer(model, lr, weight_decay, backbone_lr_scale)
+    scheduler = _make_scheduler(optimizer, epochs, lr, warmup_epochs)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     start_epoch = 1
@@ -426,8 +453,8 @@ def _run(
             and hasattr(model, "features")
         ):
             unfreeze_last_blocks(model, unfreeze_blocks)
-            optimizer = _make_optimizer(model, lr, weight_decay)
-            scheduler = _make_scheduler(optimizer, epochs - epoch + 1, lr)
+            optimizer = _make_optimizer(model, lr, weight_decay, backbone_lr_scale)
+            scheduler = _make_scheduler(optimizer, epochs - epoch + 1, lr, 0)
             unfrozen = True
             logger.log_event(
                 "unfroze_backbone",

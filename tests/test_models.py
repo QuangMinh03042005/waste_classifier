@@ -85,6 +85,18 @@ def test_param_groups_cover_trainable_params() -> None:
     assert len({id(parameter) for parameter in params}) == len(params)
 
 
+def test_scratch_param_groups_use_same_lr() -> None:
+    model = build_mobilenet_v3_small(pretrained=False)
+    groups = build_param_groups(
+        model,
+        base_lr=1e-3,
+        weight_decay=1e-4,
+        backbone_lr_scale=1.0,
+    )
+    assert len(groups) == 2
+    assert all(round(group["lr"], 8) == 1e-3 for group in groups)
+
+
 def test_factory() -> None:
     assert isinstance(build_model("custom_cnn"), CustomCNN)
     with pytest.raises(ValueError, match="registry"):

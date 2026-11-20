@@ -1,0 +1,33 @@
+experiment: rq1_scratch_s1
+rq: rq1
+seed: 42
+
+data:
+  root: null
+  splits_version: v1
+  image_size: 224
+  batch_size: 64
+  num_workers: 2
+  augmentation: false
+  class_weighting: false
+
+model:
+  name: mobilenet_v3_small
+  num_classes: 5
+  pretrained: false
+  dropout: 0.2
+  freeze_epochs: 0
+  unfreeze_blocks: 2
+
+training:
+  epochs: 50
+  optimizer: adamw
+  lr: 0.001
+  weight_decay: 0.0001
+  backbone_lr_scale: 1.0
+  warmup_epochs: 3
+  scheduler: cosine
+  early_stopping_patience: 7
+  monitor: val_macro_f1
+  amp: true
+  evaluate_test: false

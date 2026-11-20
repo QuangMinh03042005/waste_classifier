@@ -41,9 +41,15 @@ def _load_json(path: Path) -> dict[str, Any] | None:
         return None
 
 
-def load_runs(root: Path) -> dict[str, list[dict[str, Any]]]:
+def load_runs(
+    root: Path,
+    exclude: list[str] | None = None,
+) -> dict[str, list[dict[str, Any]]]:
+    excluded = set(exclude or [])
     data: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for experiment in EXPERIMENTS:
+        if experiment in excluded:
+            continue
         for run_file in sorted((root / "rq1").glob(f"{experiment}_s*/run.json")):
             run = _load_json(run_file) or {}
             if run.get("status") != "completed":
@@ -350,13 +356,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--experiments-root", type=Path, default=default_experiments_root())
     parser.add_argument("--output-md", type=Path, default=Path("docs/RQ1/rq1_results.md"))
     parser.add_argument("--figures-dir", type=Path, default=Path("docs/RQ1/rq1_analysis"))
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=None,
+        help="Loại experiment khỏi phân tích, ví dụ scratch đang chờ sửa.",
+    )
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
-    data = load_runs(args.experiments_root.resolve())
+    data = load_runs(args.experiments_root.resolve(), exclude=args.exclude)
     summary = _summary_rows(data)
     aggregate = _aggregate(summary)
     per_class = _per_class(data)

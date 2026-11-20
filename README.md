@@ -349,16 +349,19 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 - [x] Xác nhận dataset, mapping 5 lớp.
 - [x] Data pipeline, split v1, kiểm tra leakage.
 - [x] EDA và báo cáo nhận xét dữ liệu.
-- [x] Custom CNN, MobileNetV3_small scratch/pretrained.
+- [x] Custom CNN và MobileNetV3_small pretrained; scratch đang sửa recipe.
 - [x] Training engine, logging, checkpoint, resume.
 - [x] Chọn và debug cấu hình Custom CNN trên validation.
 - [x] Xác nhận và chốt MobileNetV3_small (M1 full fine-tune).
 - [x] External test GD đã chuẩn bị (4.806 ảnh sau dedup).
+- [x] RQ1 final cho Custom CNN và MobileNet pretrained (5 seed).
+- [x] Phân tích RQ1, efficiency, Grad-CAM, external GD.
 
 Đang thực hiện:
 
-- [ ] RQ1 final: 3 arm × 5 seed.
-- [ ] External validation GD trên checkpoint final RQ1.
+- [ ] Sửa và chạy lại scratch arm.
+- [ ] Hoàn thiện bảng RQ1 final 3 arm.
+- [ ] Cập nhật kết luận RQ1 sau scratch.
 
 Chưa bắt đầu:
 

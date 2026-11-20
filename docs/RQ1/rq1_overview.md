@@ -209,16 +209,17 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 - Training engine, logging, checkpoint, resume.
 - Chọn và debug Custom CNN trên validation.
 - Chọn MobileNet pretrained trên validation: M1 full fine-tune.
-- External test GD đã chuẩn bị.
+- Chạy final Custom CNN và MobileNet pretrained, 5 seed.
+- Phân tích test, per-class, confusion matrix, efficiency, Grad-CAM.
+- External validation GD cho Custom và pretrained.
 - Công cụ phân tích, efficiency, Grad-CAM.
 
 ### Chưa hoàn thành
 
-- Chạy final 3 arm × 5 seed.
-- Đánh giá test một lần.
-- Bảng, hình, kết luận final.
-- External validation GD trên checkpoint final.
-- Cập nhật báo cáo/slide.
+- Sửa và chạy lại scratch arm.
+- Bảng RQ1 final đầy đủ 3 arm.
+- Cập nhật kết luận RQ1 sau scratch.
+- Hoàn thiện báo cáo/slide.
 
 ### Kế hoạch chạy
 

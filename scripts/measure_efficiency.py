@@ -25,11 +25,16 @@ PREFIXES = (
 )
 
 
-def discover_runs(root: Path) -> list[Path]:
+def discover_runs(root: Path, exclude: list[str] | None = None) -> list[Path]:
+    excluded = set(exclude or [])
     runs: list[Path] = []
     for prefix in PREFIXES:
-        runs.extend(sorted((root / "rq1").glob(f"{prefix}*/run.json")))
-    return [path.parent for path in runs]
+        for run_file in sorted((root / "rq1").glob(f"{prefix}*/run.json")):
+            run = json.loads(run_file.read_text(encoding="utf-8"))
+            if run.get("experiment") in excluded:
+                continue
+            runs.append(run_file.parent)
+    return runs
 
 
 def _table(results: list[EfficiencyResult]) -> str:
@@ -52,6 +57,12 @@ def _table(results: list[EfficiencyResult]) -> str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Đo params/FLOPs/latency.")
     parser.add_argument("--runs", nargs="+", type=Path, default=None)
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=None,
+        help="Loại experiment khỏi đo efficiency.",
+    )
     parser.add_argument("--experiments-root", type=Path, default=default_experiments_root())
     parser.add_argument("--output", type=Path, default=Path("docs/RQ1/rq1_efficiency.md"))
     parser.add_argument("--device", type=str, default=None)
@@ -64,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
 
     args = build_parser().parse_args(argv)
-    runs = args.runs or discover_runs(args.experiments_root)
+    runs = args.runs or discover_runs(args.experiments_root, exclude=args.exclude)
     if not runs:
         print("Không có run nào.")
         return 1

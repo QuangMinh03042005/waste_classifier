@@ -71,6 +71,8 @@ Nội dung thực hiện:
 
 Ghi chú: GD hiện chỉ dùng làm **external test cho RQ1**, không tham gia train RQ3.
 
+Tài liệu chi tiết: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md).
+
 ## 4. Dataset
 
 ### 4.1. Nguồn dữ liệu

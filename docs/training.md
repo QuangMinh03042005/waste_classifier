@@ -2,6 +2,10 @@
 
 Entrypoint: `research/rq1/train.py`. Engine: `src/training/runner.py`.
 
+Mỗi RQ có entrypoint mỏng dùng chung engine: `research/rq1/train.py` (RQ1),
+`research/rq3/train.py` (RQ3, split ở `data/splits/rq3/` — xem
+[RQ3/rq3_overview.md](RQ3/rq3_overview.md)). RQ2 dùng entrypoint RQ1 với config riêng.
+
 ## Chạy
 
 ```bash

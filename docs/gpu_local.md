@@ -99,8 +99,17 @@ uv run python -m research.rq1.train \
   --seed 42 --epochs 1 --limit-batches 1
 ```
 
-RQ3 dùng cùng engine với split riêng (`data/splits/rq3/`); lệnh chạy cụ thể sẽ
-được ghi ở `docs/RQ3/` khi entrypoint `research/rq3/train.py` và config RQ3 được thêm.
+RQ3 dùng cùng engine với split riêng (`data/splits/rq3/`):
+
+```bash
+uv run python -m research.rq3.train \
+  --config configs/rq3/rq3_train_realwaste_test_trashnet.yaml \
+  --plan plans/rq3/cross_dataset_generalization.yaml \
+  --seed 42
+```
+
+Xem [RQ3/rq3_overview.md](RQ3/rq3_overview.md) cho cả 3 protocol và cách báo cáo
+kết quả theo từng nguồn.
 
 ## 5. Khác biệt so với Colab
 

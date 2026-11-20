@@ -6,13 +6,13 @@ Tiêu chí: pooled cao hơn single-source ≥ 0.02 Macro-F1 trên **cả hai** n
 
 ## Tổng hợp
 
-| Protocol | Train | Test | n_seeds | n_test | Macro-F1 (mean ± std) | Accuracy | Balanced acc | Val Macro-F1 (in-domain) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Pooled → từng nguồn | pooled | realwaste | 3 | 463 | 0.9057 ± 0.0042 | 0.9057 | 0.9052 | 0.8962 |
-| TrashNet → RealWaste | trashnet | realwaste | 3 | 3092 | 0.4788 ± 0.0265 | 0.5246 | 0.4948 | 0.9023 |
-| Pooled → từng nguồn | pooled | trashnet | 3 | 360 | 0.8889 ± 0.0031 | 0.8917 | 0.8866 | 0.8962 |
-| RealWaste → TrashNet | realwaste | trashnet | 3 | 2390 | 0.2894 ± 0.0261 | 0.3032 | 0.3245 | 0.8987 |
-| Pooled → từng nguồn | pooled | all | 3 | 823 | 0.8983 ± 0.0049 | 0.8996 | 0.8973 | 0.8962 |
+| Protocol | Train | Test | n_seeds | n_test | Macro-F1 (mean ± std) | Accuracy | Balanced acc | Val Macro-F1 (in-domain) | Gap val−test |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Pooled → từng nguồn | pooled | realwaste | 3 | 463 | 0.9057 ± 0.0042 | 0.9057 | 0.9052 | 0.8962 | -0.0095 |
+| TrashNet → RealWaste | trashnet | realwaste | 3 | 3092 | 0.4788 ± 0.0265 | 0.5246 | 0.4948 | 0.9023 | 0.4235 |
+| Pooled → từng nguồn | pooled | trashnet | 3 | 360 | 0.8889 ± 0.0031 | 0.8917 | 0.8866 | 0.8962 | 0.0074 |
+| RealWaste → TrashNet | realwaste | trashnet | 3 | 2390 | 0.2894 ± 0.0261 | 0.3032 | 0.3245 | 0.8987 | 0.6093 |
+| Pooled → từng nguồn | pooled | all | 3 | 823 | 0.8983 ± 0.0049 | 0.8996 | 0.8973 | 0.8962 | -0.0021 |
 
 ## Lưu ý phương pháp
 

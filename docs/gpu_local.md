@@ -134,3 +134,30 @@ kết quả theo từng nguồn.
   rõ run nào chạy local và run nào chạy Colab.
 - Determinism: `cudnn.benchmark=False`, seed cố định; GPU vẫn có thể lệch rất nhỏ
   giữa các lần chạy. Kết quả báo cáo lấy mean ± std trên ≥3 seed.
+
+## 6. Xuất PDF notebook
+
+`nbconvert --to pdf` cần **cả** LaTeX (dựng PDF) và **pandoc** (đổi markdown cell).
+Cài một lần trên Windows:
+
+```powershell
+winget install --id MiKTeX.MiKTeX -e
+winget install --id JohnMacFarlane.Pandoc -e
+```
+
+Mở terminal mới (để nhận PATH), kiểm tra `xelatex --version` và `pandoc --version`, rồi:
+
+```bash
+uv run jupyter nbconvert --to pdf notebooks/rq3/analyze_rq3.ipynb \
+  --output-dir docs/notebooks/rq3/
+uv run jupyter nbconvert --clear-output --inplace notebooks/rq3/analyze_rq3.ipynb
+```
+
+- MiKTeX tự tải package còn thiếu ở lần xuất đầu (vài phút). Nếu bị hỏi, bật:
+  `initexmf --set-config-value "[MPM]AutoInstall=1"`.
+- Lỗi `PandocMissing` nghĩa là thiếu pandoc, không phải thiếu LaTeX.
+- Tránh **bảng markdown** trong notebook: pandoc sinh `\LTcaptype{none}` và bản
+  longtable của MiKTeX basic báo `No counter 'none' defined`. Dùng gạch đầu dòng,
+  hoặc để pandas hiển thị dạng text (`pd.set_option("display.notebook_repr_html", False)`)
+  như notebook RQ3.
+

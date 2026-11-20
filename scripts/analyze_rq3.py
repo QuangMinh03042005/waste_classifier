@@ -224,6 +224,17 @@ def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def domain_gap(agg: pd.DataFrame) -> pd.DataFrame:
+    """Chênh lệch Macro-F1 giữa validation in-domain và test của từng protocol."""
+    if agg.empty:
+        return agg
+    frame = agg[agg["test_source"] != "all"].copy()
+    frame["gap"] = frame["best_val_macro_f1"] - frame["macro_f1_mean"]
+    return frame[
+        ["label", "train", "test_source", "best_val_macro_f1", "macro_f1_mean", "gap"]
+    ].reset_index(drop=True)
+
+
 def per_class_table(rows: pd.DataFrame) -> pd.DataFrame:
     """Per-class F1 trung bình theo protocol và nguồn test."""
     records: list[dict[str, Any]] = []
@@ -412,6 +423,7 @@ def build_markdown(
             "Accuracy": agg["accuracy_mean"].round(4),
             "Balanced acc": agg["balanced_accuracy_mean"].round(4),
             "Val Macro-F1 (in-domain)": agg["best_val_macro_f1"].round(4),
+            "Gap val−test": (agg["best_val_macro_f1"] - agg["macro_f1_mean"]).round(4),
         }
     )
     lines.extend(["## Tổng hợp", "", _markdown_table(summary, list(summary.columns)), ""])

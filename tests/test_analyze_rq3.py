@@ -16,6 +16,7 @@ from analyze_rq3 import (  # noqa: E402
     aggregate,
     compare_pooled,
     compute_metrics,
+    domain_gap,
     load_runs,
     prediction_shift,
 )
@@ -103,6 +104,14 @@ def test_aggregate_va_so_sanh_pooled(tmp_path: Path) -> None:
     assert trashnet_row["single_macro_f1"] == pytest.approx(1.0)
     assert trashnet_row["delta"] < 0
     assert not trashnet_row["meets_criterion"]
+
+    gaps = domain_gap(agg)
+    assert set(gaps["test_source"]) == {"realwaste", "trashnet"}
+    single_trashnet = gaps[gaps["test_source"] == "trashnet"].set_index("label")
+    # Val 0.9, test 1.0 -> gap âm; pooled thấp hơn single-source trên cùng nguồn.
+    assert single_trashnet.loc["Pooled → từng nguồn", "gap"] > single_trashnet.loc[
+        "RealWaste → TrashNet", "gap"
+    ]
 
 
 def test_prediction_shift_phat_hien_sup_do(tmp_path: Path) -> None:

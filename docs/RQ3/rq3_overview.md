@@ -88,6 +88,10 @@ Script chỉ đọc artifact (không đánh giá lại test) và sinh:
 - `docs/RQ3/rq3_metrics.csv`: số liệu chi tiết từng run.
 - `docs/RQ3/rq3_analysis/`: hình Macro-F1 theo nguồn và confusion matrix từng nguồn.
 
+Notebook trình bày kết quả: `notebooks/rq3/analyze_rq3.ipynb` (bản PDF trong
+`docs/notebooks/rq3/`). Notebook chỉ đọc artifact và gọi `scripts/analyze_rq3.py`,
+không huấn luyện lại hay đánh giá lại test.
+
 ## 6. Tiêu chí thành công
 
 Pooled cao hơn single-source ≥ 0.02 Macro-F1 (trung bình 3 seed) trên **cả hai** test

@@ -312,7 +312,8 @@ waste-classifier/
 
 ## 11. Cài đặt và tải dữ liệu
 
-Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/).
+Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/). Trên Windows có GPU NVIDIA,
+`uv sync` tự lấy torch bản CUDA (`cu132`) — xem [docs/gpu_local.md](docs/gpu_local.md).
 
 ```bash
 uv sync                                             # cài môi trường
@@ -336,7 +337,8 @@ Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. 
 - Training: [docs/training.md](docs/training.md), [docs/models.md](docs/models.md)
 - RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
 
-Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
+Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
+[docs/gpu_local.md](docs/gpu_local.md) (GPU local Windows). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Logging:
 [docs/logging.md](docs/logging.md).
 

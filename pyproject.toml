@@ -27,6 +27,18 @@ dev = [
   "ruff==0.17.4",
 ]
 
+[tool.uv]
+# Torch trên PyPI cho Windows là bản CPU-only, không dùng được GPU.
+# Trên Windows lấy trực tiếp wheel CUDA từ PyTorch index; Linux/Colab giữ PyPI.
+[[tool.uv.index]]
+name = "pytorch-cu132"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu132", marker = "sys_platform == 'win32'" }]
+torchvision = [{ index = "pytorch-cu132", marker = "sys_platform == 'win32'" }]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

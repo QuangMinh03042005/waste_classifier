@@ -1,6 +1,7 @@
 # Chạy trên Google Colab
 
-Local dùng cho EDA, phân tích, test. Training chạy trên Colab (GPU free) để tiết kiệm
+Local dùng cho EDA, phân tích, test — và có thể train nếu có GPU NVIDIA
+(xem [gpu_local.md](gpu_local.md)). Training trên Colab (GPU free) để tiết kiệm
 thời gian. Code giống nhau; chỉ khác đường dẫn, cấu hình qua biến môi trường.
 
 ## Sơ đồ
@@ -80,6 +81,8 @@ rồi chạy notebook phân tích. Không commit `experiments/`.
 
 - **Torch:** Colab dùng torch/torchvision có sẵn (CUDA phù hợp GPU). Không chạy
   `uv sync` trên Colab vì torch 2.15.0 Linux kéo CUDA 13.2, có thể không tương thích T4.
+  Trên GPU local Windows thì ngược lại: `uv sync` lấy đúng bản CUDA
+  ([docs/gpu_local.md](gpu_local.md)).
 - **Version:** `environment.json` ghi torch/CUDA/GPU thực tế của mỗi run. Báo cáo phải
   nêu rõ training chạy trên Colab, không phải môi trường local.
 - **Session:** Colab free giới hạn ~12 giờ và tự ngắt khi idle. Checkpoint mỗi epoch và

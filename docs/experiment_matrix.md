@@ -1,8 +1,8 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-19T12:52:35.741685+00:00`
-- Plan core: 3
-- Experiment core: 9
+- Tạo lúc: `2026-11-20T17:58:46.008036+00:00`
+- Plan core: 5
+- Experiment core: 15
 - Plan pilot/selection: 3
 - Experiment pilot/selection: 17
 
@@ -26,6 +26,22 @@
 | rq1_customcnn | baseline | - | - | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
 | rq1_mobilenetv3s_full | variant | Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet. | split v1, stratified theo (dataset, class), chống trùng bằng pHash; input 224x224, normalize mean/std ImageNet; không augmentation, không class weighting; budget epoch giống Custom CNN (30 hoặc 50 theo kết quả debug); AdamW, batch 64, early stopping patience 7; seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
 | rq1_mobilenetv3s_scratch | variant | MobileNetV3_small from scratch để tách ảnh hưởng của kiến trúc khỏi pretrained weights. | split v1, input 224x224, không augmentation, không class weighting; không freeze, dropout 0.2, AdamW LR 1e-3, batch 64; budget epoch giống Custom CNN (30 hoặc 50); seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
+
+### `rq1_scratch_fix` - Sửa recipe huấn luyện MobileNetV3_small scratch (validation-only)
+
+- **Câu hỏi:** Recipe nào giúp MobileNetV3_small from scratch hội tụ ổn định trên split v1, sau khi sửa lỗi backbone learning rate bị scale như fine-tuning?
+- **Giả thuyết:** Với backbone_lr_scale = 1.0 và warmup 3 epoch, scratch sẽ học được đặc trưng thay vì chỉ head memorize; LR 3e-4 ổn định hơn 1e-3.
+- **Kết quả kỳ vọng:** Cả S1 và S2 đều vượt mức random; S2 có val Macro-F1 cao hơn hoặc ổn định hơn.
+- **Nếu giả thuyết sai:** Nếu cả hai vẫn gần random, kiểm tra lại gradient/BN và ghi nhận scratch không hội tụ với recipe không augmentation. Không dùng test để chọn recipe.
+- **Metric:** val_macro_f1
+- **Test policy:** Không đánh giá test trong screening; recipe chốt trên validation.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/scratch_fix.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_scratch_s1 | baseline | - | - | val_macro_f1 | Chọn recipe có val Macro-F1 cao nhất và không gần random; nếu chênh < 0.005, chọn recipe ổn định hơn theo learning curves. | 42, 123, 2024, 7, 3407 | active |
+| rq1_scratch_s2 | variant | Giảm LR xuống 3e-4, giữ backbone_lr_scale=1.0 và warmup 3 epoch. | split v1, input 224x224, không augmentation, không class weighting; MobileNetV3_small scratch, dropout 0.2, AdamW, batch 64; 50 epoch, early stopping patience 7, seed 42 cho screening; top-2 chạy thêm seed 123, 2024; final 5 seed nếu được chọn | val_macro_f1 | Chọn recipe có val Macro-F1 cao nhất và không gần random; nếu chênh < 0.005, chọn recipe ổn định hơn theo learning curves. | 42, 123, 2024, 7, 3407 | active |
 
 ### RQ2 – Data Augmentation & Class Weighting
 
@@ -64,6 +80,24 @@
 | rq3_train_realwaste_test_trashnet | baseline | - | - | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024 | active |
 | rq3_train_trashnet_test_realwaste | variant | Đảo chiều nguồn: huấn luyện trên TrashNet, kiểm thử toàn bộ RealWaste. | 5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet; không augmentation, không class weighting; AdamW, batch 64, tối đa 30 epoch, early stopping patience 7; seed 42, 123, 2024 | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024 | active |
 | rq3_train_pooled_test_each | variant | Huấn luyện trên dữ liệu kết hợp 2 nguồn, kiểm thử riêng từng nguồn. | split v1 cho phần train/val; test của mỗi nguồn giữ nguyên; 5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet; không augmentation, không class weighting; AdamW, batch 64, tối đa 30 epoch, early stopping patience 7; seed 42, 123, 2024 | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024 | active |
+
+### `rq3_source_mix` - Tỉ lệ dữ liệu nguồn thứ hai ảnh hưởng thế nào đến tổng quát hóa
+
+- **Câu hỏi:** Khi giữ nguyên toàn bộ dữ liệu RealWaste, cần bổ sung bao nhiêu phần trăm dữ liệu TrashNet vào train để mô hình đạt được khả năng phân loại tốt trên cả hai nguồn?
+- **Giả thuyết:** Macro-F1 trên TrashNet held-out tăng khi tăng tỉ lệ TrashNet trong train, nhưng phần lớn cải thiện đến sớm: mức 25-50% đã gần mức 100%, trong khi Macro-F1 trên RealWaste giảm không đáng kể.
+- **Kết quả kỳ vọng:** Đường cong dose-response tăng nhanh từ 0% đến 50% rồi bão hòa; RealWaste giảm nhẹ khi tăng tỉ lệ TrashNet.
+- **Nếu giả thuyết sai:** Nếu đường cong không đơn điệu hoặc RealWaste giảm mạnh, phân tích phân phối lớp của phần TrashNet được chọn, mất cân bằng lớp giữa hai nguồn và chất lượng ảnh. Báo cáo trung thực, không đổi tiêu chí sau khi xem test.
+- **Metric:** macro_f1
+- **Test policy:** Test held-out của từng nguồn chỉ đánh giá một lần mỗi run; không dùng test để chọn epoch.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq3/source_mix.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq3_mix_tn00 | baseline | - | - | macro_f1 | Macro-F1 TrashNet held-out tăng >= 0.05 khi tỉ lệ TrashNet đi từ 0% lên 25%; ở mức 50% đạt >= 0.80 và Macro-F1 RealWaste giảm <= 0.03 so với mức 0%. | 42, 123, 2024 | active |
+| rq3_mix_tn25 | variant | Thêm 25% số group TrashNet train vào train (RealWaste vẫn 100%). | split v1 cho val/test: RealWaste 466+463, TrashNet 360+360; MobileNetV3_small pretrained ImageNet, không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 30 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Macro-F1 TrashNet held-out tăng >= 0.05 khi tỉ lệ TrashNet đi từ 0% lên 25%; ở mức 50% đạt >= 0.80 và Macro-F1 RealWaste giảm <= 0.03 so với mức 0%. | 42, 123, 2024 | active |
+| rq3_mix_tn50 | variant | Thêm 50% số group TrashNet train vào train (RealWaste vẫn 100%). | split v1 cho val/test: RealWaste 466+463, TrashNet 360+360; MobileNetV3_small pretrained ImageNet, không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 30 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Macro-F1 TrashNet held-out tăng >= 0.05 khi tỉ lệ TrashNet đi từ 0% lên 25%; ở mức 50% đạt >= 0.80 và Macro-F1 RealWaste giảm <= 0.03 so với mức 0%. | 42, 123, 2024 | active |
+| rq3_mix_tn75 | variant | Thêm 75% số group TrashNet train vào train (RealWaste vẫn 100%). | split v1 cho val/test: RealWaste 466+463, TrashNet 360+360; MobileNetV3_small pretrained ImageNet, không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 30 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Macro-F1 TrashNet held-out tăng >= 0.05 khi tỉ lệ TrashNet đi từ 0% lên 25%; ở mức 50% đạt >= 0.80 và Macro-F1 RealWaste giảm <= 0.03 so với mức 0%. | 42, 123, 2024 | active |
 
 ## Pilot / Selection (completed)
 

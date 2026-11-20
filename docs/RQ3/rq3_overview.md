@@ -75,13 +75,26 @@ uv run python -m research.evaluate \
 Lệnh trên chỉ dùng khi cần confusion matrix/prediction riêng cho một nguồn; nếu không
 thì tách `predictions/test.csv` theo cột `dataset`.
 
-## 5. Tiêu chí thành công
+## 5. Phân tích
+
+```bash
+uv run python scripts/analyze_rq3.py
+```
+
+Script chỉ đọc artifact (không đánh giá lại test) và sinh:
+
+- `docs/RQ3/rq3_results.md`: bảng mean ± std theo protocol/nguồn test, so sánh pooled
+  với single-source, per-class F1, tỉ lệ sụp đổ dự đoán.
+- `docs/RQ3/rq3_metrics.csv`: số liệu chi tiết từng run.
+- `docs/RQ3/rq3_analysis/`: hình Macro-F1 theo nguồn và confusion matrix từng nguồn.
+
+## 6. Tiêu chí thành công
 
 Pooled cao hơn single-source ≥ 0.02 Macro-F1 (trung bình 3 seed) trên **cả hai** test
 set ngoài miền. Nếu không đạt, báo cáo trung thực và phân tích domain shift, phân phối
 lớp, chất lượng ảnh (kế hoạch dự phòng đã ghi trong plan).
 
-## 6. Trạng thái
+## 7. Trạng thái
 
 - [x] Split RQ3, plan active, config + entrypoint + test.
 - [ ] Chạy P1/P2/P3 × 3 seed.

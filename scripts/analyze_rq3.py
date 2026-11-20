@@ -1,0 +1,564 @@
+"""Phân tích kết quả RQ3: cross-dataset, pooled, domain shift.
+
+Cách dùng:
+    uv run python scripts/analyze_rq3.py
+
+Sinh `docs/RQ3/rq3_results.md`, `docs/RQ3/rq3_metrics.csv` và hình trong
+`docs/RQ3/rq3_analysis/`. Chỉ đọc artifact đã có; test không được đánh giá lại.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+from typing import Any
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_recall_fscore_support,
+)
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.data.labels import CANONICAL_CLASSES  # noqa: E402
+from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
+
+PROTOCOLS = {
+    "rq3_train_realwaste_test_trashnet": {
+        "label": "RealWaste → TrashNet",
+        "train": "realwaste",
+        "tests": ["trashnet"],
+    },
+    "rq3_train_trashnet_test_realwaste": {
+        "label": "TrashNet → RealWaste",
+        "train": "trashnet",
+        "tests": ["realwaste"],
+    },
+    "rq3_train_pooled_test_each": {
+        "label": "Pooled → từng nguồn",
+        "train": "pooled",
+        "tests": ["realwaste", "trashnet"],
+    },
+}
+SOURCES = ("realwaste", "trashnet")
+SUCCESS_DELTA = 0.02
+
+
+def _load_json(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def load_runs(root: Path) -> dict[str, list[dict[str, Any]]]:
+    """Đọc mọi run completed của RQ3, kèm predictions nếu có."""
+    data: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for experiment in PROTOCOLS:
+        for run_file in sorted((root / "rq3").glob(f"{experiment}_s*/run.json")):
+            run = _load_json(run_file) or {}
+            if run.get("status") != "completed":
+                continue
+            metrics = _load_json(run_file.with_name("metrics.json")) or {}
+            predictions_file = run_file.with_name("predictions") / "test.csv"
+            predictions = pd.read_csv(predictions_file) if predictions_file.is_file() else None
+            data[experiment].append(
+                {
+                    "run_dir": run_file.parent,
+                    "run": run,
+                    "metrics": metrics,
+                    "predictions": predictions,
+                }
+            )
+    return data
+
+
+def compute_metrics(
+    predictions: pd.DataFrame, classes: tuple[str, ...] = CANONICAL_CLASSES
+) -> dict:
+    """Metric trên một tập predictions đã lọc."""
+    labels = list(classes)
+    y_true = predictions["true_label"]
+    y_pred = predictions["pred_label"]
+    precision, recall, f1, support = precision_recall_fscore_support(
+        y_true, y_pred, labels=labels, zero_division=0
+    )
+    per_class = {
+        str(name): {
+            "precision": float(precision[index]),
+            "recall": float(recall[index]),
+            "f1": float(f1[index]),
+            "support": int(support[index]),
+        }
+        for index, name in enumerate(labels)
+    }
+    return {
+        "n": int(len(predictions)),
+        "macro_f1": float(
+            f1_score(y_true, y_pred, labels=labels, average="macro", zero_division=0)
+        ),
+        "accuracy": float(accuracy_score(y_true, y_pred)),
+        "balanced_accuracy": float(balanced_accuracy_score(y_true, y_pred)),
+        "per_class": per_class,
+        "confusion_matrix": confusion_matrix(y_true, y_pred, labels=labels).tolist(),
+        "pred_counts": dict(Counter(y_pred)),
+    }
+
+
+def _run_rows(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    for experiment, runs in data.items():
+        info = PROTOCOLS[experiment]
+        for run in runs:
+            predictions = run["predictions"]
+            if predictions is None or predictions.empty:
+                continue
+            best = (run["metrics"].get("best_val") or {}).get("macro_f1")
+            model = run["run"].get("model") or {}
+            for source in info["tests"]:
+                subset = predictions[predictions["dataset"] == source]
+                if subset.empty:
+                    continue
+                rows.append(
+                    {
+                        "experiment": experiment,
+                        "label": info["label"],
+                        "train": info["train"],
+                        "test_source": source,
+                        "seed": run["run"].get("seed"),
+                        "best_val_macro_f1": best,
+                        "params": model.get("params"),
+                        **compute_metrics(subset),
+                    }
+                )
+            if len(info["tests"]) > 1:
+                rows.append(
+                    {
+                        "experiment": experiment,
+                        "label": info["label"],
+                        "train": info["train"],
+                        "test_source": "all",
+                        "seed": run["run"].get("seed"),
+                        "best_val_macro_f1": best,
+                        "params": model.get("params"),
+                        **compute_metrics(predictions),
+                    }
+                )
+    return pd.DataFrame(rows)
+
+
+def aggregate(rows: pd.DataFrame) -> pd.DataFrame:
+    """Mean ± std trên các seed, theo protocol và nguồn test."""
+    if rows.empty:
+        return rows
+    grouped = rows.groupby(["experiment", "label", "train", "test_source"], dropna=False)
+    records: list[dict[str, Any]] = []
+    for (experiment, label, train, source), group in grouped:
+        record: dict[str, Any] = {
+            "experiment": experiment,
+            "label": label,
+            "train": train,
+            "test_source": source,
+            "n_seeds": int(group["seed"].nunique()),
+            "n_test": int(group["n"].iloc[0]),
+            "best_val_macro_f1": float(pd.to_numeric(group["best_val_macro_f1"]).mean()),
+            "params": int(pd.to_numeric(group["params"]).dropna().iloc[0])
+            if group["params"].notna().any()
+            else None,
+        }
+        for metric in ("macro_f1", "accuracy", "balanced_accuracy"):
+            values = pd.to_numeric(group[metric], errors="coerce").dropna()
+            record[f"{metric}_mean"] = float(values.mean())
+            record[f"{metric}_std"] = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+        records.append(record)
+    order = {"realwaste": 0, "trashnet": 1, "all": 2}
+    frame = pd.DataFrame(records)
+    frame["_order"] = frame["test_source"].map(order)
+    frame = frame.sort_values(["_order", "macro_f1_mean"], ascending=[True, False])
+    return frame.drop(columns="_order")
+
+
+def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
+    """So sánh pooled với single-source trên từng nguồn test."""
+    if agg.empty:
+        return agg
+    rows: list[dict[str, Any]] = []
+    for source in SOURCES:
+        single = agg[
+            (agg["test_source"] == source) & (agg["experiment"] != "rq3_train_pooled_test_each")
+        ]
+        pooled = agg[
+            (agg["test_source"] == source) & (agg["experiment"] == "rq3_train_pooled_test_each")
+        ]
+        if single.empty or pooled.empty:
+            continue
+        single_row = single.iloc[0]
+        pooled_row = pooled.iloc[0]
+        delta = float(pooled_row["macro_f1_mean"]) - float(single_row["macro_f1_mean"])
+        rows.append(
+            {
+                "test_source": source,
+                "single_label": single_row["label"],
+                "single_macro_f1": float(single_row["macro_f1_mean"]),
+                "single_std": float(single_row["macro_f1_std"]),
+                "pooled_macro_f1": float(pooled_row["macro_f1_mean"]),
+                "pooled_std": float(pooled_row["macro_f1_std"]),
+                "delta": delta,
+                "meets_criterion": delta >= SUCCESS_DELTA,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def per_class_table(rows: pd.DataFrame) -> pd.DataFrame:
+    """Per-class F1 trung bình theo protocol và nguồn test."""
+    records: list[dict[str, Any]] = []
+    for _, row in rows.iterrows():
+        for class_name, values in row["per_class"].items():
+            records.append(
+                {
+                    "label": row["label"],
+                    "test_source": row["test_source"],
+                    "class": class_name,
+                    "f1": values["f1"],
+                    "recall": values["recall"],
+                }
+            )
+    frame = pd.DataFrame(records)
+    if frame.empty:
+        return frame
+    return (
+        frame.groupby(["label", "test_source", "class"], dropna=False)
+        .agg(f1_mean=("f1", "mean"), recall_mean=("recall", "mean"))
+        .reset_index()
+    )
+
+
+def prediction_shift(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
+    """Tỉ lệ nhãn dự đoán trên test, để thấy hiện tượng sụp về một lớp."""
+    records: list[dict[str, Any]] = []
+    for experiment, runs in data.items():
+        info = PROTOCOLS[experiment]
+        for source in info["tests"]:
+            counts: Counter[str] = Counter()
+            total = 0
+            for run in runs:
+                predictions = run["predictions"]
+                if predictions is None or predictions.empty:
+                    continue
+                subset = predictions[predictions["dataset"] == source]
+                counts.update(subset["pred_label"].tolist())
+                total += len(subset)
+            if not total:
+                continue
+            top_class, top_count = counts.most_common(1)[0]
+            records.append(
+                {
+                    "label": info["label"],
+                    "test_source": source,
+                    "top_predicted": top_class,
+                    "top_share": top_count / total,
+                    "distribution": {
+                        name: counts.get(name, 0) / total for name in CANONICAL_CLASSES
+                    },
+                }
+            )
+    return pd.DataFrame(records)
+
+
+def _confusion_panels(data: dict[str, list[dict[str, Any]]], figures: Path) -> list[str]:
+    panels: list[tuple[str, np.ndarray]] = []
+    for experiment, runs in data.items():
+        info = PROTOCOLS[experiment]
+        for source in info["tests"]:
+            total = np.zeros((len(CANONICAL_CLASSES), len(CANONICAL_CLASSES)), dtype=float)
+            found = False
+            for run in runs:
+                predictions = run["predictions"]
+                if predictions is None or predictions.empty:
+                    continue
+                subset = predictions[predictions["dataset"] == source]
+                if subset.empty:
+                    continue
+                total += np.asarray(compute_metrics(subset)["confusion_matrix"], dtype=float)
+                found = True
+            if found:
+                panels.append((f"{info['label']} | test {source}", total))
+    if not panels:
+        return []
+
+    columns = 2
+    rows = (len(panels) + columns - 1) // columns
+    figure, axes = plt.subplots(rows, columns, figsize=(5.2 * columns, 4.6 * rows))
+    axes_array = np.atleast_1d(axes).ravel()
+    for axis, (title, matrix) in zip(axes_array, panels, strict=False):
+        row_sums = matrix.sum(axis=1, keepdims=True)
+        normalized = matrix / np.where(row_sums == 0, 1, row_sums)
+        image = axis.imshow(normalized, cmap="Blues", vmin=0, vmax=1)
+        axis.set_title(title, fontsize=9)
+        axis.set_xticks(range(len(CANONICAL_CLASSES)), CANONICAL_CLASSES, rotation=45, fontsize=7)
+        axis.set_yticks(range(len(CANONICAL_CLASSES)), CANONICAL_CLASSES, fontsize=7)
+        axis.set_xlabel("Predicted")
+        axis.set_ylabel("True")
+        for i in range(normalized.shape[0]):
+            for j in range(normalized.shape[1]):
+                axis.text(j, i, f"{normalized[i, j]:.2f}", ha="center", va="center", fontsize=6)
+    for axis in axes_array[len(panels) :]:
+        axis.axis("off")
+    figure.colorbar(image, ax=axes_array.tolist(), fraction=0.02)
+    path = figures / "confusion_matrices.png"
+    figure.savefig(path, dpi=160, bbox_inches="tight")
+    plt.close(figure)
+    return [path.name]
+
+
+def _bar_by_source(agg: pd.DataFrame, figures: Path) -> list[str]:
+    subset = agg[agg["test_source"].isin(SOURCES)]
+    if subset.empty:
+        return []
+    figure, axis = plt.subplots(figsize=(8, 4.8))
+    width = 0.36
+    for index, source in enumerate(SOURCES):
+        group = subset[subset["test_source"] == source]
+        positions = index + (np.arange(len(group)) - (len(group) - 1) / 2) * width
+        axis.bar(
+            positions,
+            group["macro_f1_mean"],
+            width=width,
+            yerr=group["macro_f1_std"],
+            capsize=4,
+            label=source,
+        )
+        for position, (_, row) in zip(positions, group.iterrows(), strict=True):
+            axis.text(position, row["macro_f1_mean"] + 0.02, row["label"], ha="center", fontsize=7)
+    axis.set_xticks(range(len(SOURCES)), [f"Test {source}" for source in SOURCES])
+    axis.set_ylabel("Test Macro-F1")
+    axis.set_ylim(0, 1)
+    axis.grid(axis="y", alpha=0.3)
+    figure.tight_layout()
+    path = figures / "test_macro_f1.png"
+    figure.savefig(path, dpi=160)
+    plt.close(figure)
+    return [path.name]
+
+
+def _markdown_table(frame: pd.DataFrame, columns: list[str]) -> str:
+    if frame.empty:
+        return "_Chưa có dữ liệu._"
+    lines = [
+        "| " + " | ".join(columns) + " |",
+        "| " + " | ".join("---" for _ in columns) + " |",
+    ]
+    for _, row in frame.iterrows():
+        cells = []
+        for column in columns:
+            value = row[column]
+            if isinstance(value, float):
+                cells.append(f"{value:.4f}")
+            elif isinstance(value, (np.floating, np.integer)):
+                cells.append(f"{float(value):.4f}")
+            else:
+                cells.append(str(value))
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+def build_markdown(
+    agg: pd.DataFrame,
+    comparison: pd.DataFrame,
+    per_class: pd.DataFrame,
+    shift: pd.DataFrame,
+    figures: list[str],
+) -> str:
+    lines = [
+        "# Kết quả RQ3",
+        "",
+        "Sinh tự động bởi `scripts/analyze_rq3.py` từ artifact của các run `completed`; "
+        "test chỉ được đánh giá một lần mỗi run.",
+        "",
+        f"Tiêu chí: pooled cao hơn single-source ≥ {SUCCESS_DELTA} Macro-F1 trên **cả hai** "
+        "nguồn test ngoài miền.",
+        "",
+    ]
+    if agg.empty:
+        lines.append("_Chưa có run completed._")
+        return "\n".join(lines)
+
+    summary = pd.DataFrame(
+        {
+            "Protocol": agg["label"],
+            "Train": agg["train"],
+            "Test": agg["test_source"],
+            "n_seeds": agg["n_seeds"],
+            "n_test": agg["n_test"],
+            "Macro-F1 (mean ± std)": [
+                f"{mean:.4f} ± {std:.4f}"
+                for mean, std in zip(agg["macro_f1_mean"], agg["macro_f1_std"], strict=True)
+            ],
+            "Accuracy": agg["accuracy_mean"].round(4),
+            "Balanced acc": agg["balanced_accuracy_mean"].round(4),
+            "Val Macro-F1 (in-domain)": agg["best_val_macro_f1"].round(4),
+        }
+    )
+    lines.extend(["## Tổng hợp", "", _markdown_table(summary, list(summary.columns)), ""])
+    lines.extend(
+        [
+            "## Lưu ý phương pháp",
+            "",
+            "- **Single-source:** test là **toàn bộ** nguồn còn lại (TrashNet 2.390 hoặc RealWaste "
+            "3.092) — mô hình chưa từng thấy nguồn đó, nên đây là test ngoài miền thuần.",
+            "- **Pooled:** test là phần held-out của split v1 theo từng nguồn (TrashNet 360, "
+            "RealWaste 463) — nguồn đó đã xuất hiện trong train, nên đây là test in-domain "
+            "trên phần giữ lại.",
+            "- Vì vậy chênh lệch pooled − single-source phản ánh **cả hai** yếu tố: bổ sung "
+            "dữ liệu và khác biệt bản chất/kích thước test set. Không nên đọc delta như mức "
+            "cải thiện thuần túy của khả năng chuyển miền; cần nêu rõ khi báo cáo.",
+            "",
+        ]
+    )
+
+    if not comparison.empty:
+        table = pd.DataFrame(
+            {
+                "Test source": comparison["test_source"],
+                "Single-source": comparison["single_label"],
+                "Single (mean ± std)": [
+                    f"{mean:.4f} ± {std:.4f}"
+                    for mean, std in zip(
+                        comparison["single_macro_f1"], comparison["single_std"], strict=True
+                    )
+                ],
+                "Pooled (mean ± std)": [
+                    f"{mean:.4f} ± {std:.4f}"
+                    for mean, std in zip(
+                        comparison["pooled_macro_f1"], comparison["pooled_std"], strict=True
+                    )
+                ],
+                "Delta": comparison["delta"].round(4),
+                "Đạt ≥ 0.02": comparison["meets_criterion"].map({True: "có", False: "không"}),
+            }
+        )
+        lines.extend(
+            [
+                "## Pooled so với single-source",
+                "",
+                _markdown_table(table, list(table.columns)),
+                "",
+            ]
+        )
+        if bool(comparison["meets_criterion"].all()):
+            lines.extend(
+                [
+                    "**Kết luận:** đạt tiêu chí đã đăng ký (delta ≥ 0.02) trên cả hai nguồn. "
+                    "Đọc kèm lưu ý phương pháp: pooled được test in-domain trên phần held-out, "
+                    "single-source được test ngoài miền trên toàn bộ nguồn còn lại.",
+                    "",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    "**Kết luận:** tiêu chí chưa đạt trên mọi nguồn; báo cáo trung thực và "
+                    "phân tích domain shift theo kế hoạch dự phòng trong plan.",
+                    "",
+                ]
+            )
+
+    if not per_class.empty:
+        pivot = per_class.pivot_table(
+            index=["label", "test_source"],
+            columns="class",
+            values="f1_mean",
+        ).reset_index()
+        pivot.columns = [str(column) for column in pivot.columns]
+        lines.extend(
+            ["## Per-class F1 trên test", "", _markdown_table(pivot, list(pivot.columns)), ""]
+        )
+
+    if not shift.empty:
+        table = pd.DataFrame(
+            {
+                "Protocol": shift["label"],
+                "Test": shift["test_source"],
+                "Lớp dự đoán nhiều nhất": shift["top_predicted"],
+                "Tỉ lệ": shift["top_share"].round(3),
+            }
+        )
+        lines.extend(
+            [
+                "## Sụp đổ dự đoán (domain shift)",
+                "",
+                "Tỉ lệ nhãn dự đoán nhiều nhất trên test; tỉ lệ cao cho thấy mô hình dồn về "
+                "một lớp khi đổi miền.",
+                "",
+                _markdown_table(table, list(table.columns)),
+                "",
+            ]
+        )
+
+    if figures:
+        lines.extend(["## Hình", ""])
+        lines.extend(f"- `{figure}`" for figure in figures)
+        lines.append("")
+    return "\n".join(lines)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Phân tích RQ3.")
+    parser.add_argument("--experiments-root", type=Path, default=default_experiments_root())
+    parser.add_argument("--output-md", type=Path, default=Path("docs/RQ3/rq3_results.md"))
+    parser.add_argument("--output-csv", type=Path, default=Path("docs/RQ3/rq3_metrics.csv"))
+    parser.add_argument("--figures-dir", type=Path, default=Path("docs/RQ3/rq3_analysis"))
+    args = parser.parse_args(argv)
+
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+    data = load_runs(args.experiments_root.resolve())
+    rows = _run_rows(data)
+    agg = aggregate(rows)
+    comparison = compare_pooled(agg)
+    per_class = per_class_table(rows)
+    shift = prediction_shift(data)
+
+    args.figures_dir.mkdir(parents=True, exist_ok=True)
+    figures: list[str] = []
+    figures.extend(_bar_by_source(agg, args.figures_dir))
+    figures.extend(_confusion_panels(data, args.figures_dir))
+
+    args.output_md.parent.mkdir(parents=True, exist_ok=True)
+    args.output_md.write_text(
+        build_markdown(agg, comparison, per_class, shift, figures) + "\n",
+        encoding="utf-8",
+    )
+    if not agg.empty:
+        args.output_csv.parent.mkdir(parents=True, exist_ok=True)
+        agg.to_csv(args.output_csv, index=False)
+
+    missing = [
+        f"{experiment} ({len(runs)} run)" for experiment, runs in data.items() if len(runs) < 3
+    ]
+    print(f"Đã ghi {args.output_md}")
+    print(f"Figures: {args.figures_dir} ({len(figures)} hình)")
+    if missing:
+        print("Thiếu seed cho: " + ", ".join(missing))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

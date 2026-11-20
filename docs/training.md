@@ -164,6 +164,15 @@ python scripts/analyze_rq1.py
 
 Sinh `docs/RQ1/rq1_results.md` + hình trong `docs/RQ1/rq1_analysis/`.
 
+## Phân tích RQ3
+
+```bash
+python scripts/analyze_rq3.py
+```
+
+Sinh `docs/RQ3/rq3_results.md`, `docs/RQ3/rq3_metrics.csv` và hình trong
+`docs/RQ3/rq3_analysis/`; chỉ đọc artifact, không đánh giá lại test.
+
 ## Đo efficiency
 
 ```bash

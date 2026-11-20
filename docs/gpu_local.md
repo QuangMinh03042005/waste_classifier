@@ -75,9 +75,19 @@ uv run python -m src.data.download --dataset trashnet
   ```
 
   Kỳ vọng: `5482 0` (5.482 dòng, không thiếu ảnh nào).
-- Nếu muốn để dữ liệu ngoài repo (tránh OneDrive sync ~700 MB), đặt
-  `WASTE_DATA_ROOT` trỏ tới thư mục khác; `src/utils/paths.py` đọc biến này.
-- `experiments/` cũng có thể đổi bằng `WASTE_EXPERIMENTS_ROOT`.
+- Nếu muốn để dữ liệu và kết quả ngoài repo (tránh OneDrive sync ~700 MB và
+  checkpoint), đặt biến môi trường **user-level** rồi mở lại terminal:
+
+  ```powershell
+  [Environment]::SetEnvironmentVariable("WASTE_DATA_ROOT", "D:\waste_data", "User")
+  [Environment]::SetEnvironmentVariable("WASTE_EXPERIMENTS_ROOT", "D:\waste_experiments", "User")
+  ```
+
+  - `WASTE_DATA_ROOT` phải là thư mục **chứa `raw/`** (ví dụ
+    `D:\waste_data\raw\realwaste\...`).
+  - `WASTE_SPLITS_DIR` chỉ đổi khi muốn tách split khỏi repo; mặc định giữ
+    `data/splits/` để mọi máy dùng đúng một split đã commit.
+  - Kiểm tra lại: `uv run python -c "from src.utils.paths import data_root, experiments_root; print(data_root(), experiments_root())"`.
 
 ## 4. Chạy training
 

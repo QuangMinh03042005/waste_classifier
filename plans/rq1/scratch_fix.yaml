@@ -4,7 +4,7 @@ rq: rq1
 title: "Sửa recipe huấn luyện MobileNetV3_small scratch (validation-only)"
 author: "Đinh Quang Minh"
 created_at: "2026-11-20"
-status: active
+status: completed
 
 question: >-
   Recipe nào giúp MobileNetV3_small from scratch hội tụ ổn định trên split v1,
@@ -66,6 +66,6 @@ budget:
 
 risks: "Scratch vẫn có thể overfit vì RQ1 không dùng augmentation."
 notes: >-
-  Đây là correction của scratch arm. S1 val 0.7039 nhưng overfit mạnh; S2 gần random.
-  Thêm S3/S4 để giảm overfit. Các run scratch cũ bị lỗi optimizer LR và không dùng
-  trong kết luận. Test reuse sẽ được công bố trong báo cáo.
+  Đây là correction của scratch arm. Kết quả seed 42: S1=0.7039 (val), S2=0.0817,
+  S3=0.6659, S4=0.6733. Chọn S1 vì val cao nhất và gap nhỏ nhất. Các run scratch cũ
+  bị lỗi optimizer LR và không dùng trong kết luận. Test reuse sẽ được công bố.

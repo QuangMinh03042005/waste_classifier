@@ -216,8 +216,8 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 
 ### Chưa hoàn thành
 
-- Sửa và chạy lại scratch arm.
-- Bảng RQ1 final đầy đủ 3 arm.
+- Chạy final scratch 5 seed với recipe S1.
+- Hoàn thiện bảng RQ1 final đầy đủ 3 arm.
 - Cập nhật kết luận RQ1 sau scratch.
 - Hoàn thiện báo cáo/slide.
 

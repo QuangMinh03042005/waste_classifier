@@ -1,10 +1,10 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-19T12:52:35.741685+00:00`
+- Tạo lúc: `2026-11-21T01:46:55.253629+00:00`
 - Plan core: 3
 - Experiment core: 9
-- Plan pilot/selection: 3
-- Experiment pilot/selection: 17
+- Plan pilot/selection: 4
+- Experiment pilot/selection: 21
 
 ## Ma trận core
 
@@ -129,3 +129,21 @@ Các plan này dùng validation để chọn cấu hình hoặc debug; không n�
 | rq1_mobilenet_m4_freeze5 | variant | Freeze 5 epoch, mở 3 block cuối. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2; AdamW LR 1e-3, batch 64, 12 epoch, seed 42 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | completed |
 | rq1_mobilenet_m1_full_ft_50 | variant | Xác nhận M1 (full fine-tune) ở final budget 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, không freeze; AdamW LR 1e-3, batch 64, seed 42, 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | completed |
 | rq1_mobilenet_m4_freeze5_50 | variant | Xác nhận M4 (freeze 5, mở 3 block) ở final budget 50 epoch. | split v1, input 224x224, không augmentation, không class weighting; pretrained ImageNet, dropout 0.2, freeze 5 epoch; AdamW LR 1e-3, batch 64, seed 42, 123, 2024 | val_macro_f1 | Chọn mean val Macro-F1 cao nhất; nếu chênh < 0.005, ưu tiên cấu hình ít trainable params/thời gian hơn. Vì final budget là 50 epoch, xác nhận M1 và M4 ở 50 epoch trước khi khóa cấu hình. | 42, 123, 2024 | completed |
+
+### `rq1_scratch_fix` - Sửa recipe huấn luyện MobileNetV3_small scratch (validation-only)
+
+- **Câu hỏi:** Recipe nào giúp MobileNetV3_small from scratch hội tụ ổn định trên split v1, sau khi sửa lỗi backbone learning rate bị scale như fine-tuning?
+- **Giả thuyết:** Với backbone_lr_scale = 1.0 và warmup 3 epoch, scratch sẽ học được đặc trưng thay vì chỉ head memorize; LR 3e-4 ổn định hơn 1e-3.
+- **Kết quả kỳ vọng:** Cả S1 và S2 đều vượt mức random; S2 có val Macro-F1 cao hơn hoặc ổn định hơn.
+- **Nếu giả thuyết sai:** Nếu cả hai vẫn gần random, kiểm tra lại gradient/BN và ghi nhận scratch không hội tụ với recipe không augmentation. Không dùng test để chọn recipe.
+- **Metric:** val_macro_f1
+- **Test policy:** Không đánh giá test trong screening; recipe chốt trên validation.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/scratch_fix.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_scratch_s1 | baseline | - | - | val_macro_f1 | Chọn recipe có val Macro-F1 cao nhất và không gần random; nếu chênh < 0.005, chọn recipe ổn định hơn theo learning curves. | 42, 123, 2024, 7, 3407 | completed |
+| rq1_scratch_s2 | variant | Giảm LR xuống 3e-4, giữ backbone_lr_scale=1.0 và warmup 3 epoch. | split v1, input 224x224, không augmentation, không class weighting; MobileNetV3_small scratch, dropout 0.2, AdamW, batch 64; 50 epoch, early stopping patience 7, seed 42 cho screening; top-2 chạy thêm seed 123, 2024; final 5 seed nếu được chọn | val_macro_f1 | Chọn recipe có val Macro-F1 cao nhất và không gần random; nếu chênh < 0.005, chọn recipe ổn định hơn theo learning curves. | 42, 123, 2024, 7, 3407 | completed |
+| rq1_scratch_s3 | variant | Tăng weight decay lên 1e-3 so với S1. | split v1, input 224x224, không augmentation, không class weighting; MobileNetV3_small scratch, dropout 0.2, LR 1e-3, warmup 3 epoch; backbone_lr_scale=1.0, batch 64, 50 epoch, seed 42 | val_macro_f1 | Chọn recipe có val Macro-F1 cao nhất và không gần random; nếu chênh < 0.005, chọn recipe ổn định hơn theo learning curves. | 42, 123, 2024, 7, 3407 | completed |
+| rq1_scratch_s4 | variant | Tăng dropout lên 0.3 so với S1. | split v1, input 224x224, không augmentation, không class weighting; MobileNetV3_small scratch, LR 1e-3, warmup 3 epoch; backbone_lr_scale=1.0, weight_decay=1e-4, batch 64, 50 epoch, seed 42 | val_macro_f1 | Chọn recipe có val Macro-F1 cao nhất và không gần random; nếu chênh < 0.005, chọn recipe ổn định hơn theo learning curves. | 42, 123, 2024, 7, 3407 | completed |

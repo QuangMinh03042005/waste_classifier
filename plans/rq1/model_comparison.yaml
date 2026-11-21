@@ -66,4 +66,4 @@ budget:
   estimated_minutes_per_run: 20
 
 risks: "MobileNet scratch có thể cần nhiều epoch hơn pretrained; cần cùng budget và early stopping."
-notes: "Scratch arm là ablation để giải thích vì sao Custom CNN thua, không thay thế câu hỏi chính. Ngưỡng 0.02 tương đương khoảng 16 ảnh đúng trên test 823 ảnh. Kết quả final Custom=0.8870, pretrained=0.8901; scratch cũ fail do LR scale, đang sửa."
+notes: "Scratch arm là ablation để giải thích vì sao Custom CNN thua, không thay thế câu hỏi chính. Ngưỡng 0.02 tương đương khoảng 16 ảnh đúng trên test 823 ảnh. Kết quả final Custom=0.8870, pretrained=0.8901; scratch dùng recipe S1 và đang chờ final 5 seed."

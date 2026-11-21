@@ -82,7 +82,9 @@ Sinh tự động bởi `scripts/analyze_rq1.py`; test chỉ được đánh gi�
 ## Scratch correction
 
 - Plan: `plans/rq1/scratch_fix.yaml`.
-- Config S1/S2: `configs/rq1/scratch_fix/`.
+- Config S1/S2/S3/S4: `configs/rq1/scratch_fix/`.
+- Screening seed 42: S1 = 0.7039 (overfit), S2 = 0.0817 (fail).
+- S3 (weight decay 1e-3) và S4 (dropout 0.3) đang chờ chạy.
 - Kết quả sẽ được cập nhật sau khi chạy trên GPU.
 - Test reuse sẽ được công bố trong báo cáo.
 

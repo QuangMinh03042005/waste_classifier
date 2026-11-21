@@ -30,6 +30,18 @@ variants:
       - "MobileNetV3_small scratch, dropout 0.2, AdamW, batch 64"
       - "50 epoch, early stopping patience 7, seed 42 cho screening"
       - "top-2 chạy thêm seed 123, 2024; final 5 seed nếu được chọn"
+  - experiment: rq1_scratch_s3
+    change: "Tăng weight decay lên 1e-3 so với S1."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "MobileNetV3_small scratch, dropout 0.2, LR 1e-3, warmup 3 epoch"
+      - "backbone_lr_scale=1.0, batch 64, 50 epoch, seed 42"
+  - experiment: rq1_scratch_s4
+    change: "Tăng dropout lên 0.3 so với S1."
+    fixed:
+      - "split v1, input 224x224, không augmentation, không class weighting"
+      - "MobileNetV3_small scratch, LR 1e-3, warmup 3 epoch"
+      - "backbone_lr_scale=1.0, weight_decay=1e-4, batch 64, 50 epoch, seed 42"
 
 comparison:
   metric: val_macro_f1
@@ -54,5 +66,6 @@ budget:
 
 risks: "Scratch vẫn có thể overfit vì RQ1 không dùng augmentation."
 notes: >-
-  Đây là correction của scratch arm. Các run scratch cũ bị lỗi optimizer LR và
-  không dùng trong kết luận. Test reuse sẽ được công bố trong báo cáo.
+  Đây là correction của scratch arm. S1 val 0.7039 nhưng overfit mạnh; S2 gần random.
+  Thêm S3/S4 để giảm overfit. Các run scratch cũ bị lỗi optimizer LR và không dùng
+  trong kết luận. Test reuse sẽ được công bố trong báo cáo.

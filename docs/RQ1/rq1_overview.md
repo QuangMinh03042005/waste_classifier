@@ -85,16 +85,21 @@ trên cùng split không? Phần cải thiện đến từ kiến trúc hay pret
 
 ### Custom CNN
 
-| Stage | Thành phần | Output |
-|---|---|---|
-| Stem | Conv 3×3 (3→32), BN, ReLU, MaxPool | 32×112×112 |
-| Stage 1 | 2× [Conv 3×3 (32→64), BN, ReLU], MaxPool | 64×56×56 |
-| Stage 2 | 2× [Conv 3×3 (64→128), BN, ReLU], MaxPool | 128×28×28 |
-| Stage 3 | 2× [Conv 3×3 (128→256), BN, ReLU], MaxPool | 256×14×14 |
-| Pool | AdaptiveAvgPool2d(1) | 256 |
-| Head | Dropout 0.3 → Linear(256→5) | 5 logits |
+| Stage | Thành phần | Output | Params | MACs |
+|---|---|---|---:|---:|
+| `stem` | Conv 3×3 (3→32), BN, ReLU — không pool | 32×224×224 | 928 | 43,4 M |
+| `stages.0` | Conv 3×3 (32→32), BN, ReLU, MaxPool | 32×112×112 | 9.280 | 462,4 M |
+| `stages.1` | Conv 3×3 (32→64) → Conv 3×3 (64→64), BN, ReLU, MaxPool | 64×56×56 | 55.552 | 693,6 M |
+| `stages.2` | Conv 3×3 (64→128) → Conv 3×3 (128→128), BN, ReLU, MaxPool | 128×28×28 | 221.696 | 693,6 M |
+| `stages.3` | Conv 3×3 (128→256) → Conv 3×3 (256→256), BN, ReLU, MaxPool | 256×14×14 | 885.760 | 693,6 M |
+| Pool | AdaptiveAvgPool2d(1) | 256 | 0 | – |
+| Head | Dropout 0.3 → Linear(256→5) | 5 logits | 1.285 | <0,01 M |
 
-- Params: 1.174.501; FLOPs đo được: 5,17 GFLOPs/ảnh 224×224.
+- Params: 1.174.501; FLOPs đo được: 5,17 GFLOPs/ảnh 224×224 (2,59 GMAC).
+- Conv 3×3 dùng `padding=1` nên giữ nguyên H×W; chỉ MaxPool2d(2) giảm chiều.
+- `stem` không pool; lần giảm chiều đầu tiên nằm ở `stages.0`.
+- Tên stage khớp module trong code (`model.stem`, `model.stages[i]`).
+- Bảng layer-by-layer: `docs/RQ1/custom_cnn_layers.md` (`scripts/model_summary.py`).
 - Residual variant: 1.218.405 params, 5,33 GFLOPs; không được chọn.
 - Cấu hình cuối: 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3, 50 epoch.
 

@@ -27,6 +27,39 @@ def test_custom_cnn_forward_and_params() -> None:
     assert 1_000_000 < params < 1_400_000
 
 
+def test_custom_cnn_matches_documented_architecture() -> None:
+    """Giữ bảng trong docs/models.md khớp code: shape từng stage và số params."""
+    model = build_custom_cnn().eval()
+    shapes: dict[str, tuple[int, ...]] = {}
+
+    def record(name: str):
+        def hook(_module, _inputs, output) -> None:
+            shapes[name] = tuple(output.shape)
+
+        return hook
+
+    handles = [model.stem.register_forward_hook(record("stem"))]
+    handles += [
+        stage.register_forward_hook(record(f"stages.{index}"))
+        for index, stage in enumerate(model.stages)
+    ]
+    try:
+        with torch.no_grad():
+            model(torch.zeros(1, 3, 224, 224))
+    finally:
+        for handle in handles:
+            handle.remove()
+
+    assert count_parameters(model) == 1_174_501
+    assert shapes == {
+        "stem": (1, 32, 224, 224),
+        "stages.0": (1, 32, 112, 112),
+        "stages.1": (1, 64, 56, 56),
+        "stages.2": (1, 128, 28, 28),
+        "stages.3": (1, 256, 14, 14),
+    }
+
+
 def test_custom_cnn_rejects_invalid_config() -> None:
     with pytest.raises(ValueError, match="channels"):
         CustomCNN(channels=(32, 64))

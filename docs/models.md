@@ -49,9 +49,21 @@ from src.models import build_mobilenet_v3_small
 model = build_mobilenet_v3_small(num_classes=5, pretrained=True, dropout=0.2)
 ```
 
-- Pretrained ImageNet (`MobileNet_V3_Small_Weights.IMAGENET1K_V1`).
-- Thay classifier cuối bằng `Linear(1024→5)`.
-- ~1,53M tham số, ~0,06 GMAC.
+- Dùng implementation có sẵn trong `torchvision` (`mobilenet_v3_small`), không tự viết lại.
+  Lý do: đúng kiến trúc gốc, tương thích pretrained weights, tái lập và so sánh công bằng
+  giữa hai nhánh scratch/pretrained.
+- Kiến trúc gốc (Howard et al., 2019):
+  - depthwise separable convolution (3×3 depthwise + 1×1 pointwise);
+  - inverted residual: 1×1 mở rộng kênh → depthwise 3×3/5×5 → 1×1 chiếu lại, có skip
+    connection khi cùng kích thước;
+  - Squeeze-and-Excitation trên một số block;
+  - hard-swish và hard-sigmoid thay cho swish/sigmoid.
+- Với ảnh 224×224×3: 11 block inverted residual ở `features` → `7×7×576`, rồi
+  Global Average Pooling và classifier.
+- Classifier gốc `576→1024→1000`; nhóm thay bằng `Dropout(0.2)` + `Linear(1024→5)`.
+- Pretrained ImageNet (`MobileNet_V3_Small_Weights.IMAGENET1K_V1`); scratch dùng
+  `weights=None` trên cùng định nghĩa.
+- ~1,53M tham số, ~0,06 GMAC (~0,111 GFLOPs) ở input 224.
 
 Transfer learning:
 

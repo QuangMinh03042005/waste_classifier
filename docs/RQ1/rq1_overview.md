@@ -105,9 +105,13 @@ trên cùng split không? Phần cải thiện đến từ kiến trúc hay pret
 
 ### MobileNetV3_small
 
-- Pretrained `IMAGENET1K_V1`, thay classifier `1024→5`.
-- Params: 1.522.981; FLOPs: 0,111 GFLOPs/ảnh.
-- Scratch: cùng kiến trúc, không pretrained.
+- Dùng implementation có sẵn trong `torchvision` (`mobilenet_v3_small`), không tự viết lại.
+- Thành phần: depthwise separable conv, inverted residual, Squeeze-and-Excitation,
+  hard-swish/hard-sigmoid.
+- 11 block inverted residual: ảnh 224×224×3 → `7×7×576`; GAP; classifier.
+- Classifier gốc `576→1024→1000`, thay bằng `Dropout(0.2)` + `Linear(1024→5)`.
+- Pretrained `IMAGENET1K_V1`; scratch dùng `weights=None` trên cùng định nghĩa.
+- Params: 1.522.981; FLOPs: 0,111 GFLOPs/ảnh (2,59 GMAC của Custom CNN).
 - Pretrained: full fine-tune (`freeze_epochs = 0`), dropout 0.2.
 - Cấu hình pretrained được chọn trên validation; M1 full fine-tune thắng M4.
 

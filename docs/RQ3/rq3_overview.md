@@ -131,6 +131,8 @@ không huấn luyện lại hay đánh giá lại test.
 Diễn giải, đối chiếu giả thuyết, giới hạn và hàm ý thực tiễn:
 [rq3_discussion.md](rq3_discussion.md).
 
+Cách tự chạy lại toàn bộ (kèm thời gian và cách kiểm tra): [../runbook.md](../runbook.md).
+
 ## 6. Tiêu chí thành công
 
 - Cross-dataset: pooled cao hơn single-source ≥ 0.02 Macro-F1 (trung bình 3 seed) trên

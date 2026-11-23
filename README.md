@@ -330,6 +330,7 @@ uv run ruff check .                                 # lint
 
 Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. Chi tiết:
 
+- **Runbook tự chạy từng phần (kèm thời gian, cách kiểm tra): [docs/runbook.md](docs/runbook.md)**
 - Dataset: [docs/datasets.md](docs/datasets.md)
 - Mapping nhãn: [docs/label_mapping.md](docs/label_mapping.md)
 - Split: [docs/splits.md](docs/splits.md)

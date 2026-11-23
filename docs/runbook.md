@@ -71,6 +71,8 @@ Kỳ vọng: `uv 0.13.9 ...`. Nếu báo *"uv is not recognized"*: đóng hẳn 
 
 ## 0. Bảng tổng quan
 
+> Chỉ làm RQ3? Xem bản gọn, tự chứa: [RQ3/rq3_runbook.md](RQ3/rq3_runbook.md).
+
 | # | Việc | Lệnh chính | Thời gian | Kết quả |
 |---|---|---|---:|---|
 | 1 | Cài môi trường + kiểm tra GPU | `uv sync` | 1–3 phút (lần đầu ~5 phút tải torch) | `.venv`, torch cu132 |

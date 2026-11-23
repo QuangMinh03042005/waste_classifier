@@ -132,6 +132,7 @@ Diễn giải, đối chiếu giả thuyết, giới hạn và hàm ý thực ti
 [rq3_discussion.md](rq3_discussion.md).
 
 Cách tự chạy lại toàn bộ (kèm thời gian và cách kiểm tra): [../runbook.md](../runbook.md).
+Chỉ riêng RQ3: [rq3_runbook.md](rq3_runbook.md).
 
 ## 6. Tiêu chí thành công
 

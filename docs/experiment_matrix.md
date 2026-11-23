@@ -1,8 +1,8 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-21T01:46:55.253629+00:00`
-- Plan core: 3
-- Experiment core: 9
+- Tạo lúc: `2026-11-23T03:31:57.991172+00:00`
+- Plan core: 4
+- Experiment core: 11
 - Plan pilot/selection: 4
 - Experiment pilot/selection: 21
 
@@ -26,6 +26,22 @@
 | rq1_customcnn | baseline | - | - | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
 | rq1_mobilenetv3s_full | variant | Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet. | split v1, stratified theo (dataset, class), chống trùng bằng pHash; input 224x224, normalize mean/std ImageNet; không augmentation, không class weighting; budget epoch giống Custom CNN (30 hoặc 50 theo kết quả debug); AdamW, batch 64, early stopping patience 7; seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
 | rq1_mobilenetv3s_scratch | variant | MobileNetV3_small from scratch để tách ảnh hưởng của kiến trúc khỏi pretrained weights. | split v1, input 224x224, không augmentation, không class weighting; không freeze, dropout 0.2, AdamW LR 1e-3, batch 64; budget epoch giống Custom CNN (30 hoặc 50); seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
+
+### `rq1_scratch_diag` - Chẩn đoán early stopping của scratch arm (validation-only)
+
+- **Câu hỏi:** Hai seed 7 và 3407 sụp về lớp đa số là do early stopping patience 7 cắt quá sớm, hay do recipe scratch không hội tụ ổn định?
+- **Giả thuyết:** Nếu patience là nguyên nhân, tăng lên 20 sẽ giúp val Macro-F1 vượt mức random trong 20 epoch đầu, giống các seed 42/123/2024 thoát ở epoch 8-9.
+- **Kết quả kỳ vọng:** Ít nhất một seed thoát khỏi 0.0817 trước epoch 20; nếu cả hai không thoát, recipe không ổn định độc lập với early stopping.
+- **Nếu giả thuyết sai:** Nếu val vẫn 0.0817 đến epoch 20, kết luận collapse do recipe/khởi tạo chứ không phải patience. Không đánh giá test, không dùng run này cho bảng final.
+- **Metric:** val_macro_f1
+- **Test policy:** Không đánh giá test; chỉ dùng validation để chẩn đoán.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/scratch_diag.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_scratch_diag_p7 | baseline | - | - | val_macro_f1 | Val Macro-F1 vượt 0.20 trong 20 epoch đầu ở ít nhất một seed nghĩa là early stopping là confound. Nếu cả hai vẫn 0.0817 đến epoch 20, recipe không ổn định. | 7, 3407 | active |
+| rq1_scratch_diag_p20 | variant | Tăng early stopping patience từ 7 lên 20, giữ nguyên mọi thứ khác. | split v1, 224x224, không augmentation, không class weighting; MobileNetV3_small scratch, dropout 0.2, AdamW, LR 1e-3; backbone_lr_scale=1.0, warmup 3, weight_decay=1e-4, batch 64; 50 epoch, chỉ validation, seed 7 và 3407 | val_macro_f1 | Val Macro-F1 vượt 0.20 trong 20 epoch đầu ở ít nhất một seed nghĩa là early stopping là confound. Nếu cả hai vẫn 0.0817 đến epoch 20, recipe không ổn định. | 7, 3407 | active |
 
 ### RQ2 – Data Augmentation & Class Weighting
 

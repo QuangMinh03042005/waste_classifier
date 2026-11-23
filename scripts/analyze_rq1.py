@@ -27,7 +27,7 @@ from src.utils.paths import experiments_root as default_experiments_root  # noqa
 EXPERIMENTS = {
     "rq1_customcnn": "Custom CNN",
     "rq1_mobilenetv3s_full": "MobileNetV3_small pretrained",
-    "rq1_mobilenetv3s_scratch": "MobileNetV3_small scratch",
+    "rq1_mobilenetv3s_scratch_p20": "MobileNetV3_small scratch (p20)",
 }
 METRICS = ["macro_f1", "accuracy", "balanced_accuracy", "precision_macro", "recall_macro"]
 

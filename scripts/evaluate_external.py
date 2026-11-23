@@ -21,7 +21,7 @@ from src.utils.paths import experiments_root as default_experiments_root  # noqa
 PREFIXES = (
     "rq1_customcnn_s",
     "rq1_mobilenetv3s_full_s",
-    "rq1_mobilenetv3s_scratch_s",
+    "rq1_mobilenetv3s_scratch_p20_s",
 )
 
 

@@ -1,8 +1,8 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-23T04:32:25.031781+00:00`
-- Plan core: 3
-- Experiment core: 9
+- Tạo lúc: `2026-11-23T04:49:10.398153+00:00`
+- Plan core: 4
+- Experiment core: 11
 - Plan pilot/selection: 5
 - Experiment pilot/selection: 23
 
@@ -26,6 +26,22 @@
 | rq1_customcnn | baseline | - | - | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
 | rq1_mobilenetv3s_full | variant | Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet. | split v1, stratified theo (dataset, class), chống trùng bằng pHash; input 224x224, normalize mean/std ImageNet; không augmentation, không class weighting; budget epoch giống Custom CNN (30 hoặc 50 theo kết quả debug); AdamW, batch 64, early stopping patience 7; seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
 | rq1_mobilenetv3s_scratch | variant | MobileNetV3_small from scratch để tách ảnh hưởng của kiến trúc khỏi pretrained weights. | split v1, input 224x224, không augmentation, không class weighting; không freeze, dropout 0.2, AdamW LR 1e-3, batch 64; budget epoch giống Custom CNN (30 hoặc 50); seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | active |
+
+### `rq1_scratch_final_v2` - Chạy lại scratch arm với early stopping patience 20
+
+- **Câu hỏi:** Nếu tăng early stopping patience từ 7 lên 20, scratch arm có hội tụ ổn định trên cả 5 seed và cho test Macro-F1 hợp lệ để so sánh với Custom CNN và MobileNetV3_small pretrained hay không?
+- **Giả thuyết:** Patience 7 dừng đúng epoch 8, sát trước khi seed 7 và 3407 thoát ở epoch 9. Với patience 20, cả 5 seed sẽ hội tụ và test Macro-F1 nằm trong khoảng 0.60-0.72, thấp hơn hai arm còn lại nhưng không còn collapse.
+- **Kết quả kỳ vọng:** Cả 5 seed có test Macro-F1 trên 0.55; mean thấp hơn Custom CNN và pretrained một cách rõ rệt.
+- **Nếu giả thuyết sai:** Nếu vẫn còn seed collapse dù patience 20, ghi nhận recipe scratch không ổn định và không chạy lại thêm; báo cáo trung thực, không dùng test để chọn recipe.
+- **Metric:** macro_f1
+- **Test policy:** Test đã được dùng cho phiên bản patience 7; lần chạy này tái sử dụng test cho scratch arm và phải được công bố. Không dùng test để chọn epoch, threshold hay hyperparameter.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/scratch_final_v2.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_scratch_ref_p7 | baseline | - | - | macro_f1 | Cả 5 seed có test Macro-F1 > 0.55 và không seed nào dự đoán một lớp duy nhất. Kết quả chỉ mô tả recipe đã sửa, không dùng để chọn recipe. | 42, 123, 2024, 7, 3407 | active |
+| rq1_mobilenetv3s_scratch_p20 | variant | Tăng early stopping patience từ 7 lên 20, giữ nguyên mọi thứ khác. | split v1, 224x224, không augmentation, không class weighting; MobileNetV3_small scratch, dropout 0.2, AdamW, LR 1e-3; backbone_lr_scale=1.0, warmup 3, weight_decay=1e-4, batch 64; tối đa 50 epoch, đánh giá test một lần sau khi chọn epoch theo validation | macro_f1 | Cả 5 seed có test Macro-F1 > 0.55 và không seed nào dự đoán một lớp duy nhất. Kết quả chỉ mô tả recipe đã sửa, không dùng để chọn recipe. | 42, 123, 2024, 7, 3407 | active |
 
 ### RQ2 – Data Augmentation & Class Weighting
 

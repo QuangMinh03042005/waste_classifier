@@ -4,7 +4,7 @@ rq: rq1
 title: "Chẩn đoán early stopping của scratch arm (validation-only)"
 author: "Đinh Quang Minh"
 created_at: "2026-11-23"
-status: active
+status: completed
 
 question: >-
   Hai seed 7 và 3407 sụp về lớp đa số là do early stopping patience 7 cắt quá sớm,
@@ -62,3 +62,13 @@ risks: >-
 notes: >-
   Chẩn đoán, không thay thế final scratch 5 seed. Test đã dùng cho final nên
   tuyệt đối không đánh giá test trong run này.
+
+  Kết quả (validation-only, patience 20):
+  - Seed 7: thoát mức random ở epoch 9, val Macro-F1 tốt nhất 0.6791 (epoch 34),
+    chạy đủ 50 epoch.
+  - Seed 3407: thoát ở epoch 9, val Macro-F1 tốt nhất 0.7161 (epoch 37),
+    chạy đủ 50 epoch.
+  Kết luận: patience 7 dừng đúng epoch 8, sát ngay trước khi hai seed này thoát
+  ở epoch 9. Collapse của final scratch là do early stopping quá ngắn, không phải
+  do kiến trúc hay recipe LR. Muốn có test hợp lệ cho scratch cần chạy lại final
+  với patience 20 và công bố việc tái sử dụng test.

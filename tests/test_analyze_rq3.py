@@ -14,10 +14,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from analyze_rq3 import (  # noqa: E402
     _run_rows,
     aggregate,
+    ci95,
     compare_pooled,
     compute_metrics,
     domain_gap,
     load_runs,
+    paired_delta,
     prediction_shift,
 )
 
@@ -109,9 +111,43 @@ def test_aggregate_va_so_sanh_pooled(tmp_path: Path) -> None:
     assert set(gaps["test_source"]) == {"realwaste", "trashnet"}
     single_trashnet = gaps[gaps["test_source"] == "trashnet"].set_index("label")
     # Val 0.9, test 1.0 -> gap âm; pooled thấp hơn single-source trên cùng nguồn.
-    assert single_trashnet.loc["Pooled (TrashNet 100%)", "gap"] > single_trashnet.loc[
-        "RealWaste → TrashNet", "gap"
+    assert (
+        single_trashnet.loc["Pooled (TrashNet 100%)", "gap"]
+        > single_trashnet.loc["RealWaste → TrashNet", "gap"]
+    )
+
+
+def test_ci95_theo_phan_phoi_t() -> None:
+    assert ci95(0.01, 3) == pytest.approx(4.303 * 0.01 / 3**0.5)
+    assert ci95(0.01, 2) == pytest.approx(12.706 * 0.01 / 2**0.5)
+    assert ci95(0.01, 1) is None
+    assert ci95(None, 3) is None
+    assert ci95(0.01, 30) is None
+
+
+def test_paired_delta_theo_seed(tmp_path: Path) -> None:
+    samples_single = [("trashnet", label, label) for label in LABELS for _ in range(2)]
+    samples_pooled = [
+        ("trashnet", "glass", "cardboard"),
+        ("trashnet", "glass", "glass"),
+        ("realwaste", "metal", "metal"),
+        ("realwaste", "metal", "metal"),
     ]
+    for seed in (42, 123):
+        _make_run(tmp_path, "rq3_train_realwaste_test_trashnet", seed, samples_single)
+        _make_run(tmp_path, "rq3_train_pooled_test_each", seed, samples_pooled)
+
+    rows = _run_rows(load_runs(tmp_path))
+    paired = paired_delta(rows)
+    assert len(paired) == 1
+
+    row = paired.iloc[0]
+    assert row["test_source"] == "trashnet"
+    assert row["n_pairs"] == 2
+    # Single-source hoàn hảo (F1=1) nên delta pooled - single phải âm.
+    assert row["delta_mean"] < 0
+    assert row["delta_ci95"] is not None
+    assert "42:" in row["seeds"] and "123:" in row["seeds"]
 
 
 def test_prediction_shift_phat_hien_sup_do(tmp_path: Path) -> None:

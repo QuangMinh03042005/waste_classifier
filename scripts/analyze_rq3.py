@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -86,6 +87,29 @@ MIX_EXPERIMENTS = {
 }
 SOURCES = ("realwaste", "trashnet")
 SUCCESS_DELTA = 0.02
+T_CRITICAL = {
+    2: 12.706,
+    3: 4.303,
+    4: 3.182,
+    5: 2.776,
+    6: 2.571,
+    7: 2.447,
+    8: 2.365,
+    9: 2.306,
+    10: 2.262,
+    11: 2.228,
+    12: 2.201,
+    13: 2.179,
+    14: 2.160,
+    15: 2.145,
+}
+
+
+def ci95(std: float | None, n: int) -> float | None:
+    """Nửa độ rộng CI 95% (phân phối t, hai phía); None nếu không đủ mẫu."""
+    if std is None or n not in T_CRITICAL:
+        return None
+    return T_CRITICAL[n] * float(std) / math.sqrt(n)
 
 
 def _load_json(path: Path) -> dict[str, Any] | None:
@@ -250,10 +274,12 @@ def aggregate(rows: pd.DataFrame) -> pd.DataFrame:
             values = pd.to_numeric(group[metric], errors="coerce").dropna()
             record[f"{metric}_mean"] = float(values.mean())
             record[f"{metric}_std"] = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+            record[f"{metric}_ci95"] = ci95(record[f"{metric}_std"], len(values))
         if "heldout_macro_f1" in group and group["heldout_macro_f1"].notna().any():
             values = pd.to_numeric(group["heldout_macro_f1"], errors="coerce").dropna()
             record["heldout_macro_f1_mean"] = float(values.mean())
             record["heldout_macro_f1_std"] = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+            record["heldout_macro_f1_ci95"] = ci95(record["heldout_macro_f1_std"], len(values))
             record["n_heldout"] = int(group["n_heldout"].dropna().iloc[0])
         records.append(record)
     order = {"realwaste": 0, "trashnet": 1, "all": 2}
@@ -294,6 +320,55 @@ def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
             record["delta_heldout"] = float(pooled_row["macro_f1_mean"]) - record["single_heldout"]
         rows.append(record)
     return pd.DataFrame(rows)
+
+
+def paired_delta(rows: pd.DataFrame) -> pd.DataFrame:
+    """Delta pooled − single-source ghép cặp theo seed (ưu tiên held-out)."""
+    if rows.empty:
+        return pd.DataFrame()
+    records: list[dict[str, Any]] = []
+    for source in SOURCES:
+        pooled = rows[
+            (rows["experiment"] == "rq3_train_pooled_test_each") & (rows["test_source"] == source)
+        ]
+        single = rows[
+            (rows["experiment"] == SINGLE_SOURCE[source]) & (rows["test_source"] == source)
+        ]
+        if pooled.empty or single.empty:
+            continue
+        single = single.copy()
+        if "heldout_macro_f1" in single.columns:
+            single["compare_value"] = single["heldout_macro_f1"].fillna(single["macro_f1"])
+        else:
+            single["compare_value"] = single["macro_f1"]
+
+        merged = (
+            pooled[["seed", "macro_f1"]]
+            .rename(columns={"macro_f1": "pooled"})
+            .merge(
+                single[["seed", "compare_value"]].rename(columns={"compare_value": "single"}),
+                on="seed",
+                how="inner",
+            )
+        )
+        if merged.empty:
+            continue
+        deltas = merged["pooled"] - merged["single"]
+        std = float(deltas.std(ddof=1)) if len(deltas) > 1 else 0.0
+        records.append(
+            {
+                "test_source": source,
+                "n_pairs": int(len(deltas)),
+                "delta_mean": float(deltas.mean()),
+                "delta_std": std,
+                "delta_ci95": ci95(std, len(deltas)),
+                "seeds": ", ".join(
+                    f"{int(seed)}: {value:+.3f}"
+                    for seed, value in zip(merged["seed"], deltas, strict=True)
+                ),
+            }
+        )
+    return pd.DataFrame(records)
 
 
 def dose_response(agg: pd.DataFrame) -> pd.DataFrame:
@@ -539,6 +614,7 @@ def dose_verdict(dose: pd.DataFrame) -> str:
 def build_markdown(
     agg: pd.DataFrame,
     comparison: pd.DataFrame,
+    paired: pd.DataFrame,
     dose: pd.DataFrame,
     per_class: pd.DataFrame,
     shift: pd.DataFrame,
@@ -569,6 +645,9 @@ def build_markdown(
                 f"{mean:.4f} ± {std:.4f}"
                 for mean, std in zip(agg["macro_f1_mean"], agg["macro_f1_std"], strict=True)
             ],
+            "CI95 (±)": [
+                f"{value:.4f}" if pd.notna(value) else "—" for value in agg["macro_f1_ci95"]
+            ],
             "Accuracy": agg["accuracy_mean"].round(4),
             "Balanced acc": agg["balanced_accuracy_mean"].round(4),
             "Val Macro-F1 (in-domain)": agg["best_val_macro_f1"].round(4),
@@ -587,6 +666,10 @@ def build_markdown(
             "tương ứng.",
             "- So sánh công bằng dùng cách chấm single-source **trên cùng held-out test** "
             "(mục dưới): chỉ lọc predictions đã có, không đánh giá lại test.",
+            "- CI95 tính theo phân phối t với n=3 nên khá rộng. Hiệu số nhỏ hơn CI (ví dụ giữa "
+            "các mức mix gần nhau) **không** nên đọc là khác biệt thực.",
+            "- Có nhiều biến thể × nhiều chỉ số nhưng không hiệu chỉnh multiple comparisons; "
+            "các so sánh ngoài tiêu chí đăng ký chỉ mang tính exploratory.",
             "",
         ]
     )
@@ -642,6 +725,31 @@ def build_markdown(
                     "### Trên cùng held-out test",
                     "",
                     _markdown_table(fair, list(fair.columns)),
+                    "",
+                ]
+            )
+
+        if not paired.empty:
+            paired_table = pd.DataFrame(
+                {
+                    "Test source": paired["test_source"],
+                    "n cặp": paired["n_pairs"],
+                    "Delta trung bình": paired["delta_mean"].round(4),
+                    "SD": paired["delta_std"].round(4),
+                    "CI95 (±)": [
+                        f"{value:.4f}" if pd.notna(value) else "—" for value in paired["delta_ci95"]
+                    ],
+                    "Delta từng seed": paired["seeds"],
+                }
+            )
+            lines.extend(
+                [
+                    "### Delta ghép cặp theo seed",
+                    "",
+                    "Cùng seed nên khử được phần lớn phương sai giữa seed; dùng để kiểm tra "
+                    "delta có lớn hơn nhiễu hay không (n=3, không báo p-value).",
+                    "",
+                    _markdown_table(paired_table, list(paired_table.columns)),
                     "",
                 ]
             )
@@ -760,6 +868,7 @@ def main(argv: list[str] | None = None) -> int:
     rows = _run_rows(data, heldout_test_paths(split_csv))
     agg = aggregate(rows)
     comparison = compare_pooled(agg)
+    paired = paired_delta(rows)
     dose = dose_response(agg)
     per_class = per_class_table(rows)
     shift = prediction_shift(data)
@@ -772,7 +881,7 @@ def main(argv: list[str] | None = None) -> int:
 
     args.output_md.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.write_text(
-        build_markdown(agg, comparison, dose, per_class, shift, figures) + "\n",
+        build_markdown(agg, comparison, paired, dose, per_class, shift, figures) + "\n",
         encoding="utf-8",
     )
     if not agg.empty:

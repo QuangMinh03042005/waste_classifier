@@ -128,6 +128,9 @@ Notebook trình bày kết quả: `notebooks/rq3/analyze_rq3.ipynb` (bản PDF t
 `docs/notebooks/rq3/`). Notebook chỉ đọc artifact và gọi `scripts/analyze_rq3.py`,
 không huấn luyện lại hay đánh giá lại test.
 
+Diễn giải, đối chiếu giả thuyết, giới hạn và hàm ý thực tiễn:
+[rq3_discussion.md](rq3_discussion.md).
+
 ## 6. Tiêu chí thành công
 
 - Cross-dataset: pooled cao hơn single-source ≥ 0.02 Macro-F1 (trung bình 3 seed) trên
@@ -145,4 +148,5 @@ Nếu không đạt, báo cáo trung thực và phân tích domain shift, phân 
 - [x] Chạy mix-ratio 0/25/50/75% × 3 seed (12 run) — **tổng 21 run**.
 - [x] Phân tích cross-dataset, domain shift, mix-ratio, confusion matrix theo nguồn.
 - [x] Tracking Excel + notebook kèm PDF.
+- [x] Thảo luận, giới hạn, kết luận và hướng dẫn tái lập ([rq3_discussion.md](rq3_discussion.md)).
 - [ ] Viết mục RQ3 trong báo cáo cuối kỳ.

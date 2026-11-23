@@ -71,7 +71,8 @@ Nội dung thực hiện:
 
 Ghi chú: GD hiện chỉ dùng làm **external test cho RQ1**, không tham gia train RQ3.
 
-Tài liệu chi tiết: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md).
+Tài liệu chi tiết: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md), thảo luận và
+giới hạn: [docs/RQ3/rq3_discussion.md](docs/RQ3/rq3_discussion.md).
 
 ## 4. Dataset
 
@@ -338,7 +339,8 @@ Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. 
 - Cấu trúc báo cáo cuối kỳ: [docs/report/outline.md](docs/report/outline.md)
 - Training: [docs/training.md](docs/training.md), [docs/models.md](docs/models.md)
 - RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
-- RQ3: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md)
+- RQ3: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md),
+  [thảo luận](docs/RQ3/rq3_discussion.md)
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 [docs/gpu_local.md](docs/gpu_local.md) (GPU local Windows). Kế hoạch thí nghiệm:

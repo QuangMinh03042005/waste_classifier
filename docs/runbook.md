@@ -15,6 +15,60 @@ cd C:\Users\duyle\OneDrive\Desktop\waste_classifier
 | `WASTE_DATA_ROOT` | `C:\waste_classifier_data` (chứa `raw/`) |
 | `WASTE_EXPERIMENTS_ROOT` | `C:\waste_classifier_experiments` (kết quả, không commit) |
 
+## Bắt đầu: chạy ở đâu?
+
+**Dùng terminal của VS Code (PowerShell). Không dùng `cmd`** — nhiều lệnh trong tài liệu
+dùng cú pháp PowerShell (`$env:...`, dấu `` ` `` để nối dòng) sẽ lỗi trong `cmd`.
+
+### Mở đúng thư mục trong VS Code
+
+1. Mở VS Code → menu **File → Open Folder…**
+2. Dán `C:\Users\duyle\OneDrive\Desktop\waste_classifier` → **Select Folder**
+3. Menu **Terminal → New Terminal** (hoặc `Ctrl` + `` ` ``)
+4. Khung terminal hiện ở nửa dưới. Dòng cuối cùng là **prompt**, phải trông như:
+
+   ```text
+   PS C:\Users\duyle\OneDrive\Desktop\waste_classifier>
+   ```
+
+   Nếu prompt đang ở thư mục khác, gõ:
+
+   ```powershell
+   cd C:\Users\duyle\OneDrive\Desktop\waste_classifier
+   ```
+
+### Cách dán và chạy lệnh
+
+- Copy lệnh trong tài liệu → click vào terminal → `Ctrl` + `V` (hoặc chuột phải → Paste).
+- Nhấn `Enter` để chạy. Lệnh dài nhiều dòng (có dấu `` ` `` ở cuối): dán **cả khối**.
+- Dừng giữa chừng: `Ctrl` + `C`.
+- Muốn xem lại lệnh đã chạy: phím `↑`.
+
+### Kiểm tra `uv` đã sẵn sàng
+
+```powershell
+uv --version
+```
+
+Kỳ vọng: `uv 0.13.9 ...`. Nếu báo *"uv is not recognized"*: đóng hẳn VS Code rồi mở lại
+(để nhận PATH mới), hoặc dùng đường dẫn đầy đủ:
+
+```powershell
+& "$env:USERPROFILE\.local\bin\uv.exe" --version
+```
+
+### Kết quả hiện ở đâu
+
+| Loại | Vị trí | Xem bằng |
+|---|---|---|
+| Code, config, docs | trong repo | cây thư mục bên trái VS Code |
+| Bảng kết quả, hình, PDF | `docs/RQ3/…` | click file trong VS Code |
+| Run (checkpoint, metrics) | `C:\waste_classifier_experiments\rq3\…` | File Explorer (ngoài repo) |
+| Excel tracking | `docs/RQ3/rq3_tracking.xlsx` | Excel |
+
+> **Không bấm nút ▶ (Run) trên file `.py`.** Các script cần tham số dòng lệnh
+> (`--config`, `--plan`, `--seed`), phải chạy bằng lệnh trong terminal như tài liệu.
+
 ## 0. Bảng tổng quan
 
 | # | Việc | Lệnh chính | Thời gian | Kết quả |

@@ -237,13 +237,12 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 
 ### Chưa hoàn thành
 
-- Cập nhật kết luận RQ1 và báo cáo/slide sau scratch p20.
-- Hoàn thiện báo cáo/slide.
+- Hoàn thiện slide RQ1.
 
 ### Kế hoạch chạy
 
-1. Cập nhật `rq1_results.md`, `external_validation.md`, `rq1_efficiency.md`.
-2. Viết kết luận RQ1 và báo cáo/slide.
+1. Làm slide RQ1 từ kết quả trong `rq1_results.md` và báo cáo.
+2. Rà soát báo cáo trước khi nộp.
 
 ## 9. Hạn chế
 

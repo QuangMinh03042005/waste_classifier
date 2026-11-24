@@ -360,7 +360,7 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 
 Đang thực hiện:
 
-- [ ] Cập nhật kết luận RQ1 và báo cáo/slide.
+- [ ] Hoàn thiện slide RQ1.
 
 Chưa bắt đầu:
 

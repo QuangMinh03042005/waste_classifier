@@ -8,6 +8,7 @@ External test chỉ dùng để đánh giá sau khi khóa mô hình; không dùn
 | --- | --- | --- | --- | --- | --- | --- |
 | rq1_customcnn | 5 | 0.3694 | 0.0117 | 0.3679 | 0.8870 | 0.5175 |
 | rq1_mobilenetv3s_full | 5 | 0.5409 | 0.0097 | 0.5510 | 0.8901 | 0.3492 |
+| rq1_mobilenetv3s_scratch_p20 | 5 | 0.2834 | 0.0230 | 0.2919 | 0.6734 | 0.3900 |
 
 ## Từng seed
 
@@ -23,19 +24,8 @@ External test chỉ dùng để đánh giá sau khi khóa mô hình; không dùn
 | rq1_mobilenetv3s_full_s3407 | rq1_mobilenetv3s_full | 3407 | 0.8888 | 0.5411 | 0.5491 | 0.3477 |
 | rq1_mobilenetv3s_full_s42 | rq1_mobilenetv3s_full | 42 | 0.8833 | 0.5397 | 0.5493 | 0.3436 |
 | rq1_mobilenetv3s_full_s7 | rq1_mobilenetv3s_full | 7 | 0.8900 | 0.5564 | 0.5668 | 0.3337 |
-
-## Nhận xét
-
-- Cả hai arm đều giảm mạnh khi sang GD, cho thấy domain shift lớn.
-- MobileNet pretrained giữ được **0.5409 ± 0.0097**, cao hơn Custom CNN
-  **0.3694 ± 0.0117**.
-- Mức giảm của pretrained nhỏ hơn (0.3492 so với 0.5175).
-- Điều này ủng hộ giả thuyết pretrained features giúp robustness ngoài miền.
-- Scratch chưa được đánh giá external cho đến khi sửa recipe.
-
-## Lưu ý
-
-- External GD không dùng để chọn model.
-- Kết quả external chỉ là phân tích bổ sung, không thay đổi kết luận test in-domain.
-- Test reuse của scratch correction sẽ được công bố trong báo cáo.
-
+| rq1_mobilenetv3s_scratch_p20_s123 | rq1_mobilenetv3s_scratch_p20 | 123 | 0.6792 | 0.3177 | 0.3250 | 0.3615 |
+| rq1_mobilenetv3s_scratch_p20_s2024 | rq1_mobilenetv3s_scratch_p20 | 2024 | 0.6477 | 0.2536 | 0.2613 | 0.3941 |
+| rq1_mobilenetv3s_scratch_p20_s3407 | rq1_mobilenetv3s_scratch_p20 | 3407 | 0.6798 | 0.2835 | 0.2938 | 0.3963 |
+| rq1_mobilenetv3s_scratch_p20_s42 | rq1_mobilenetv3s_scratch_p20 | 42 | 0.6804 | 0.2770 | 0.2817 | 0.4034 |
+| rq1_mobilenetv3s_scratch_p20_s7 | rq1_mobilenetv3s_scratch_p20 | 7 | 0.6799 | 0.2853 | 0.2975 | 0.3946 |

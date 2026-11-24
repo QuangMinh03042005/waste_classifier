@@ -4,7 +4,7 @@ rq: rq1
 title: "Chạy lại scratch arm với early stopping patience 20"
 author: "Đinh Quang Minh"
 created_at: "2026-11-23"
-status: active
+status: completed
 
 question: >-
   Nếu tăng early stopping patience từ 7 lên 20, scratch arm có hội tụ ổn định
@@ -67,3 +67,9 @@ notes: >-
   Đây là correction lần hai của scratch arm: lần một sửa backbone_lr_scale,
   lần này sửa early stopping. Run patience 7 được giữ làm bằng chứng và không
   đưa vào bảng final.
+
+  Kết quả 5 seed (test Macro-F1): 42=0.6804, 123=0.6792, 2024=0.6477,
+  7=0.6799, 3407=0.6798; mean 0.6734, std 0.0144. Không seed nào collapse.
+  Seed 2024 cải thiện rõ so với patience 7 (0.6082 -> 0.6477, best epoch 11 -> 38);
+  seed 42 và 123 gần như không đổi. Test được tái sử dụng và đã công bố trong
+  comparison.test_policy.

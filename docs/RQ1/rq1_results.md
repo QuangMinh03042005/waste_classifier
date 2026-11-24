@@ -1,6 +1,6 @@
 # Kết quả RQ1
 
-Sinh tự động bởi `scripts/analyze_rq1.py`; test chỉ được đánh giá một lần.
+Sinh tự động bởi `scripts/analyze_rq1.py`; test được đánh giá một lần cho mỗi phiên bản. Scratch có tái sử dụng test sau khi sửa recipe, xem `plans/rq1/scratch_final_v2.yaml`.
 
 ## Tổng hợp
 
@@ -8,6 +8,27 @@ Sinh tự động bởi `scripts/analyze_rq1.py`; test chỉ được đánh gi�
 | --- | --- | --- | --- | --- | --- |
 | MobileNetV3_small pretrained | 5 | 0.8901 | 0.0114 | 0.8914 | 1522981.0000 |
 | Custom CNN | 5 | 0.8870 | 0.0060 | 0.8868 | 1174501.0000 |
+| MobileNetV3_small scratch (p20) | 5 | 0.6734 | 0.0144 | 0.6722 | 1522981.0000 |
+
+## Theo seed
+
+| label | seed | macro_f1 | accuracy | best_val_macro_f1 |
+| --- | --- | --- | --- | --- |
+| Custom CNN | 7 | 0.8880 | 0.8870 | 0.8664 |
+| Custom CNN | 42 | 0.8906 | 0.8906 | 0.8809 |
+| Custom CNN | 123 | 0.8763 | 0.8761 | 0.8607 |
+| Custom CNN | 2024 | 0.8901 | 0.8906 | 0.8708 |
+| Custom CNN | 3407 | 0.8899 | 0.8894 | 0.8728 |
+| MobileNetV3_small pretrained | 7 | 0.8900 | 0.8906 | 0.8925 |
+| MobileNetV3_small pretrained | 42 | 0.8833 | 0.8858 | 0.8809 |
+| MobileNetV3_small pretrained | 123 | 0.8793 | 0.8797 | 0.8974 |
+| MobileNetV3_small pretrained | 2024 | 0.9089 | 0.9101 | 0.9005 |
+| MobileNetV3_small pretrained | 3407 | 0.8888 | 0.8906 | 0.8935 |
+| MobileNetV3_small scratch (p20) | 7 | 0.6799 | 0.6780 | 0.6791 |
+| MobileNetV3_small scratch (p20) | 42 | 0.6804 | 0.6829 | 0.7039 |
+| MobileNetV3_small scratch (p20) | 123 | 0.6792 | 0.6780 | 0.6919 |
+| MobileNetV3_small scratch (p20) | 2024 | 0.6477 | 0.6416 | 0.6898 |
+| MobileNetV3_small scratch (p20) | 3407 | 0.6798 | 0.6804 | 0.7161 |
 
 ## Per-class F1
 
@@ -23,6 +44,11 @@ Sinh tự động bởi `scripts/analyze_rq1.py`; test chỉ được đánh gi�
 | MobileNetV3_small pretrained | metal | 0.8733 | 0.0134 | 0.8500 |
 | MobileNetV3_small pretrained | paper | 0.9124 | 0.0133 | 0.9585 |
 | MobileNetV3_small pretrained | plastic | 0.9024 | 0.0131 | 0.8919 |
+| MobileNetV3_small scratch (p20) | cardboard | 0.6805 | 0.0340 | 0.6769 |
+| MobileNetV3_small scratch (p20) | glass | 0.6805 | 0.0309 | 0.6841 |
+| MobileNetV3_small scratch (p20) | metal | 0.6231 | 0.0355 | 0.6089 |
+| MobileNetV3_small scratch (p20) | paper | 0.7164 | 0.0336 | 0.7293 |
+| MobileNetV3_small scratch (p20) | plastic | 0.6666 | 0.0263 | 0.6711 |
 
 ## Lỗi phổ biến
 
@@ -42,53 +68,17 @@ Sinh tự động bởi `scripts/analyze_rq1.py`; test chỉ được đánh gi�
 | MobileNetV3_small pretrained | plastic | glass | 40.0000 |
 | MobileNetV3_small pretrained | [realwaste] | error_rate | 0.1050 |
 | MobileNetV3_small pretrained | [trashnet] | error_rate | 0.1133 |
+| MobileNetV3_small scratch (p20) | metal | plastic | 151.0000 |
+| MobileNetV3_small scratch (p20) | plastic | metal | 116.0000 |
+| MobileNetV3_small scratch (p20) | glass | plastic | 94.0000 |
+| MobileNetV3_small scratch (p20) | plastic | glass | 87.0000 |
+| MobileNetV3_small scratch (p20) | cardboard | paper | 83.0000 |
+| MobileNetV3_small scratch (p20) | [realwaste] | error_rate | 0.3274 |
+| MobileNetV3_small scratch (p20) | [trashnet] | error_rate | 0.3283 |
 
-## Ghi chú trạng thái
+## Hình
 
-- Scratch arm cũ **không hợp lệ**: backbone bị scale LR như fine-tuning, nhiều seed
-  gần mức random. Các run này bị loại khỏi phân tích.
-- Scratch đang được sửa recipe và sẽ cập nhật sau; không dùng kết quả scratch cũ.
-- Bảng trên chỉ gồm Custom CNN và MobileNet pretrained.
-
-## Kết luận RQ1 (tạm thời)
-
-- Custom CNN: Macro-F1 **0.8870 ± 0.0060**.
-- MobileNet pretrained: **0.8901 ± 0.0114**.
-- Chênh lệch trung bình: **+0.0031**.
-- Pretrained thắng **3/5 seed**.
-- Không đạt tiêu chí **≥ 0.02** và **≥ 4/5 seed**.
-- Giả thuyết “pretrained cải thiện rõ rệt” **không được ủng hộ** trên test.
-- Tuy nhiên MobileNet chỉ dùng **0,11 GFLOPs** so với **5,17 GFLOPs** của Custom CNN.
-  Nếu hiệu năng tương đương, MobileNet có lợi thế lớn về compute.
-
-## Efficiency
-
-- Custom CNN: ~5,17 GFLOPs, latency CPU ~28–37 ms/ảnh.
-- MobileNetV3\_small: ~0,11 GFLOPs, latency CPU ~9–11 ms/ảnh.
-- Chi tiết: `docs/RQ1/rq1_efficiency.md`.
-
-## External GD
-
-- Custom CNN: 0.3694 ± 0.0117.
-- MobileNet pretrained: 0.5409 ± 0.0097.
-- Chi tiết: `docs/RQ1/external_validation.md`.
-- Pretrained giảm ít hơn khi đổi domain, dù cả hai đều giảm mạnh.
-
-## Hình bổ sung
-
-- `gradcam_custom_cnn.png`
-- `gradcam_mobilenet.png`
-
-## Scratch correction
-
-- Plan: `plans/rq1/scratch_fix.yaml` → completed.
-- Screening seed 42:
-  - S1 = 0.7039 (val), best epoch 41.
-  - S2 = 0.0817 (fail).
-  - S3 (wd 1e-3) = 0.6659.
-  - S4 (dropout 0.3) = 0.6733.
-- **Chọn S1** vì val Macro-F1 cao nhất và gap train–val nhỏ nhất.
-- Final scratch 5 seed dùng S1 trong `configs/rq1/rq1_mobilenetv3s_scratch.yaml`.
-- Test reuse sẽ được công bố trong báo cáo.
-
+- `val_macro_f1_curves.png`
+- `confusion_matrices.png`
+- `test_macro_f1.png`
 

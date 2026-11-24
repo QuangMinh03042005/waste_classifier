@@ -111,6 +111,8 @@ trên cùng split không? Phần cải thiện đến từ kiến trúc hay pret
 - 11 block inverted residual: ảnh 224×224×3 → `7×7×576`; GAP; classifier.
 - Classifier gốc `576→1024→1000`, thay bằng `Dropout(0.2)` + `Linear(1024→5)`.
 - Pretrained `IMAGENET1K_V1`; scratch dùng `weights=None` trên cùng định nghĩa.
+- Scratch final dùng patience 20 sau khi chẩn đoán early stopping; 5 seed đạt
+  0,6734 ± 0,0144 test Macro-F1, không còn seed collapse.
 - Params: 1.522.981; FLOPs: 0,111 GFLOPs/ảnh (2,59 GMAC của Custom CNN).
 - Pretrained: full fine-tune (`freeze_epochs = 0`), dropout 0.2.
 - Cấu hình pretrained được chọn trên validation; M1 full fine-tune thắng M4.
@@ -219,26 +221,29 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 - Chọn và debug Custom CNN trên validation.
 - Chọn MobileNet pretrained trên validation: M1 full fine-tune.
 - Chạy final Custom CNN và MobileNet pretrained, 5 seed.
+- Chẩn đoán early stopping: patience 7 cắt sớm 2 seed scratch.
+- Chạy final scratch với patience 20, 5 seed (mean 0,6734 ± 0,0144).
 - Phân tích test, per-class, confusion matrix, efficiency, Grad-CAM.
 - External validation GD cho Custom và pretrained.
-- Công cụ phân tích, efficiency, Grad-CAM.
+- Công cụ phân tích, efficiency, Grad-CAM, feature map.
+
+### Kết quả test tóm tắt
+
+| Arm | Test Macro-F1 | GD Macro-F1 | Drop |
+|---|---:|---:|---:|
+| Custom CNN | 0,8870 ± 0,0060 | 0,3694 ± 0,0117 | 0,5175 |
+| MobileNetV3_small pretrained | 0,8901 ± 0,0114 | 0,5409 ± 0,0097 | 0,3492 |
+| MobileNetV3_small scratch (p20) | 0,6734 ± 0,0144 | 0,2834 ± 0,0230 | 0,3900 |
 
 ### Chưa hoàn thành
 
-- Chạy final scratch 5 seed với recipe S1.
-- Hoàn thiện bảng RQ1 final đầy đủ 3 arm.
-- Cập nhật kết luận RQ1 sau scratch.
+- Cập nhật kết luận RQ1 và báo cáo/slide sau scratch p20.
 - Hoàn thiện báo cáo/slide.
 
 ### Kế hoạch chạy
 
-1. Chạy 3 arm × 5 seed.
-2. Đánh giá test.
-3. `scripts/analyze_rq1.py`.
-4. `scripts/measure_efficiency.py`.
-5. `scripts/evaluate_external.py`.
-6. Grad-CAM trên validation/test đúng quy trình.
-7. Viết `rq1_results.md`.
+1. Cập nhật `rq1_results.md`, `external_validation.md`, `rq1_efficiency.md`.
+2. Viết kết luận RQ1 và báo cáo/slide.
 
 ## 9. Hạn chế
 
@@ -248,7 +253,11 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 - 7 group nhãn xung đột.
 - TrashNet 4:3 có thể bị cắt khi CenterCrop 224.
 - So sánh kiến trúc khác FLOPs, không chỉ params.
-- Chỉ 5 seed, test một lần.
+- Chỉ 5 seed, test một lần cho mỗi phiên bản.
+- Scratch phải sửa recipe hai lần (learning rate, early stopping); test bị tái sử dụng
+  và đã công bố.
+- Patience của scratch là 20, của Custom/pretrained là 7; ngân sách tối đa 50 epoch
+  cho cả ba arm.
 - External GD có 31,4% ảnh trùng train, đã loại; phần còn lại vẫn có domain shift.
 - RQ1 không dùng augmentation/class weighting do thiết kế.
 
@@ -265,8 +274,10 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 | `docs/RQ1/rq1_efficiency.md` | Params, FLOPs, latency |
 | `docs/notebooks/rq1/feature_maps.pdf` | Feature map qua từng lớp (notebook) |
 | `docs/models.md`, `docs/training.md` | Kiến trúc và cách chạy |
+| `plans/rq1/model_comparison.yaml` | Plan RQ1 chính |
+| `plans/rq1/scratch_diag.yaml` | Chẩn đoán early stopping scratch |
+| `plans/rq1/scratch_final_v2.yaml` | Chạy lại scratch với patience 20 |
 | `docs/splits.md`, `docs/EDA/eda_report.md` | Dữ liệu và EDA |
-| `plans/rq1/model_comparison.yaml` | Plan RQ1 |
 
 ## 11. Ghi chú về hỗ trợ AI
 

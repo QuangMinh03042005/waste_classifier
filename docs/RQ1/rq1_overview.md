@@ -272,6 +272,7 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 | `docs/RQ1/rq1_results.md` | Kết quả final |
 | `docs/RQ1/rq1_efficiency.md` | Params, FLOPs, latency |
 | `docs/notebooks/rq1/feature_maps.pdf` | Feature map qua từng lớp (notebook) |
+| `docs/RQ1/custom_cnn_architecture.mmd` | Sơ đồ Custom CNN dạng Mermaid |
 | `docs/models.md`, `docs/training.md` | Kiến trúc và cách chạy |
 | `plans/rq1/model_comparison.yaml` | Plan RQ1 chính |
 | `plans/rq1/scratch_diag.yaml` | Chẩn đoán early stopping scratch |

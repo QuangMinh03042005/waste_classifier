@@ -4,7 +4,7 @@ rq: rq1
 title: "So sánh Custom CNN, MobileNetV3_small scratch và pretrained"
 author: "Đinh Quang Minh"
 created_at: "2026-11-13"
-status: active
+status: completed
 
 question: >-
   Transfer learning với MobileNetV3_small có cải thiện Macro-F1 so với Custom CNN
@@ -66,4 +66,4 @@ budget:
   estimated_minutes_per_run: 20
 
 risks: "MobileNet scratch có thể cần nhiều epoch hơn pretrained; cần cùng budget và early stopping."
-notes: "Scratch arm là ablation để giải thích vì sao Custom CNN thua, không thay thế câu hỏi chính. Ngưỡng 0.02 tương đương khoảng 16 ảnh đúng trên test 823 ảnh."
+notes: "Scratch arm là ablation để giải thích vì sao Custom CNN thua, không thay thế câu hỏi chính. Ngưỡng 0.02 tương đương khoảng 16 ảnh đúng trên test 823 ảnh. Kết quả final: Custom=0.8870±0.0060, pretrained=0.8901±0.0114. Scratch ban đầu invalid do early stopping patience 7; phiên bản corrected dùng patience 20 chạy trong plan rq1_scratch_final_v2, đạt 0.6734±0.0144. Test của scratch bị tái sử dụng và đã công bố."

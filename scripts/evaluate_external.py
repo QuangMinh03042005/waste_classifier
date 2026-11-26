@@ -19,17 +19,22 @@ from src.utils.config import load_config  # noqa: E402
 from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
 
 PREFIXES = (
-    "rq1_customcnn_s",
-    "rq1_mobilenetv3s_full_s",
-    "rq1_mobilenetv3s_scratch_s",
+    "rq1_customcnn_p20_s",
+    "rq1_mobilenetv3s_full_p20_s",
+    "rq1_mobilenetv3s_scratch_p20_s",
 )
 
 
-def discover_runs(root: Path) -> list[Path]:
+def discover_runs(root: Path, exclude: list[str] | None = None) -> list[Path]:
+    excluded = set(exclude or [])
     runs: list[Path] = []
     for prefix in PREFIXES:
-        runs.extend(sorted((root / "rq1").glob(f"{prefix}*/run.json")))
-    return [path.parent for path in runs]
+        for run_file in sorted((root / "rq1").glob(f"{prefix}*/run.json")):
+            run = json.loads(run_file.read_text(encoding="utf-8"))
+            if run.get("experiment") in excluded:
+                continue
+            runs.append(run_file.parent)
+    return runs
 
 
 def _markdown(frame: pd.DataFrame) -> str:
@@ -60,13 +65,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, default=Path("docs/RQ1/external_validation.md"))
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--runs", nargs="+", type=Path, default=None)
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=None,
+        help="Loại experiment khỏi đánh giá external.",
+    )
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
-    runs = args.runs or discover_runs(args.experiments_root)
+    runs = args.runs or discover_runs(args.experiments_root, exclude=args.exclude)
     if not runs:
         print("Chưa có run final RQ1.")
         return 1

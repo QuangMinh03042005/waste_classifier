@@ -1,0 +1,50 @@
+%% Mã nguồn Mermaid cho sơ đồ Custom CNN (bản nguồn).
+%% Ảnh minh hoạ chính dùng trong báo cáo: CUSTOM_CNN.png.
+%% Render: npx @mermaid-js/mermaid-cli -i custom_cnn_architecture.mmd -o custom_cnn_architecture_mermaid.png
+flowchart TD
+    subgraph row1[" "]
+        direction LR
+        C1["2 Conv 3×3<br/>3→32"]
+        I["1 Input<br/>3×224×224"]
+        C2["3 Conv 3×3<br/>32→32"]
+        P1["4 MaxPool 2×2<br/>32×112×112"]
+    end
+
+    subgraph row2[" "]
+        direction LR
+        P2["6 Conv 3×3<br/>64→64"]
+        C4["5 Conv 3×3<br/>32→64"]
+        C3["7 MaxPool 2×2<br/>64×56×56"]
+        C5["8 Conv 3×3<br/>64→128"]
+    end
+
+    subgraph row3[" "]
+        direction LR
+        C7["10 MaxPool 2×2<br/>128×28×28"]
+        P3["9 Conv 3×3<br/>128→128"]
+        C6["11 Conv 3×3<br/>128→256"]
+        C8["12 Conv 3×3<br/>256→256"]
+    end
+
+    subgraph row4[" "]
+        direction LR
+        D["14 GAP<br/>256"]
+        G["13 MaxPool 2×2<br/>256×14×14"]
+        P4["15 Dropout 0.3"]
+        F["16 Linear<br/>256→5"]
+    end
+
+    P1 --> C3
+    C5 --> C6
+    C8 --> P4
+    F --> O["5 logits"]
+
+    classDef input fill:#e5e7eb,stroke:#4b5563,color:#111827
+    classDef conv fill:#dbeafe,stroke:#1d4ed8,color:#111827
+    classDef pool fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef head fill:#dcfce7,stroke:#15803d,color:#111827
+
+    class I input
+    class C1,C2,P2,C4,C5,P3,C6,C8 conv
+    class P1,C3,C7,G pool
+    class P4,F head

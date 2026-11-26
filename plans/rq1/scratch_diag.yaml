@@ -1,0 +1,74 @@
+schema_version: "1.0"
+plan_id: rq1_scratch_diag
+rq: rq1
+title: "Chẩn đoán early stopping của scratch arm (validation-only)"
+author: "Đinh Quang Minh"
+created_at: "2026-11-23"
+status: completed
+
+question: >-
+  Hai seed 7 và 3407 sụp về lớp đa số là do early stopping patience 7 cắt quá sớm,
+  hay do recipe scratch không hội tụ ổn định?
+hypothesis: >-
+  Nếu patience là nguyên nhân, tăng lên 20 sẽ giúp val Macro-F1 vượt mức random
+  trong 20 epoch đầu, giống các seed 42/123/2024 thoát ở epoch 8-9.
+expected_result: >-
+  Ít nhất một seed thoát khỏi 0.0817 trước epoch 20; nếu cả hai không thoát,
+  recipe không ổn định độc lập với early stopping.
+failure_plan: >-
+  Nếu val vẫn 0.0817 đến epoch 20, kết luận collapse do recipe/khởi tạo chứ không
+  phải patience. Không đánh giá test, không dùng run này cho bảng final.
+
+baseline:
+  experiment: rq1_scratch_diag_p7
+  description: >-
+    Recipe final scratch tham chiếu: LR 1e-3, backbone_lr_scale 1.0, warmup 3,
+    early stopping patience 7. Không chạy lại trong plan này.
+
+variants:
+  - experiment: rq1_scratch_diag_p20
+    change: "Tăng early stopping patience từ 7 lên 20, giữ nguyên mọi thứ khác."
+    fixed:
+      - "split v1, 224x224, không augmentation, không class weighting"
+      - "MobileNetV3_small scratch, dropout 0.2, AdamW, LR 1e-3"
+      - "backbone_lr_scale=1.0, warmup 3, weight_decay=1e-4, batch 64"
+      - "50 epoch, chỉ validation, seed 7 và 3407"
+
+comparison:
+  metric: val_macro_f1
+  secondary: [val_loss, escape_epoch, train_val_gap]
+  test_policy: "Không đánh giá test; chỉ dùng validation để chẩn đoán."
+  success_criterion: >-
+    Val Macro-F1 vượt 0.20 trong 20 epoch đầu ở ít nhất một seed nghĩa là
+    early stopping là confound. Nếu cả hai vẫn 0.0817 đến epoch 20, recipe
+    không ổn định.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "không sử dụng"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [7, 3407]
+
+budget:
+  max_epochs: 50
+  batch_size: 64
+  estimated_minutes_per_run: 15
+
+risks: >-
+  Nếu chỉ một seed thoát, kết luận là recipe nhạy seed; không thể quy hoàn toàn
+  cho patience.
+notes: >-
+  Chẩn đoán, không thay thế final scratch 5 seed. Test đã dùng cho final nên
+  tuyệt đối không đánh giá test trong run này.
+
+  Kết quả (validation-only, patience 20):
+  - Seed 7: thoát mức random ở epoch 9, val Macro-F1 tốt nhất 0.6791 (epoch 34),
+    chạy đủ 50 epoch.
+  - Seed 3407: thoát ở epoch 9, val Macro-F1 tốt nhất 0.7161 (epoch 37),
+    chạy đủ 50 epoch.
+  Kết luận: patience 7 dừng đúng epoch 8, sát ngay trước khi hai seed này thoát
+  ở epoch 9. Collapse của final scratch là do early stopping quá ngắn, không phải
+  do kiến trúc hay recipe LR. Muốn có test hợp lệ cho scratch cần chạy lại final
+  với patience 20 và công bố việc tái sử dụng test.

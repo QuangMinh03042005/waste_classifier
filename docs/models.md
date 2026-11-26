@@ -18,19 +18,25 @@ model = build_custom_cnn(
 
 `residual=True` thêm skip connection cấp stage (1×1 conv khi đổi số kênh), tăng nhẹ số tham số. Đây là biến thể debug R1.
 
-| Stage | Layers | Output |
-|---|---|---|
-| Stem | Conv 3×3 (3→32), BN, ReLU, MaxPool | 32×112×112 |
-| Stage 1 | 2× [Conv 3×3 (32→64), BN, ReLU], MaxPool | 64×56×56 |
-| Stage 2 | 2× [Conv 3×3 (64→128), BN, ReLU], MaxPool | 128×28×28 |
-| Stage 3 | 2× [Conv 3×3 (128→256), BN, ReLU], MaxPool | 256×14×14 |
-| Pool | AdaptiveAvgPool2d(1) | 256 |
-| Head | Dropout(0.3) → Linear(256→5) | 5 logits |
+| Stage | Layers | Output | Params | MACs |
+|---|---|---|---:|---:|
+| `stem` | Conv 3×3 (3→32), BN, ReLU — không pool | 32×224×224 | 928 | 43,4 M |
+| `stages.0` | Conv 3×3 (32→32), BN, ReLU, MaxPool | 32×112×112 | 9.280 | 462,4 M |
+| `stages.1` | Conv 3×3 (32→64) → Conv 3×3 (64→64), BN, ReLU, MaxPool | 64×56×56 | 55.552 | 693,6 M |
+| `stages.2` | Conv 3×3 (64→128) → Conv 3×3 (128→128), BN, ReLU, MaxPool | 128×28×28 | 221.696 | 693,6 M |
+| `stages.3` | Conv 3×3 (128→256) → Conv 3×3 (256→256), BN, ReLU, MaxPool | 256×14×14 | 885.760 | 693,6 M |
+| Pool | AdaptiveAvgPool2d(1) | 256 | 0 | – |
+| Head | Dropout(0.3) → Linear(256→5) | 5 logits | 1.285 | <0,01 M |
 
-- ~1,17M tham số, ~2,1 GMAC ở input 224.
+- Tổng: **1.174.501 tham số**, **2,59 GMAC ≈ 5,17 GFLOPs** cho một ảnh 224×224.
+- Conv 3×3 dùng `padding=1`, `stride=1` nên giữ nguyên H×W; chỉ `MaxPool2d(2)` giảm chiều.
+- `stem` không pool: lần giảm chiều đầu tiên nằm ở `stages.0`.
+- Tên trong bảng khớp tên module trong code (`model.stem`, `model.stages[i]`) để dùng cho Grad-CAM.
+- Bảng layer-by-layer đầy đủ: `docs/RQ1/custom_cnn_layers.md`, sinh bằng
+  `uv run python scripts/model_summary.py --config configs/rq1/rq1_customcnn.yaml`.
 - Không softmax; dùng `CrossEntropyLoss`.
 - Khởi tạo Kaiming cho Conv, Xavier cho Linear.
-- Tên layer (`stem`, `stage1..3`, `classifier`) hỗ trợ Grad-CAM sau này.
+- Tên layer (`stem`, `stages.0..3`, `classifier`) hỗ trợ Grad-CAM sau này.
 - Grad-CAM mặc định dùng stage cuối; có thể chọn layer bằng `--layer stages.3`.
 
 Cấu hình này được chọn qua bước validation-only; xem `docs/RQ1/model_selection.md`.
@@ -43,9 +49,21 @@ from src.models import build_mobilenet_v3_small
 model = build_mobilenet_v3_small(num_classes=5, pretrained=True, dropout=0.2)
 ```
 
-- Pretrained ImageNet (`MobileNet_V3_Small_Weights.IMAGENET1K_V1`).
-- Thay classifier cuối bằng `Linear(1024→5)`.
-- ~1,53M tham số, ~0,06 GMAC.
+- Dùng implementation có sẵn trong `torchvision` (`mobilenet_v3_small`), không tự viết lại.
+  Lý do: đúng kiến trúc gốc, tương thích pretrained weights, tái lập và so sánh công bằng
+  giữa hai nhánh scratch/pretrained.
+- Kiến trúc gốc (Howard et al., 2019):
+  - depthwise separable convolution (3×3 depthwise + 1×1 pointwise);
+  - inverted residual: 1×1 mở rộng kênh → depthwise 3×3/5×5 → 1×1 chiếu lại, có skip
+    connection khi cùng kích thước;
+  - Squeeze-and-Excitation trên một số block;
+  - hard-swish và hard-sigmoid thay cho swish/sigmoid.
+- Với ảnh 224×224×3: 11 block inverted residual ở `features` → `7×7×576`, rồi
+  Global Average Pooling và classifier.
+- Classifier gốc `576→1024→1000`; nhóm thay bằng `Dropout(0.2)` + `Linear(1024→5)`.
+- Pretrained ImageNet (`MobileNet_V3_Small_Weights.IMAGENET1K_V1`); scratch dùng
+  `weights=None` trên cùng định nghĩa.
+- ~1,53M tham số, ~0,06 GMAC (~0,111 GFLOPs) ở input 224.
 
 Transfer learning:
 

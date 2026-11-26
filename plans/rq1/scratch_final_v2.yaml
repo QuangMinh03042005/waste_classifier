@@ -1,0 +1,75 @@
+schema_version: "1.0"
+plan_id: rq1_scratch_final_v2
+rq: rq1
+title: "Chạy lại scratch arm với early stopping patience 20"
+author: "Đinh Quang Minh"
+created_at: "2026-11-23"
+status: completed
+
+question: >-
+  Nếu tăng early stopping patience từ 7 lên 20, scratch arm có hội tụ ổn định
+  trên cả 5 seed và cho test Macro-F1 hợp lệ để so sánh với Custom CNN và
+  MobileNetV3_small pretrained hay không?
+hypothesis: >-
+  Patience 7 dừng đúng epoch 8, sát trước khi seed 7 và 3407 thoát ở epoch 9.
+  Với patience 20, cả 5 seed sẽ hội tụ và test Macro-F1 nằm trong khoảng
+  0.60-0.72, thấp hơn hai arm còn lại nhưng không còn collapse.
+expected_result: >-
+  Cả 5 seed có test Macro-F1 trên 0.55; mean thấp hơn Custom CNN và pretrained
+  một cách rõ rệt.
+failure_plan: >-
+  Nếu vẫn còn seed collapse dù patience 20, ghi nhận recipe scratch không ổn định
+  và không chạy lại thêm; báo cáo trung thực, không dùng test để chọn recipe.
+
+baseline:
+  experiment: rq1_scratch_ref_p7
+  description: >-
+    Recipe final scratch cũ: patience 7. Kết quả test bị invalid ở seed 7 và 3407
+    do early stopping cắt trước khi mô hình thoát lớp đa số. Không chạy lại.
+
+variants:
+  - experiment: rq1_mobilenetv3s_scratch_p20
+    change: "Tăng early stopping patience từ 7 lên 20, giữ nguyên mọi thứ khác."
+    fixed:
+      - "split v1, 224x224, không augmentation, không class weighting"
+      - "MobileNetV3_small scratch, dropout 0.2, AdamW, LR 1e-3"
+      - "backbone_lr_scale=1.0, warmup 3, weight_decay=1e-4, batch 64"
+      - "tối đa 50 epoch, đánh giá test một lần sau khi chọn epoch theo validation"
+
+comparison:
+  metric: macro_f1
+  secondary: [accuracy, balanced_accuracy, per_class_f1, val_macro_f1]
+  test_policy: >-
+    Test đã được dùng cho phiên bản patience 7; lần chạy này tái sử dụng test
+    cho scratch arm và phải được công bố. Không dùng test để chọn epoch,
+    threshold hay hyperparameter.
+  success_criterion: >-
+    Cả 5 seed có test Macro-F1 > 0.55 và không seed nào dự đoán một lớp duy nhất.
+    Kết quả chỉ mô tả recipe đã sửa, không dùng để chọn recipe.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "held-out của split v1"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024, 7, 3407]
+
+budget:
+  max_epochs: 50
+  batch_size: 64
+  estimated_minutes_per_run: 23
+
+risks: >-
+  Chạy lâu hơn vì patience dài; các seed đã hội tụ có thể chạy gần 50 epoch.
+  Test reuse là hạn chế học thuật phải công bố.
+notes: >-
+  Đây là correction lần hai của scratch arm: lần một sửa backbone_lr_scale,
+  lần này sửa early stopping. Run patience 7 được giữ làm bằng chứng và không
+  đưa vào bảng final.
+
+  Kết quả 5 seed (test Macro-F1): 42=0.6804, 123=0.6792, 2024=0.6477,
+  7=0.6799, 3407=0.6798; mean 0.6734, std 0.0144. Không seed nào collapse.
+  Seed 2024 cải thiện rõ so với patience 7 (0.6082 -> 0.6477, best epoch 11 -> 38);
+  seed 42 và 123 gần như không đổi. Test được tái sử dụng và đã công bố trong
+  comparison.test_policy.

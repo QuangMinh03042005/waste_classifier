@@ -25,9 +25,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
 
 EXPERIMENTS = {
-    "rq1_customcnn": "Custom CNN",
-    "rq1_mobilenetv3s_full": "MobileNetV3_small pretrained",
-    "rq1_mobilenetv3s_scratch": "MobileNetV3_small scratch",
+    "rq1_customcnn_p20": "Custom CNN (p20)",
+    "rq1_mobilenetv3s_full_p20": "MobileNetV3_small pretrained (p20)",
+    "rq1_mobilenetv3s_scratch_p20": "MobileNetV3_small scratch (p20)",
 }
 METRICS = ["macro_f1", "accuracy", "balanced_accuracy", "precision_macro", "recall_macro"]
 
@@ -41,9 +41,15 @@ def _load_json(path: Path) -> dict[str, Any] | None:
         return None
 
 
-def load_runs(root: Path) -> dict[str, list[dict[str, Any]]]:
+def load_runs(
+    root: Path,
+    exclude: list[str] | None = None,
+) -> dict[str, list[dict[str, Any]]]:
+    excluded = set(exclude or [])
     data: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for experiment in EXPERIMENTS:
+        if experiment in excluded:
+            continue
         for run_file in sorted((root / "rq1").glob(f"{experiment}_s*/run.json")):
             run = _load_json(run_file) or {}
             if run.get("status") != "completed":
@@ -87,6 +93,7 @@ def _summary_rows(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
                     "seed": run["run"].get("seed"),
                     **{metric: test.get(metric) for metric in METRICS},
                     "best_val_macro_f1": best.get("macro_f1"),
+                    "best_val_epoch": best.get("epoch"),
                     "params": model.get("params"),
                     "duration_sec": run["run"].get("duration_sec"),
                     "inference_ms_per_image": efficiency.get("inference_ms_per_image"),
@@ -252,8 +259,10 @@ def _confusion_figure(matrices: dict[str, np.ndarray], figures: Path) -> list[st
         for i in range(normalized.shape[0]):
             for j in range(normalized.shape[1]):
                 axis.text(j, i, f"{normalized[i, j]:.2f}", ha="center", va="center", fontsize=7)
-    figure.colorbar(image, ax=axes, fraction=0.03)
     figure.tight_layout()
+    figure.subplots_adjust(right=0.92)
+    colorbar_axis = figure.add_axes([0.935, 0.17, 0.012, 0.66])
+    figure.colorbar(image, cax=colorbar_axis)
     path = figures / "confusion_matrices.png"
     figure.savefig(path, dpi=160)
     plt.close(figure)
@@ -298,6 +307,7 @@ def _markdown_table(frame: pd.DataFrame, columns: list[str]) -> str:
 
 def build_markdown(
     aggregate: pd.DataFrame,
+    runs: pd.DataFrame,
     per_class: pd.DataFrame,
     errors: pd.DataFrame,
     figures: list[str],
@@ -305,7 +315,9 @@ def build_markdown(
     lines = [
         "# Kết quả RQ1",
         "",
-        "Sinh tự động bởi `scripts/analyze_rq1.py`; test chỉ được đánh giá một lần.",
+        "Sinh tự động bởi `scripts/analyze_rq1.py`; test được đánh giá một lần cho "
+        "mỗi phiên bản. Cả ba arm đều đã tái sử dụng test sau khi điều chỉnh "
+        "protocol, xem các plan tương ứng.",
         "",
     ]
     if aggregate.empty:
@@ -323,6 +335,13 @@ def build_markdown(
         }
     )
     lines.extend(["## Tổng hợp", "", _markdown_table(summary, list(summary.columns)), ""])
+
+    if not runs.empty:
+        per_seed = runs[["label", "seed", "macro_f1", "accuracy", "best_val_macro_f1"]]
+        per_seed = per_seed.sort_values(["label", "seed"])
+        lines.extend(
+            ["## Theo seed", "", _markdown_table(per_seed, list(per_seed.columns)), ""]
+        )
 
     if not per_class.empty:
         table = per_class[["label", "class", "f1_mean", "f1_std", "recall_mean"]]
@@ -350,13 +369,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--experiments-root", type=Path, default=default_experiments_root())
     parser.add_argument("--output-md", type=Path, default=Path("docs/RQ1/rq1_results.md"))
     parser.add_argument("--figures-dir", type=Path, default=Path("docs/RQ1/rq1_analysis"))
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=None,
+        help="Loại experiment khỏi phân tích, ví dụ scratch đang chờ sửa.",
+    )
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
-    data = load_runs(args.experiments_root.resolve())
+    data = load_runs(args.experiments_root.resolve(), exclude=args.exclude)
     summary = _summary_rows(data)
     aggregate = _aggregate(summary)
     per_class = _per_class(data)
@@ -370,7 +395,7 @@ def main(argv: list[str] | None = None) -> int:
 
     args.output_md.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.write_text(
-        build_markdown(aggregate, per_class, errors, figures) + "\n",
+        build_markdown(aggregate, summary, per_class, errors, figures) + "\n",
         encoding="utf-8",
     )
     print(f"Đã ghi {args.output_md}")

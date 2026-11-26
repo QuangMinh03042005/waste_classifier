@@ -1,69 +1,31 @@
-# External validation — GD
+# RQ1 – External validation trên GD
 
-Mục đích: đánh giá ba arm của RQ1 trên một nguồn **chưa từng dùng để train**,
-sau khi mô hình final đã được khóa.
+External test chỉ dùng để đánh giá sau khi khóa mô hình; không dùng để chọn model.
 
-- Dataset: Garbage Dataset (GD), Kaggle `sumn2u/garbage-classification-v2`.
-- License: MIT.
-- 5 lớp dùng: cardboard, glass, metal, paper, plastic.
-- Không dùng external test để chọn model, epoch hay threshold.
-- Kết quả external là mục “External validation” của RQ1, không thay đổi kết luận chính.
+## Tổng hợp
 
-## Chuẩn bị dữ liệu
+| experiment | seeds | external_macro_f1_mean | external_macro_f1_std | external_accuracy_mean | in_domain_macro_f1_mean | drop_mean |
+| --- | --- | --- | --- | --- | --- | --- |
+| rq1_customcnn_p20 | 5 | 0.3718 | 0.0124 | 0.3704 | 0.8863 | 0.5145 |
+| rq1_mobilenetv3s_full_p20 | 5 | 0.5285 | 0.0218 | 0.5417 | 0.8945 | 0.3660 |
+| rq1_mobilenetv3s_scratch_p20 | 5 | 0.2834 | 0.0230 | 0.2919 | 0.6734 | 0.3900 |
 
-- Ảnh gốc sau mapping 5 lớp: 7.010.
-- Loại ảnh trùng/near-duplicate với split v1: **2.200** ảnh.
-- Loại trùng nội bộ GD: **4** ảnh.
-- Giữ lại: **4.806** ảnh external test.
+## Từng seed
 
-| Lớp | Số ảnh |
-|---|---:|
-| cardboard | 1.022 |
-| glass | 1.343 |
-| metal | 530 |
-| paper | 765 |
-| plastic | 1.146 |
-| **Tổng** | **4.806** |
-
-Lưu ý: tỷ lệ trùng với split v1 khá lớn (31,4%). Đây là lý do phải dedup trước khi
-dùng GD làm external test; nếu không, kết quả sẽ bị leakage.
-
-- CSV: `data/splits/external/gd_test.csv`.
-- Summary: `data/splits/external/gd_summary.json`.
-- Ảnh gốc: `data/external/gd/original/` (không commit).
-
-## Giao thức
-
-1. RQ1 final đã chạy xong và test in-domain đã được đánh giá một lần.
-2. Với mỗi checkpoint `best.pt` của 3 arm × 5 seed, chạy đánh giá trên GD.
-3. Không train lại, không đổi hyperparameter.
-4. Tổng hợp mean ± std theo arm.
-5. So sánh với in-domain test.
-
-## Kết quả
-
-Phần này sẽ được cập nhật sau khi RQ1 final hoàn tất:
-
-| Model | In-domain Macro-F1 | GD Macro-F1 | Drop |
-|---|---:|---:|---:|
-| Custom CNN | — | — | — |
-| MobileNetV3_small scratch | — | — | — |
-| MobileNetV3_small pretrained | — | — | — |
-
-## Cách diễn giải
-
-- Pretrained giảm ít hơn Custom CNN → transfer learning giúp robustness.
-- Cả ba giảm mạnh → domain shift lớn, củng cố động lực của RQ3.
-- Scratch ≈ pretrained trên external → pretrained không giúp ngoài miền.
-- Phân tích per-class F1 và Grad-CAM để tìm lớp/trường hợp yếu.
-
-## File sinh tự động
-
-- `docs/RQ1/external_validation.md` — báo cáo.
-- `docs/RQ1/external_validation.csv` — từng seed.
-- `docs/RQ1/external_validation.summary.csv` — mean ± std.
-
-Script:
-
-- `scripts/prepare_external_gd.py`
-- `scripts/evaluate_external.py`
+| run_id | experiment | seed | in_domain_macro_f1 | external_macro_f1 | external_accuracy | drop |
+| --- | --- | --- | --- | --- | --- | --- |
+| rq1_customcnn_p20_s123 | rq1_customcnn_p20 | 123 | 0.8763 | 0.3796 | 0.3747 | 0.4968 |
+| rq1_customcnn_p20_s2024 | rq1_customcnn_p20 | 2024 | 0.8901 | 0.3807 | 0.3795 | 0.5094 |
+| rq1_customcnn_p20_s3407 | rq1_customcnn_p20 | 3407 | 0.8899 | 0.3519 | 0.3494 | 0.5381 |
+| rq1_customcnn_p20_s42 | rq1_customcnn_p20 | 42 | 0.8872 | 0.3796 | 0.3777 | 0.5076 |
+| rq1_customcnn_p20_s7 | rq1_customcnn_p20 | 7 | 0.8880 | 0.3672 | 0.3706 | 0.5207 |
+| rq1_mobilenetv3s_full_p20_s123 | rq1_mobilenetv3s_full_p20 | 123 | 0.8835 | 0.4954 | 0.5110 | 0.3881 |
+| rq1_mobilenetv3s_full_p20_s2024 | rq1_mobilenetv3s_full_p20 | 2024 | 0.9021 | 0.5290 | 0.5427 | 0.3731 |
+| rq1_mobilenetv3s_full_p20_s3407 | rq1_mobilenetv3s_full_p20 | 3407 | 0.8944 | 0.5281 | 0.5416 | 0.3664 |
+| rq1_mobilenetv3s_full_p20_s42 | rq1_mobilenetv3s_full_p20 | 42 | 0.9024 | 0.5336 | 0.5464 | 0.3688 |
+| rq1_mobilenetv3s_full_p20_s7 | rq1_mobilenetv3s_full_p20 | 7 | 0.8900 | 0.5564 | 0.5668 | 0.3337 |
+| rq1_mobilenetv3s_scratch_p20_s123 | rq1_mobilenetv3s_scratch_p20 | 123 | 0.6792 | 0.3177 | 0.3250 | 0.3615 |
+| rq1_mobilenetv3s_scratch_p20_s2024 | rq1_mobilenetv3s_scratch_p20 | 2024 | 0.6477 | 0.2536 | 0.2613 | 0.3941 |
+| rq1_mobilenetv3s_scratch_p20_s3407 | rq1_mobilenetv3s_scratch_p20 | 3407 | 0.6798 | 0.2835 | 0.2938 | 0.3963 |
+| rq1_mobilenetv3s_scratch_p20_s42 | rq1_mobilenetv3s_scratch_p20 | 42 | 0.6804 | 0.2770 | 0.2817 | 0.4034 |
+| rq1_mobilenetv3s_scratch_p20_s7 | rq1_mobilenetv3s_scratch_p20 | 7 | 0.6799 | 0.2853 | 0.2975 | 0.3946 |

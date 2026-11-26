@@ -1,6 +1,6 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-26T11:04:29.500772+00:00`
+- Tạo lúc: `2026-11-26T11:34:00.185723+00:00`
 - Plan core: 2
 - Experiment core: 6
 - Plan pilot/selection: 8
@@ -17,15 +17,15 @@
 - **Kết quả kỳ vọng:** Full cao hơn no-augmentation rõ rệt về Macro-F1; class weighting tăng recall lớp thiểu số nhưng có thể giảm nhẹ accuracy toàn cục.
 - **Nếu giả thuyết sai:** Nếu ablation không cải thiện, ghi nhận và phân tích theo lớp cùng đường cong train/validation. Không chọn biến thể dựa trên test set.
 - **Metric:** macro_f1
-- **Test policy:** Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần cho mỗi biến thể.
+- **Test policy:** Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần cho mỗi run (mỗi biến thể x seed) và không dùng test để chọn epoch hay cấu hình.
 - **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
 - **File plan:** `plans/rq2/augmentation_ablation.yaml`
 
 | Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | rq2_mobilenetv3s_full | baseline | - | - | macro_f1 | Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed). | 42, 123, 2024 | active |
-| rq2_mobilenetv3s_noaug | variant | Bỏ Data Augmentation, giữ nguyên class weighting. | split v1, MobileNetV3_small pretrained ImageNet; class weighting theo tần suất lớp, clip [0.5, 3.0]; input 224x224, AdamW, batch 64, tối đa 30 epoch; seed 42, 123, 2024 | macro_f1 | Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed). | 42, 123, 2024 | active |
-| rq2_mobilenetv3s_nocw | variant | Bỏ Class Weighting, giữ nguyên Data Augmentation. | split v1, MobileNetV3_small pretrained ImageNet; augmentation: RandomResizedCrop, HFlip, rotation, color jitter; input 224x224, AdamW, batch 64, tối đa 30 epoch; seed 42, 123, 2024 | macro_f1 | Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed). | 42, 123, 2024 | active |
+| rq2_mobilenetv3s_noaug | variant | Bỏ Data Augmentation (train transform chỉ còn Resize 256 + CenterCrop 224), giữ nguyên class weighting. | split v1, MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2; class weighting w_c = N/(K*n_c), clip [0.5, 3.0]; weight trên train v1: cardboard 1.271, glass 1.189, metal 0.914, paper 1.001, plastic 0.782 (clip không kích hoạt); input 224x224, chuẩn hóa mean/std ImageNet; 50 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 20 theo val Macro-F1; seed 42, 123, 2024 | macro_f1 | Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed). | 42, 123, 2024 | active |
+| rq2_mobilenetv3s_nocw | variant | Bỏ Class Weighting (CrossEntropyLoss không trọng số), giữ nguyên Data Augmentation. | split v1, MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2; augmentation: RandomResizedCrop 224 scale 0.7-1.0, RandomHorizontalFlip p=0.5, RandomRotation 15 độ, ColorJitter 0.2, RandomErasing p=0.1; input 224x224, chuẩn hóa mean/std ImageNet; 50 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 20 theo val Macro-F1; seed 42, 123, 2024 | macro_f1 | Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed). | 42, 123, 2024 | active |
 
 ### RQ3 – Generalization
 

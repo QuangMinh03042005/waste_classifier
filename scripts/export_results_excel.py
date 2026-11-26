@@ -370,7 +370,6 @@ def build_workbook(
         "inference_ms_per_image",
         "duration_sec",
         "git_commit",
-        "run_image",
     ]
     run_columns = [column for column in run_columns if column in merged.columns]
     runs_frame = merged[run_columns].sort_values(["experiment", "seed"])
@@ -406,11 +405,22 @@ def build_workbook(
 
     experiments_sheet = workbook.create_sheet("Experiments")
     experiment_frame = summary.copy()
-    experiment_frame["image"] = experiment_frame["experiment"].map(
-        lambda key: str(experiment_images.get(key, ""))
-    )
+    experiment_frame["image"] = ""
     _write_frame(experiments_sheet, experiment_frame)
     _style_sheet(experiments_sheet, experiment_frame)
+
+    image_column = get_column_letter(list(experiment_frame.columns).index("image") + 1)
+    experiments_sheet.column_dimensions[image_column].width = 48
+    for row_index, experiment in enumerate(experiment_frame["experiment"], start=2):
+        experiment_path = experiment_images.get(str(experiment))
+        if experiment_path is None or not Path(experiment_path).is_file():
+            continue
+        image = XLImage(str(experiment_path))
+        original_width, original_height = image.width, image.height
+        image.width = 360
+        image.height = int(360 * original_height / original_width)
+        experiments_sheet.add_image(image, f"{image_column}{row_index}")
+        experiments_sheet.row_dimensions[row_index].height = max(60.0, image.height * 0.75 + 8)
 
     figures_sheet = workbook.create_sheet("Figures")
     figure_rows = []
@@ -423,41 +433,6 @@ def build_workbook(
     figures_frame = pd.DataFrame(figure_rows)
     _write_frame(figures_sheet, figures_frame)
     _style_sheet(figures_sheet, figures_frame)
-
-    used_names: set[str] = {
-        "README",
-        "Runs",
-        "Summary",
-        "Per-class",
-        "Experiments",
-        "Figures",
-    }
-    for experiment, image_path in sorted(experiment_images.items()):
-        sheet_name = _safe_sheet_name(experiment, used_names)
-        sheet = workbook.create_sheet(sheet_name)
-        sheet["A1"] = f"Tổng hợp: {experiment}"
-        sheet["A1"].font = Font(bold=True, size=13)
-        if image_path.is_file():
-            image = XLImage(str(image_path))
-            original_width, original_height = image.width, image.height
-            image.width = 900
-            image.height = int(900 * original_height / original_width)
-            sheet.add_image(image, "A3")
-        run_rows = merged[merged["experiment"] == experiment].sort_values("seed")
-        row_cursor = 32
-        for _, run_row in run_rows.iterrows():
-            run_id = str(run_row["run_id"])
-            sheet.cell(row=row_cursor, column=1, value=f"{run_id} · seed {run_row['seed']}")
-            sheet.cell(row=row_cursor, column=1).font = Font(bold=True)
-            path = run_images.get(run_id)
-            if path is not None and Path(path).is_file():
-                image = XLImage(str(path))
-                original_width, original_height = image.width, image.height
-                image.width = 430
-                image.height = int(430 * original_height / original_width)
-                sheet.add_image(image, f"A{row_cursor + 1}")
-            row_cursor += 22
-        sheet.column_dimensions["A"].width = 70
 
     output.parent.mkdir(parents=True, exist_ok=True)
     workbook.save(output)

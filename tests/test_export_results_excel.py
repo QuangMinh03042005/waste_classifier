@@ -74,6 +74,8 @@ def test_build_workbook(tmp_path: Path) -> None:
 
     assert output.is_file()
     workbook = load_workbook(output)
-    for name in ("README", "Runs", "Summary", "Experiments", "Figures", "rq1_demo"):
+    for name in ("README", "Runs", "Summary", "Experiments", "Figures"):
         assert name in workbook.sheetnames
+    assert "rq1_demo" not in workbook.sheetnames
     assert workbook["Runs"]["A2"].value == "rq1_demo_s42"
+    assert len(workbook["Experiments"]._images) == 1

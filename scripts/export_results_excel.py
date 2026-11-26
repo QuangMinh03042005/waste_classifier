@@ -492,7 +492,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Chỉ giữ run thực sự nằm trong thư mục experiments/<rq>/<run_id>.
     keep = results.apply(lambda row: (root / str(row["rq"]) / str(row["run_id"])).is_dir(), axis=1)
-    results = results[keep].reset_index(drop=True)
+    results = results[keep].drop_duplicates(subset=["run_id"], keep="first").reset_index(drop=True)
     per_class = per_class[per_class["run_id"].isin(results["run_id"])].reset_index(drop=True)
 
     external_path = Path("docs/RQ1/external_validation.csv")

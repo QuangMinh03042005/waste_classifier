@@ -1,31 +1,12 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-26T03:58:56.756119+00:00`
-- Plan core: 3
-- Experiment core: 9
-- Plan pilot/selection: 7
-- Experiment pilot/selection: 28
+- Tạo lúc: `2026-11-26T11:04:29.500772+00:00`
+- Plan core: 2
+- Experiment core: 6
+- Plan pilot/selection: 8
+- Experiment pilot/selection: 31
 
 ## Ma trận core
-
-### RQ1 – Model Architecture
-
-### `rq1_patience20_uniform` - Đồng nhất early stopping patience 20 cho ba arm RQ1
-
-- **Câu hỏi:** Nếu cả ba arm dùng cùng early stopping patience 20, thứ hạng và khoảng cách giữa Custom CNN, MobileNetV3_small pretrained và scratch có thay đổi không?
-- **Giả thuyết:** Custom gần như không đổi vì best epoch đã sát 50; pretrained có thể tăng nhẹ vì một số seed hội tụ sớm; scratch giữ nguyên vì đã chạy patience 20.
-- **Kết quả kỳ vọng:** Ba arm có cùng luật dừng; pretrained vẫn dẫn đầu hoặc tương đương Custom, scratch vẫn thấp hơn rõ rệt.
-- **Nếu giả thuyết sai:** Nếu kết quả p20 đảo ngược kết luận cũ, báo cáo trung thực theo p20 vì đây là protocol đồng nhất đã chốt trước; bản cũ chỉ dùng làm phân tích độ nhạy.
-- **Metric:** macro_f1
-- **Test policy:** Test đã được dùng cho các phiên bản patience cũ; lần chạy này tái sử dụng test cho Custom và pretrained và phải được công bố. Không dùng test để chọn giữa p20 và bản cũ: p20 là protocol chính, chốt trước khi xem kết quả.
-- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
-- **File plan:** `plans/rq1/patience20_uniform.yaml`
-
-| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| rq1_uniform_ref | baseline | - | - | macro_f1 | Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng theo p20; bản cũ chỉ là phân tích độ nhạy. | 42, 123, 2024, 7, 3407 | active |
-| rq1_customcnn_p20 | variant | Tăng early stopping patience từ 10 lên 20. | split v1, 224x224, không augmentation, không class weighting; Custom CNN 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; AdamW, LR 1e-3, weight decay 1e-4, batch 64, cosine, tối đa 50 epoch; 5 seed: 42, 123, 2024, 7, 3407 | macro_f1 | Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng theo p20; bản cũ chỉ là phân tích độ nhạy. | 42, 123, 2024, 7, 3407 | active |
-| rq1_mobilenetv3s_full_p20 | variant | Tăng early stopping patience từ 7 lên 20. | split v1, 224x224, không augmentation, không class weighting; MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2; AdamW, LR 1e-3, weight decay 1e-4, batch 64, cosine, tối đa 50 epoch; 5 seed: 42, 123, 2024, 7, 3407 | macro_f1 | Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng theo p20; bản cũ chỉ là phân tích độ nhạy. | 42, 123, 2024, 7, 3407 | active |
 
 ### RQ2 – Data Augmentation & Class Weighting
 
@@ -146,6 +127,23 @@ Các plan này dùng validation để chọn cấu hình hoặc debug; không n�
 | rq1_customcnn | baseline | - | - | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | completed |
 | rq1_mobilenetv3s_full | variant | Thay Custom CNN bằng MobileNetV3_small pretrained ImageNet. | split v1, stratified theo (dataset, class), chống trùng bằng pHash; input 224x224, normalize mean/std ImageNet; không augmentation, không class weighting; budget epoch giống Custom CNN (30 hoặc 50 theo kết quả debug); AdamW, batch 64, early stopping patience 7; seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | completed |
 | rq1_mobilenetv3s_scratch | variant | MobileNetV3_small from scratch để tách ảnh hưởng của kiến trúc khỏi pretrained weights. | split v1, input 224x224, không augmentation, không class weighting; không freeze, dropout 0.2, AdamW LR 1e-3, batch 64; budget epoch giống Custom CNN (30 hoặc 50); seed 42, 123, 2024, 7, 3407 | macro_f1 | Pretrained cao hơn Custom CNN >= 0.02 và cao hơn ở >= 4/5 seed. So sánh thêm với scratch để kết luận phần đóng góp của kiến trúc và pretrained weights. | 42, 123, 2024, 7, 3407 | completed |
+
+### `rq1_patience20_uniform` - Đồng nhất early stopping patience 20 cho ba arm RQ1
+
+- **Câu hỏi:** Nếu cả ba arm dùng cùng early stopping patience 20, thứ hạng và khoảng cách giữa Custom CNN, MobileNetV3_small pretrained và scratch có thay đổi không?
+- **Giả thuyết:** Custom gần như không đổi vì best epoch đã sát 50; pretrained có thể tăng nhẹ vì một số seed hội tụ sớm; scratch giữ nguyên vì đã chạy patience 20.
+- **Kết quả kỳ vọng:** Ba arm có cùng luật dừng; pretrained vẫn dẫn đầu hoặc tương đương Custom, scratch vẫn thấp hơn rõ rệt.
+- **Nếu giả thuyết sai:** Nếu kết quả p20 đảo ngược kết luận cũ, báo cáo trung thực theo p20 vì đây là protocol đồng nhất đã chốt trước; bản cũ chỉ dùng làm phân tích độ nhạy.
+- **Metric:** macro_f1
+- **Test policy:** Test đã được dùng cho các phiên bản patience cũ; lần chạy này tái sử dụng test cho Custom và pretrained và phải được công bố. Không dùng test để chọn giữa p20 và bản cũ: p20 là protocol chính, chốt trước khi xem kết quả.
+- **Dữ liệu:** train = realwaste, trashnet; split = `v1`; lớp = cardboard, glass, metal, paper, plastic
+- **File plan:** `plans/rq1/patience20_uniform.yaml`
+
+| Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| rq1_uniform_ref | baseline | - | - | macro_f1 | Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng theo p20; bản cũ chỉ là phân tích độ nhạy. | 42, 123, 2024, 7, 3407 | completed |
+| rq1_customcnn_p20 | variant | Tăng early stopping patience từ 10 lên 20. | split v1, 224x224, không augmentation, không class weighting; Custom CNN 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3; AdamW, LR 1e-3, weight decay 1e-4, batch 64, cosine, tối đa 50 epoch; 5 seed: 42, 123, 2024, 7, 3407 | macro_f1 | Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng theo p20; bản cũ chỉ là phân tích độ nhạy. | 42, 123, 2024, 7, 3407 | completed |
+| rq1_mobilenetv3s_full_p20 | variant | Tăng early stopping patience từ 7 lên 20. | split v1, 224x224, không augmentation, không class weighting; MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2; AdamW, LR 1e-3, weight decay 1e-4, batch 64, cosine, tối đa 50 epoch; 5 seed: 42, 123, 2024, 7, 3407 | macro_f1 | Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng theo p20; bản cũ chỉ là phân tích độ nhạy. | 42, 123, 2024, 7, 3407 | completed |
 
 ### `rq1_scratch_diag` - Chẩn đoán early stopping của scratch arm (validation-only)
 

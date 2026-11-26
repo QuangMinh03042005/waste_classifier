@@ -4,7 +4,7 @@ rq: rq1
 title: "Đồng nhất early stopping patience 20 cho ba arm RQ1"
 author: "Đinh Quang Minh"
 created_at: "2026-11-26"
-status: active
+status: completed
 
 question: >-
   Nếu cả ba arm dùng cùng early stopping patience 20, thứ hạng và khoảng cách
@@ -72,3 +72,10 @@ notes: >-
   Scratch đã chạy patience 20 trong plan rq1_scratch_final_v2, không chạy lại.
   Plan này chỉ chạy Custom và pretrained để có cùng luật dừng. Không chọn kết
   quả dựa trên test.
+
+  Kết quả p20 (5 seed):
+  - Custom: 0.8863 ± 0.0057 (bản cũ 0.8870 ± 0.0060).
+  - Pretrained: 0.8945 ± 0.0081 (bản cũ 0.8901 ± 0.0114); thắng 5/5 seed.
+  - Chênh pretrained - Custom: +0.0082 ± 0.0054, vẫn dưới ngưỡng 0.02.
+  - Scratch không đổi: 0.6734 ± 0.0144.
+  Cả ba arm đều đã tái sử dụng test; công bố trong báo cáo.

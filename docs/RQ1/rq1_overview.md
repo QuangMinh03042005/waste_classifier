@@ -223,6 +223,7 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 - Chạy final Custom CNN và MobileNet pretrained, 5 seed.
 - Chẩn đoán early stopping: patience 7 cắt sớm 2 seed scratch.
 - Chạy final scratch với patience 20, 5 seed (mean 0,6734 ± 0,0144).
+- Đồng nhất patience 20, chạy lại Custom và pretrained 5 seed.
 - Phân tích test, per-class, confusion matrix, efficiency, Grad-CAM.
 - External validation GD cho Custom và pretrained.
 - Công cụ phân tích, efficiency, Grad-CAM, feature map.
@@ -231,8 +232,8 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 
 | Arm | Test Macro-F1 | GD Macro-F1 | Drop |
 |---|---:|---:|---:|
-| Custom CNN | 0,8870 ± 0,0060 | 0,3694 ± 0,0117 | 0,5175 |
-| MobileNetV3_small pretrained | 0,8901 ± 0,0114 | 0,5409 ± 0,0097 | 0,3492 |
+| Custom CNN | 0,8863 ± 0,0057 | 0,3718 ± 0,0124 | 0,5145 |
+| MobileNetV3_small pretrained | 0,8945 ± 0,0081 | 0,5285 ± 0,0218 | 0,3660 |
 | MobileNetV3_small scratch (p20) | 0,6734 ± 0,0144 | 0,2834 ± 0,0230 | 0,3900 |
 
 ### Chưa hoàn thành
@@ -253,9 +254,9 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 - TrashNet 4:3 có thể bị cắt khi CenterCrop 224.
 - So sánh kiến trúc khác FLOPs, không chỉ params.
 - Chỉ 5 seed, test một lần cho mỗi phiên bản.
-- Scratch phải sửa recipe hai lần (learning rate, early stopping); test bị tái sử dụng
-  và đã công bố.
-- Patience của scratch là 20, của Custom/pretrained là 7; ngân sách tối đa 50 epoch
+- Scratch phải sửa recipe hai lần (learning rate, early stopping); cả ba arm đều
+  đã tái sử dụng test sau khi điều chỉnh protocol và đã công bố.
+- Final dùng patience 20 cho cả ba arm; debug dùng 7–10. Ngân sách tối đa 50 epoch
   cho cả ba arm.
 - External GD có 31,4% ảnh trùng train, đã loại; phần còn lại vẫn có domain shift.
 - RQ1 không dùng augmentation/class weighting do thiết kế.
@@ -277,6 +278,7 @@ báo cáo cả chi phí tính toán, không chỉ accuracy.
 | `plans/rq1/model_comparison.yaml` | Plan RQ1 chính |
 | `plans/rq1/scratch_diag.yaml` | Chẩn đoán early stopping scratch |
 | `plans/rq1/scratch_final_v2.yaml` | Chạy lại scratch với patience 20 |
+| `plans/rq1/patience20_uniform.yaml` | Đồng nhất patience 20 cho ba arm |
 | `docs/splits.md`, `docs/EDA/eda_report.md` | Dữ liệu và EDA |
 
 ## 11. Ghi chú về hỗ trợ AI

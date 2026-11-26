@@ -356,6 +356,7 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 - [x] External test GD đã chuẩn bị (4.806 ảnh sau dedup).
 - [x] RQ1 final cho Custom CNN và MobileNet pretrained (5 seed).
 - [x] Chẩn đoán early stopping và chạy scratch patience 20 (5 seed).
+- [x] Đồng nhất patience 20, chạy lại Custom và pretrained (5 seed).
 - [x] Phân tích RQ1, efficiency, Grad-CAM, external GD.
 
 Đang thực hiện:

@@ -316,8 +316,8 @@ def build_markdown(
         "# Kết quả RQ1",
         "",
         "Sinh tự động bởi `scripts/analyze_rq1.py`; test được đánh giá một lần cho "
-        "mỗi phiên bản. Scratch có tái sử dụng test sau khi sửa recipe, xem "
-        "`plans/rq1/scratch_final_v2.yaml`.",
+        "mỗi phiên bản. Cả ba arm đều đã tái sử dụng test sau khi điều chỉnh "
+        "protocol, xem các plan tương ứng.",
         "",
     ]
     if aggregate.empty:

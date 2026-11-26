@@ -25,8 +25,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
 
 EXPERIMENTS = {
-    "rq1_customcnn": "Custom CNN",
-    "rq1_mobilenetv3s_full": "MobileNetV3_small pretrained",
+    "rq1_customcnn_p20": "Custom CNN (p20)",
+    "rq1_mobilenetv3s_full_p20": "MobileNetV3_small pretrained (p20)",
     "rq1_mobilenetv3s_scratch_p20": "MobileNetV3_small scratch (p20)",
 }
 METRICS = ["macro_f1", "accuracy", "balanced_accuracy", "precision_macro", "recall_macro"]

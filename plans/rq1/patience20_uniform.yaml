@@ -1,0 +1,74 @@
+schema_version: "1.0"
+plan_id: rq1_patience20_uniform
+rq: rq1
+title: "Đồng nhất early stopping patience 20 cho ba arm RQ1"
+author: "Đinh Quang Minh"
+created_at: "2026-11-26"
+status: active
+
+question: >-
+  Nếu cả ba arm dùng cùng early stopping patience 20, thứ hạng và khoảng cách
+  giữa Custom CNN, MobileNetV3_small pretrained và scratch có thay đổi không?
+hypothesis: >-
+  Custom gần như không đổi vì best epoch đã sát 50; pretrained có thể tăng nhẹ
+  vì một số seed hội tụ sớm; scratch giữ nguyên vì đã chạy patience 20.
+expected_result: >-
+  Ba arm có cùng luật dừng; pretrained vẫn dẫn đầu hoặc tương đương Custom,
+  scratch vẫn thấp hơn rõ rệt.
+failure_plan: >-
+  Nếu kết quả p20 đảo ngược kết luận cũ, báo cáo trung thực theo p20 vì đây là
+  protocol đồng nhất đã chốt trước; bản cũ chỉ dùng làm phân tích độ nhạy.
+
+baseline:
+  experiment: rq1_uniform_ref
+  description: >-
+    Kết quả tham chiếu trước khi đồng nhất patience: Custom p10, pretrained p7,
+    scratch p20. Không chạy lại trong plan này.
+
+variants:
+  - experiment: rq1_customcnn_p20
+    change: "Tăng early stopping patience từ 10 lên 20."
+    fixed:
+      - "split v1, 224x224, không augmentation, không class weighting"
+      - "Custom CNN 32-64-128-256, convs/stage 1-2-2-2, dropout 0.3"
+      - "AdamW, LR 1e-3, weight decay 1e-4, batch 64, cosine, tối đa 50 epoch"
+      - "5 seed: 42, 123, 2024, 7, 3407"
+  - experiment: rq1_mobilenetv3s_full_p20
+    change: "Tăng early stopping patience từ 7 lên 20."
+    fixed:
+      - "split v1, 224x224, không augmentation, không class weighting"
+      - "MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2"
+      - "AdamW, LR 1e-3, weight decay 1e-4, batch 64, cosine, tối đa 50 epoch"
+      - "5 seed: 42, 123, 2024, 7, 3407"
+
+comparison:
+  metric: macro_f1
+  secondary: [accuracy, balanced_accuracy, per_class_f1, params, latency]
+  test_policy: >-
+    Test đã được dùng cho các phiên bản patience cũ; lần chạy này tái sử dụng
+    test cho Custom và pretrained và phải được công bố. Không dùng test để chọn
+    giữa p20 và bản cũ: p20 là protocol chính, chốt trước khi xem kết quả.
+  success_criterion: >-
+    Cả ba arm dùng cùng patience 20 và cùng ngân sách 50 epoch. Báo cáo thứ hạng
+    theo p20; bản cũ chỉ là phân tích độ nhạy.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "held-out của split v1"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024, 7, 3407]
+
+budget:
+  max_epochs: 50
+  batch_size: 64
+  estimated_minutes_per_run: 25
+
+risks: >-
+  Test bị tái sử dụng thêm một lần cho Custom và pretrained; kết quả p20 có thể
+  khác bản cũ, đặc biệt pretrained có thể tăng.
+notes: >-
+  Scratch đã chạy patience 20 trong plan rq1_scratch_final_v2, không chạy lại.
+  Plan này chỉ chạy Custom và pretrained để có cùng luật dừng. Không chọn kết
+  quả dựa trên test.

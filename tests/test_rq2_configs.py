@@ -47,7 +47,7 @@ def test_arm_config_matches_design(experiment: str) -> None:
     assert config["rq"] == "rq2"
     assert config["data"]["augmentation"] is augmentation
     assert config["data"]["class_weighting"] is class_weighting
-    assert config["training"]["epochs"] == 30
+    assert config["training"]["epochs"] == 50
     assert config["training"]["early_stopping_patience"] == 7
 
 

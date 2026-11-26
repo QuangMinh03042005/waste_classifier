@@ -20,7 +20,7 @@ model:
   unfreeze_blocks: 2
 
 training:
-  epochs: 30
+  epochs: 50
   optimizer: adamw
   lr: 0.001
   weight_decay: 0.0001

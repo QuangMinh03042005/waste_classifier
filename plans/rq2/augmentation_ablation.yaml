@@ -25,7 +25,7 @@ baseline:
     MobileNetV3_small pretrained ImageNet, full fine-tune + augmentation đầy đủ
     (RandomResizedCrop 224 scale 0.7-1.0, RandomHorizontalFlip p=0.5,
     RandomRotation 15 độ, ColorJitter 0.2, RandomErasing p=0.1) + class weighting
-    (w_c = N/(K*n_c), clip [0.5, 3.0]); 30 epoch, batch 64, AdamW lr 1e-3,
+    (w_c = N/(K*n_c), clip [0.5, 3.0]); 50 epoch, batch 64, AdamW lr 1e-3,
     weight decay 1e-4, cosine, early stopping patience 7; seed 42, 123, 2024.
 
 variants:
@@ -37,7 +37,7 @@ variants:
       - "split v1, MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2"
       - "class weighting w_c = N/(K*n_c), clip [0.5, 3.0]; weight trên train v1: cardboard 1.271, glass 1.189, metal 0.914, paper 1.001, plastic 0.782 (clip không kích hoạt)"
       - "input 224x224, chuẩn hóa mean/std ImageNet"
-      - "30 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 7 theo val Macro-F1"
+      - "50 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 7 theo val Macro-F1"
       - "seed 42, 123, 2024"
   - experiment: rq2_mobilenetv3s_nocw
     change: >-
@@ -47,7 +47,7 @@ variants:
       - "split v1, MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2"
       - "augmentation: RandomResizedCrop 224 scale 0.7-1.0, RandomHorizontalFlip p=0.5, RandomRotation 15 độ, ColorJitter 0.2, RandomErasing p=0.1"
       - "input 224x224, chuẩn hóa mean/std ImageNet"
-      - "30 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 7 theo val Macro-F1"
+      - "50 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 7 theo val Macro-F1"
       - "seed 42, 123, 2024"
 
 comparison:
@@ -68,10 +68,10 @@ seeds: [42, 123, 2024]
 
 budget:
   applies_to: "baseline và cả hai biến thể"
-  max_epochs: 30
+  max_epochs: 50
   batch_size: 64
   early_stopping_patience: 7
-  estimated_minutes_per_run: 30
+  estimated_minutes_per_run: 50
 
 risks: "Class weighting có thể làm tăng false positive ở lớp đa số."
 notes: >-

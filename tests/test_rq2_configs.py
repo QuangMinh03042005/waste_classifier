@@ -48,7 +48,7 @@ def test_arm_config_matches_design(experiment: str) -> None:
     assert config["data"]["augmentation"] is augmentation
     assert config["data"]["class_weighting"] is class_weighting
     assert config["training"]["epochs"] == 50
-    assert config["training"]["early_stopping_patience"] == 7
+    assert config["training"]["early_stopping_patience"] == 20
 
 
 def test_arms_differ_only_in_ablation_flags() -> None:
@@ -87,3 +87,4 @@ def test_smoke_config_does_not_evaluate_test() -> None:
     assert config["training"]["epochs"] == 1
     assert config["training"]["evaluate_test"] is False
     validate_for_run(plan, config=config, seed=42, rq="rq2")
+

@@ -35,7 +35,7 @@ Ba cấu hình, mỗi cấu hình chỉ khác baseline đúng một biến:
 | `configs/rq2/rq2_mobilenetv3s_nocw.yaml` | bật | tắt |
 
 Seed chính thức: 42, 123, 2024. Ngân sách chung: 50 epoch, batch 64, early stopping
-patience 7 theo `val_macro_f1`.
+patience 20 theo `val_macro_f1`.
 
 Chạy một cấu hình:
 
@@ -289,3 +289,4 @@ python scripts/gradcam.py \
 ```
 
 Ảnh lưu ở `experiments/rq1/<run>/figures/gradcam/`.
+

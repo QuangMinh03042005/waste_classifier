@@ -21,28 +21,41 @@ failure_plan: >-
 
 baseline:
   experiment: rq2_mobilenetv3s_full
-  description: "MobileNetV3_small + augmentation + class weighting (mô hình đầy đủ)."
+  description: >-
+    MobileNetV3_small pretrained ImageNet, full fine-tune + augmentation đầy đủ
+    (RandomResizedCrop 224 scale 0.7-1.0, RandomHorizontalFlip p=0.5,
+    RandomRotation 15 độ, ColorJitter 0.2, RandomErasing p=0.1) + class weighting
+    (w_c = N/(K*n_c), clip [0.5, 3.0]); 30 epoch, batch 64, AdamW lr 1e-3,
+    weight decay 1e-4, cosine, early stopping patience 7; seed 42, 123, 2024.
 
 variants:
   - experiment: rq2_mobilenetv3s_noaug
-    change: "Bỏ Data Augmentation, giữ nguyên class weighting."
+    change: >-
+      Bỏ Data Augmentation (train transform chỉ còn Resize 256 + CenterCrop 224),
+      giữ nguyên class weighting.
     fixed:
-      - "split v1, MobileNetV3_small pretrained ImageNet"
-      - "class weighting theo tần suất lớp, clip [0.5, 3.0]"
-      - "input 224x224, AdamW, batch 64, tối đa 30 epoch"
+      - "split v1, MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2"
+      - "class weighting w_c = N/(K*n_c), clip [0.5, 3.0]; weight trên train v1: cardboard 1.271, glass 1.189, metal 0.914, paper 1.001, plastic 0.782 (clip không kích hoạt)"
+      - "input 224x224, chuẩn hóa mean/std ImageNet"
+      - "30 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 7 theo val Macro-F1"
       - "seed 42, 123, 2024"
   - experiment: rq2_mobilenetv3s_nocw
-    change: "Bỏ Class Weighting, giữ nguyên Data Augmentation."
+    change: >-
+      Bỏ Class Weighting (CrossEntropyLoss không trọng số), giữ nguyên Data
+      Augmentation.
     fixed:
-      - "split v1, MobileNetV3_small pretrained ImageNet"
-      - "augmentation: RandomResizedCrop, HFlip, rotation, color jitter"
-      - "input 224x224, AdamW, batch 64, tối đa 30 epoch"
+      - "split v1, MobileNetV3_small pretrained ImageNet, full fine-tune, dropout 0.2"
+      - "augmentation: RandomResizedCrop 224 scale 0.7-1.0, RandomHorizontalFlip p=0.5, RandomRotation 15 độ, ColorJitter 0.2, RandomErasing p=0.1"
+      - "input 224x224, chuẩn hóa mean/std ImageNet"
+      - "30 epoch cho baseline và mọi biến thể, batch 64, AdamW lr 1e-3, weight decay 1e-4, cosine, early stopping patience 7 theo val Macro-F1"
       - "seed 42, 123, 2024"
 
 comparison:
   metric: macro_f1
   secondary: [accuracy, balanced_accuracy, per_class_recall]
-  test_policy: "Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần cho mỗi biến thể."
+  test_policy: >-
+    Chọn epoch theo val Macro-F1; test chỉ đánh giá một lần cho mỗi run
+    (mỗi biến thể x seed) và không dùng test để chọn epoch hay cấu hình.
   success_criterion: "Full cao hơn mỗi ablation >= 0.01 Macro-F1 (trung bình 3 seed)."
 
 data:
@@ -54,9 +67,18 @@ data:
 seeds: [42, 123, 2024]
 
 budget:
+  applies_to: "baseline và cả hai biến thể"
   max_epochs: 30
   batch_size: 64
+  early_stopping_patience: 7
   estimated_minutes_per_run: 30
 
 risks: "Class weighting có thể làm tăng false positive ở lớp đa số."
-notes: "Báo cáo per-class recall cho từng biến thể để thấy tác động lên lớp thiểu số. Ngưỡng 0.01 tương đương khoảng 8 ảnh đúng trên test 823 ảnh."
+notes: >-
+  Báo cáo per-class recall cho từng biến thể để thấy tác động lên lớp thiểu số. Mất cân bằng lớp trên
+  train v1 chỉ 1.63 (plastic 980 so với cardboard 603) nên class weight nằm trong
+  [0.78, 1.27] và clip [0.5, 3.0] không kích hoạt; kỳ vọng tác động của class
+  weighting là nhỏ và phải đánh giá kèm per-seed, không chỉ mean. Augmentation dùng
+  đúng 5 phép của src/data/transforms.py, gồm RandomErasing p=0.1. RQ1 final dùng
+  50 epoch nên so sánh RQ2 với RQ1 chỉ mang tính định tính, không phải so sánh có
+  kiểm soát.

@@ -1,0 +1,11 @@
+path,true_label,source,pred::Custom CNN,pred::MobileNet pretrained,pred::MobileNet scratch,conf::Custom CNN,conf::MobileNet pretrained,conf::MobileNet scratch
+external/gd/original/cardboard/cardboard_991.jpg,cardboard,gd,cardboard,cardboard,cardboard,0.999992,0.999998,1.0
+external/gd/original/cardboard/cardboard_46.jpg,cardboard,gd,metal,plastic,metal,0.999999,0.999779,0.999181
+external/gd/original/glass/glass_233.jpg,glass,gd,glass,glass,glass,0.99999,0.999991,1.0
+external/gd/original/glass/glass_78.jpg,glass,gd,metal,metal,cardboard,0.999354,0.99989,0.999983
+external/gd/original/metal/metal_651.jpg,metal,gd,metal,metal,metal,0.998619,0.999163,0.999984
+external/gd/original/metal/metal_521.jpg,metal,gd,paper,plastic,paper,0.999306,0.999757,1.0
+external/gd/original/paper/paper_575.jpg,paper,gd,paper,paper,paper,0.999904,1.0,1.0
+external/gd/original/paper/paper_910.jpg,paper,gd,cardboard,cardboard,cardboard,0.999984,1.0,1.0
+external/gd/original/plastic/plastic_118.jpg,plastic,gd,plastic,plastic,plastic,0.999524,1.0,1.0
+external/gd/original/plastic/plastic_1250.jpg,plastic,gd,cardboard,paper,paper,0.999982,0.998532,1.0

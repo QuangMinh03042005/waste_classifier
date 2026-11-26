@@ -1,0 +1,11 @@
+path,true_label,source,pred::Custom CNN,pred::MobileNet pretrained,pred::MobileNet scratch,conf::Custom CNN,conf::MobileNet pretrained,conf::MobileNet scratch
+raw/trashnet/dataset-resized/cardboard/cardboard94.jpg,cardboard,test,cardboard,cardboard,cardboard,0.99999,1.0,0.999998
+raw/trashnet/dataset-resized/cardboard/cardboard242.jpg,cardboard,test,paper,paper,glass,0.888519,0.999832,0.989994
+raw/realwaste/RealWaste/Glass/Glass_269.jpg,glass,test,glass,glass,glass,0.999981,1.0,1.0
+raw/trashnet/dataset-resized/glass/glass122.jpg,glass,test,metal,plastic,metal,0.912558,0.793604,0.999782
+raw/realwaste/RealWaste/Metal/Metal_766.jpg,metal,test,metal,metal,metal,1.0,1.0,0.999999
+raw/trashnet/dataset-resized/metal/metal4.jpg,metal,test,glass,glass,glass,0.835499,0.966507,0.999872
+raw/realwaste/RealWaste/Paper/Paper_359.jpg,paper,test,paper,paper,paper,1.0,1.0,1.0
+raw/trashnet/dataset-resized/paper/paper568.jpg,paper,test,cardboard,cardboard,cardboard,0.999661,0.759606,1.0
+raw/realwaste/RealWaste/Plastic/Plastic_887.jpg,plastic,test,plastic,plastic,plastic,0.999996,0.999992,1.0
+raw/trashnet/dataset-resized/plastic/plastic68.jpg,plastic,test,glass,glass,glass,0.926861,0.982952,0.999944

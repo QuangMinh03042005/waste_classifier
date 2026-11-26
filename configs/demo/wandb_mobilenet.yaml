@@ -1,0 +1,38 @@
+experiment: rq1_wandb_demo_mobilenet
+rq: rq1
+seed: 42
+
+data:
+  root: null
+  splits_version: v1
+  image_size: 224
+  batch_size: 64
+  num_workers: 2
+  augmentation: false
+  class_weighting: false
+
+model:
+  name: mobilenet_v3_small
+  num_classes: 5
+  pretrained: true
+  dropout: 0.2
+  freeze_epochs: 0
+  unfreeze_blocks: 2
+
+training:
+  epochs: 3
+  optimizer: adamw
+  lr: 0.001
+  weight_decay: 0.0001
+  scheduler: cosine
+  early_stopping_patience: 20
+  monitor: val_macro_f1
+  amp: true
+  evaluate_test: false
+
+wandb:
+  enabled: true
+  project: waste-classifier
+  entity: null
+  mode: online
+  tags: [rq1, demo]

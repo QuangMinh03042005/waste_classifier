@@ -1,0 +1,47 @@
+schema_version: "1.0"
+plan_id: rq1_wandb_demo
+rq: rq1
+title: "Demo W&B cho ba arm RQ1"
+author: "Đinh Quang Minh"
+created_at: "2026-11-26"
+status: active
+
+question: >-
+  Ba arm RQ1 có train và log được lên W&B với cùng pipeline hiện tại không?
+hypothesis: >-
+  Có; chỉ cần bật wandb trong config, không thay đổi kết quả hay artifact local.
+expected_result: >-
+  Mỗi run tạo một W&B run online với loss, Macro-F1 và learning rate theo epoch.
+failure_plan: >-
+  Nếu W&B lỗi, kiểm tra API key/project và chạy lại; không ảnh hưởng kết quả RQ1.
+baseline:
+  experiment: rq1_wandb_demo_custom
+  description: "Custom CNN, 3 epoch, chỉ demo W&B."
+variants:
+  - experiment: rq1_wandb_demo_mobilenet
+    change: "Dùng MobileNetV3_small pretrained thay Custom CNN."
+    fixed:
+      - "split v1, 224x224, không augmentation/class weighting"
+      - "3 epoch, AdamW, batch 64, AMP"
+  - experiment: rq1_wandb_demo_scratch
+    change: "Dùng MobileNetV3_small scratch."
+    fixed:
+      - "split v1, 224x224, không augmentation/class weighting"
+      - "3 epoch, AdamW, batch 64, AMP, backbone_lr_scale=1.0, warmup 3"
+comparison:
+  metric: val_macro_f1
+  test_policy: "Không đánh giá test; chỉ demo logging."
+  success_criterion: "Cả ba run xuất hiện trên W&B với metric theo epoch."
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "không sử dụng"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+seeds: [42]
+budget:
+  max_epochs: 3
+  batch_size: 64
+  estimated_minutes_per_run: 3
+notes: >-
+  Plan demo, không dùng cho báo cáo hay kết luận RQ1. Kết quả ghi vào thư mục
+  experiments riêng trên Colab. Xóa nhánh demo sau khi trình bày.

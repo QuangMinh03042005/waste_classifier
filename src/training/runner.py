@@ -34,6 +34,7 @@ from src.training.metrics import (
     write_predictions,
 )
 from src.training.run import start_run
+from src.training.wandb_logger import WandbLogger
 from src.utils import env as env_utils
 from src.utils.config import load_config
 from src.utils.paths import data_root as default_data_root
@@ -432,6 +433,11 @@ def _run(
         best_epoch = meta.epoch
 
     git_commit = env_utils.git_info()["commit"]
+    wandb_logger = WandbLogger(
+        config.get("wandb") or {},
+        run_id=logger.root.name,
+        run_config=config,
+    )
     logger.log_event(
         "training_started",
         epochs=epochs,
@@ -502,6 +508,12 @@ def _run(
             duration_sec=train_duration,
         )
         logger.log_epoch(epoch, "val", val_record, duration_sec=val_duration)
+        wandb_logger.log_epoch(
+            epoch,
+            train_metrics,
+            val_record,
+            learning_rate=float(optimizer.param_groups[0]["lr"]),
+        )
         history.append({"epoch": epoch, "train": train_metrics, "val": val_record})
 
         last_path = logger.checkpoints / "last.pt"
@@ -591,6 +603,8 @@ def _run(
         }
     )
     logger.log_event("training_finished", best_epoch=best_epoch, best_val_macro_f1=best_metric)
+    wandb_logger.log_summary(best_val, test_metrics, efficiency)
+    wandb_logger.finish()
     return TrainingResult(
         run_dir=logger.root,
         best_val=best_val,

@@ -184,7 +184,7 @@ docs/                # tài liệu, ma trận thực nghiệm, docs/notebooks/rq
 - Seed 42, 123, 2024; báo mean ± std.
 - Class weighting: `w_c = N / (K * n_c)`, clip [0.5, 3.0]; chỉ dùng một trong {weighted loss, WeightedRandomSampler}.
 - Fine-tune MobileNetV3_small: freeze backbone 3 epoch, mở 2 block cuối với lr/10.
-- Training budget: tối đa 30 epoch, cùng ngân sách cho mọi mô hình.
+- Training budget: tối đa 50 epoch, cùng ngân sách cho mọi mô hình.
 - Demo: temperature scaling fit trên validation; confidence threshold chọn trên validation và đóng băng trước khi đánh giá test.
 - Determinism: seed cố định, `cudnn.benchmark=False`; ghi chú giới hạn phi tất định trên GPU.
 

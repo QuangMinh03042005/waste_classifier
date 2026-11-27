@@ -19,9 +19,9 @@ from src.training.efficiency import EfficiencyResult, measure_run  # noqa: E402
 from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
 
 PREFIXES = (
-    "rq1_customcnn_s",
-    "rq1_mobilenetv3s_full_s",
-    "rq1_mobilenetv3s_scratch_s",
+    "rq1_customcnn_p20_s",
+    "rq1_mobilenetv3s_full_p20_s",
+    "rq1_mobilenetv3s_scratch_p20_s",
 )
 
 

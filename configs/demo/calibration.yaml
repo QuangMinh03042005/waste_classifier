@@ -1,0 +1,9 @@
+rq1_customcnn_p20_s42:
+  temperature: 1.4341
+  threshold: 0.79
+rq1_mobilenetv3s_full_p20_s42:
+  temperature: 3.0428
+  threshold: 0.74
+rq1_mobilenetv3s_scratch_p20_s42:
+  temperature: 4.589
+  threshold: 0.9

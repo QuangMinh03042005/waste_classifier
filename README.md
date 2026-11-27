@@ -342,6 +342,7 @@ Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. 
 - RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
 - RQ3: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md),
   [thảo luận](docs/RQ3/rq3_discussion.md)
+- Demo: [docs/demo.md](docs/demo.md)
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 [docs/gpu_local.md](docs/gpu_local.md) (GPU local Windows). Kế hoạch thí nghiệm:
@@ -357,12 +358,14 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 - [x] Xác nhận dataset, mapping 5 lớp.
 - [x] Data pipeline, split v1, kiểm tra leakage.
 - [x] EDA và báo cáo nhận xét dữ liệu.
-- [x] Custom CNN và MobileNetV3_small pretrained; scratch đang sửa recipe.
+- [x] Custom CNN và MobileNetV3_small pretrained; scratch đã sửa recipe và chạy final.
 - [x] Training engine, logging, checkpoint, resume.
 - [x] Chọn và debug cấu hình Custom CNN trên validation.
 - [x] Xác nhận và chốt MobileNetV3_small (M1 full fine-tune).
 - [x] External test GD đã chuẩn bị (4.806 ảnh sau dedup).
 - [x] RQ1 final cho Custom CNN và MobileNet pretrained (5 seed).
+- [x] Chẩn đoán early stopping và chạy scratch patience 20 (5 seed).
+- [x] Đồng nhất patience 20, chạy lại Custom và pretrained (5 seed).
 - [x] Phân tích RQ1, efficiency, Grad-CAM, external GD.
 - [x] RQ3 cross-dataset (P1, P2) và pooled (P3), 3 seed — 9 run.
 - [x] RQ3 mix-ratio 0/25/50/75% × 3 seed — 12 run (tổng 21 run).
@@ -372,16 +375,14 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 
 Đang thực hiện:
 
-- [ ] Sửa và chạy lại scratch arm.
-- [ ] Hoàn thiện bảng RQ1 final 3 arm.
-- [ ] Cập nhật kết luận RQ1 sau scratch.
+- [ ] Hoàn thiện slide RQ1.
 
 Chưa bắt đầu:
 
 - [ ] RQ2: full, no-augmentation, no-class-weighting.
 - [ ] Viết mục RQ3 trong báo cáo cuối kỳ.
 - [ ] Phân tích tổng hợp, hình, kết luận.
-- [ ] Demo Streamlit.
+- [x] Demo Streamlit.
 - [ ] Báo cáo và slide.
 
 ## 13. Ghi chú về hỗ trợ AI

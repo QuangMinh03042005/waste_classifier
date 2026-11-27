@@ -24,6 +24,8 @@ training:
   optimizer: adamw
   lr: 0.001
   weight_decay: 0.0001
+  backbone_lr_scale: 1.0
+  warmup_epochs: 3
   scheduler: cosine
   early_stopping_patience: 7
   monitor: val_macro_f1

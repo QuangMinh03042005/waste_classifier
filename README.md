@@ -335,6 +335,7 @@ Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. 
 - Cấu trúc báo cáo cuối kỳ: [docs/report/outline.md](docs/report/outline.md)
 - Training: [docs/training.md](docs/training.md), [docs/models.md](docs/models.md)
 - RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
+- Demo: [docs/demo.md](docs/demo.md)
 
 Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Logging:
@@ -368,7 +369,7 @@ Chưa bắt đầu:
 - [ ] RQ2: full, no-augmentation, no-class-weighting.
 - [ ] RQ3: cross-dataset và pooled.
 - [ ] Phân tích tổng hợp, hình, kết luận.
-- [ ] Demo Streamlit.
+- [x] Demo Streamlit.
 - [ ] Báo cáo và slide.
 
 ## 13. Ghi chú về hỗ trợ AI

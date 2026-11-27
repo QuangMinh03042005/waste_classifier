@@ -138,6 +138,17 @@ uv run python scripts/track_rq3.py
 
 `track_rq3.py` phải in `Runs: 21 (completed 21)` (nếu bạn chạy đủ 3 seed).
 
+### 5.1. Đóng gói để upload Google Drive
+
+```powershell
+uv run python scripts/make_rq3_bundle.py
+```
+
+Kết quả: thư mục `dist\rq3_upload_<ngày_giờ>\` và file `.zip` cùng tên (~2 MB) + `.sha256`.
+Kéo cả thư mục (hoặc file zip) lên Drive. Nội dung: `INDEX.md`, `docs/RQ3/`, PDF notebook,
+`configs/`, `plans/`, `data/splits/rq3/`, code liên quan, `runs/rq3/<run>/` (metadata +
+predictions, **không** checkpoint). Cần checkpoint thì thêm `--checkpoints best`.
+
 ## 6. Notebook + PDF (cần khi nộp)
 
 ```powershell

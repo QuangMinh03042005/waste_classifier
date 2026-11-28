@@ -1,6 +1,6 @@
 # Ma trận thí nghiệm
 
-- Tạo lúc: `2026-11-28T07:36:28.587600+00:00`
+- Tạo lúc: `2026-11-28T12:41:55.385927+00:00`
 - Plan core: 5
 - Experiment core: 17
 - Plan pilot/selection: 8
@@ -42,9 +42,9 @@
 
 | Experiment | Loại | Thay đổi | Giữ cố định | Metric | Tiêu chí kết luận | Seeds | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| rq3_e50_train_realwaste_test_trashnet | baseline | - | - | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024 | active |
-| rq3_e50_train_trashnet_test_realwaste | variant | Đảo chiều nguồn: huấn luyện trên TrashNet, kiểm thử toàn bộ RealWaste. | 5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet; không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 50 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024 | active |
-| rq3_e50_train_pooled_test_each | variant | Huấn luyện trên dữ liệu kết hợp 2 nguồn, kiểm thử riêng từng nguồn. | split v1 cho phần train/val; test held-out của mỗi nguồn giữ nguyên; 5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet; không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 50 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024 | active |
+| rq3_e50_train_realwaste_test_trashnet | baseline | - | - | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024, 7, 3407 | active |
+| rq3_e50_train_trashnet_test_realwaste | variant | Đảo chiều nguồn: huấn luyện trên TrashNet, kiểm thử toàn bộ RealWaste. | 5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet; không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 50 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024, 7, 3407 | active |
+| rq3_e50_train_pooled_test_each | variant | Huấn luyện trên dữ liệu kết hợp 2 nguồn, kiểm thử riêng từng nguồn. | split v1 cho phần train/val; test held-out của mỗi nguồn giữ nguyên; 5 lớp chung, input 224x224, MobileNetV3_small pretrained ImageNet; không augmentation, không class weighting; AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 50 epoch, patience 7; seed 42, 123, 2024 | macro_f1 | Pooled cao hơn single-source >= 0.02 Macro-F1 (trung bình 3 seed) trên cả hai test set RealWaste và TrashNet. | 42, 123, 2024, 7, 3407 | active |
 
 ### `rq3_cross_dataset_generalization` - Tổng quát hóa chéo nguồn dữ liệu
 

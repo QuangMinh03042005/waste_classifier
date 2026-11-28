@@ -57,7 +57,7 @@ data:
   splits_version: v1
   class_names: [cardboard, glass, metal, paper, plastic]
 
-seeds: [42, 123, 2024]
+seeds: [42, 123, 2024, 7, 3407]
 
 budget:
   max_epochs: 50
@@ -70,3 +70,7 @@ notes: >-
   Bản 50 epoch để đồng bộ ngân sách với AGENTS hiện hành và RQ1. Kết quả của bản 30
   epoch (plan rq3_cross_dataset_generalization) được giữ lại để so sánh ngân sách,
   không dùng làm kết quả chính. Mọi thứ khác giữ nguyên so với bản 30 epoch.
+
+  Cập nhật 2026-11-28: bổ sung seed 7 và 3407 cho 3 protocol chính (tổng 5 seed, đồng
+  bộ với RQ1) để thu hẹp CI 95%. Không thay đổi giả thuyết, tiêu chí hay bất kỳ siêu
+  tham số nào; 3 seed đầu đã chạy trước khi bổ sung và được giữ nguyên.

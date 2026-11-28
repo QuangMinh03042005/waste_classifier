@@ -367,8 +367,9 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
 - [x] Chẩn đoán early stopping và chạy scratch patience 20 (5 seed).
 - [x] Đồng nhất patience 20, chạy lại Custom và pretrained (5 seed).
 - [x] Phân tích RQ1, efficiency, Grad-CAM, external GD.
-- [x] RQ3 cross-dataset (P1, P2) và pooled (P3), 3 seed — 9 run.
-- [x] RQ3 mix-ratio 0/25/50/75% × 3 seed — 12 run (tổng 21 run).
+- [x] RQ3 cross-dataset (P1, P2) và pooled (P3), 3 seed, bản chính 50 epoch — 9 run.
+- [x] RQ3 mix-ratio 0/25/50/75% × 3 seed, bản chính 50 epoch — 12 run (tổng 21 run).
+- [x] RQ3 phụ lục so sánh ngân sách 30 epoch (21 run) + Grad-CAM lỗi cross-dataset.
 - [x] Phân tích RQ3: domain shift, chấm công bằng trên held-out, dose-response.
 - [x] Tracking Excel RQ3 và notebook RQ3 kèm PDF.
 - [x] GPU local (Windows, torch cu132) + tài liệu setup.

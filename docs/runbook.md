@@ -80,9 +80,9 @@ Kỳ vọng: `uv 0.13.9 ...`. Nếu báo *"uv is not recognized"*: đóng hẳn 
 | 3 | Tải/kiểm tra dữ liệu | `src.data.download`, script kiểm tra | 0–20 phút | 5.482 ảnh khớp split |
 | 4 | RQ1: 3 arm × 5 seed | `scripts/run_batch.py` | ~2–3 giờ (ước tính) | 15 run |
 | 5 | RQ1 phụ: efficiency, Grad-CAM, tổng hợp | `scripts/*.py` | ~10 phút | bảng + hình |
-| 6 | RQ3: 3 protocol × 3 seed | `scripts/run_batch.py` | **~31 phút** | 9 run |
-| 7 | RQ3: mix-ratio × 3 seed | `scripts/run_batch.py` | **~40 phút** | 12 run |
-| 8 | RQ3: phân tích + tracking | `scripts/analyze_rq3.py`, `scripts/track_rq3.py` | 1 phút | `rq3_results.md`, `rq3_tracking.xlsx` |
+| 6 | RQ3: 3 protocol × 3 seed (bản 50 epoch) | `scripts/run_batch.py` | **~30 phút** | 9 run |
+| 7 | RQ3: mix-ratio × 3 seed (bản 50 epoch) | `scripts/run_batch.py` | **~45 phút** | 12 run |
+| 8 | RQ3: phân tích + tracking | `scripts/analyze_rq3.py --arm-suffix _e50`, `scripts/track_rq3.py` | 1 phút | `rq3_results.md`, `rq3_tracking.xlsx` |
 | 9 | Notebook + PDF | `jupyter nbconvert` | 2 phút | `.pdf` trong `docs/notebooks/rq3/` |
 
 RQ2 **chưa có** `configs/rq2/` và `research/rq2/` nên hiện chưa chạy được (mới có plan).
@@ -191,26 +191,30 @@ uv run python scripts/prepare_external_gd.py
 uv run python scripts/evaluate_external.py
 ```
 
-## 4. RQ3 – tổng quát hóa (21 run)
+## 4. RQ3 – tổng quát hóa (21 run, bản chính 50 epoch)
 
-### 4.1. Cross-dataset + pooled (9 run, ~31 phút)
+> Bản chính dùng `configs/rq3/e50/` + `plans/rq3/*_e50.yaml`, ghi vào root riêng
+> `C:\waste_classifier_experiments_e50` (~76 phút). Bản 30 epoch cũ vẫn giữ để so sánh
+> ngân sách (xem `docs/RQ3/rq3_results_e30.md`).
+
+### 4.1. Cross-dataset + pooled (9 run, ~30 phút)
 
 ```powershell
 uv run python scripts/run_batch.py `
-  --configs configs/rq3/rq3_train_realwaste_test_trashnet.yaml `
-            configs/rq3/rq3_train_trashnet_test_realwaste.yaml `
-            configs/rq3/rq3_train_pooled_test_each.yaml `
-  --plan plans/rq3/cross_dataset_generalization.yaml `
+  --configs configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml `
+            configs/rq3/e50/rq3_e50_train_trashnet_test_realwaste.yaml `
+            configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml `
+  --plan plans/rq3/cross_dataset_e50.yaml `
   --seeds 42 123 2024
 ```
 
-### 4.2. Mix-ratio (12 run, ~40 phút)
+### 4.2. Mix-ratio (12 run, ~45 phút)
 
 ```powershell
 uv run python scripts/run_batch.py `
-  --configs configs/rq3/rq3_mix_tn00.yaml configs/rq3/rq3_mix_tn25.yaml `
-            configs/rq3/rq3_mix_tn50.yaml configs/rq3/rq3_mix_tn75.yaml `
-  --plan plans/rq3/source_mix.yaml `
+  --configs configs/rq3/e50/rq3_e50_mix_tn00.yaml configs/rq3/e50/rq3_e50_mix_tn25.yaml `
+            configs/rq3/e50/rq3_e50_mix_tn50.yaml configs/rq3/e50/rq3_e50_mix_tn75.yaml `
+  --plan plans/rq3/source_mix_e50.yaml `
   --seeds 42 123 2024
 ```
 
@@ -221,8 +225,8 @@ uv run python scripts/run_batch.py `
 
 ```powershell
 uv run python -m research.rq3.train `
-  --config configs/rq3/rq3_train_realwaste_test_trashnet.yaml `
-  --plan plans/rq3/cross_dataset_generalization.yaml `
+  --config configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml `
+  --plan plans/rq3/cross_dataset_e50.yaml `
   --seed 42
 ```
 
@@ -230,8 +234,8 @@ Smoke test (1 epoch, 2 batch; **không** dùng cho kết quả báo cáo):
 
 ```powershell
 uv run python -m research.rq3.train `
-  --config configs/rq3/rq3_mix_tn25.yaml `
-  --plan plans/rq3/source_mix.yaml `
+  --config configs/rq3/e50/rq3_e50_mix_tn25.yaml `
+  --plan plans/rq3/source_mix_e50.yaml `
   --seed 42 --run-id smoke_demo --epochs 1 --limit-batches 2
 ```
 
@@ -250,7 +254,7 @@ uv run python scripts/run_batch.py --configs configs/rq3/rq3_mix_tn25.yaml `
 ## 5. Phân tích RQ3 + tracking Excel + notebook
 
 ```powershell
-uv run python scripts/analyze_rq3.py
+uv run python scripts/analyze_rq3.py --arm-suffix _e50
 uv run python scripts/track_rq3.py
 ```
 
@@ -327,7 +331,7 @@ uv run python -m research.rq3.train `
   --config configs/rq3/rq3_train_realwaste_test_trashnet.yaml `
   --plan plans/rq3/cross_dataset_generalization.yaml `
   --seed 42 --run-id demo_thay --epochs 2 --limit-batches 5
-uv run python scripts/analyze_rq3.py
+uv run python scripts/analyze_rq3.py --arm-suffix _e50
 uv run python scripts/track_rq3.py
 ```
 

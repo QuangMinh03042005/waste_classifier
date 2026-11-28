@@ -24,13 +24,15 @@ Plan đã đăng ký trước khi chạy: [plans/rq3/cross_dataset_generalizatio
 
 Giữ nguyên 100% train RealWaste, tăng dần tỉ lệ group TrashNet train:
 
-| Experiment | TrashNet train | Train / Val / Test | Plan |
+| Experiment (bản 50 epoch) | TrashNet train | Train / Val / Test | Plan |
 |---|---|---:|---|
-| `rq3_mix_tn00` | 0% | 2.163 / 826 / 823 | `plans/rq3/source_mix.yaml` |
-| `rq3_mix_tn25` | 25% (~418 ảnh) | 2.577 / 826 / 823 | `plans/rq3/source_mix.yaml` |
-| `rq3_mix_tn50` | 50% (~835 ảnh) | 2.995 / 826 / 823 | `plans/rq3/source_mix.yaml` |
-| `rq3_mix_tn75` | 75% (~1.252 ảnh) | 3.416 / 826 / 823 | `plans/rq3/source_mix.yaml` |
-| `rq3_train_pooled_test_each` | 100% | 3.833 / 826 / 823 | plan cross-dataset |
+| `rq3_e50_mix_tn00` | 0% | 2.163 / 826 / 823 | `plans/rq3/source_mix_e50.yaml` |
+| `rq3_e50_mix_tn25` | 25% (~418 ảnh) | 2.577 / 826 / 823 | `plans/rq3/source_mix_e50.yaml` |
+| `rq3_e50_mix_tn50` | 50% (~835 ảnh) | 2.995 / 826 / 823 | `plans/rq3/source_mix_e50.yaml` |
+| `rq3_e50_mix_tn75` | 75% (~1.252 ảnh) | 3.416 / 826 / 823 | `plans/rq3/source_mix_e50.yaml` |
+| `rq3_e50_train_pooled_test_each` | 100% | 3.833 / 826 / 823 | `plans/rq3/cross_dataset_e50.yaml` |
+
+> Bản 30 epoch dùng cùng split nhưng tên experiment không có `_e50` (xem phụ lục).
 
 - Val/test giữ nguyên ở mọi mức để so sánh được; chỉ train thay đổi (một biến).
 - Split sinh bằng `uv run python scripts/make_rq3_mix_splits.py`, lưu
@@ -46,36 +48,50 @@ Giữ nguyên 100% train RealWaste, tăng dần tỉ lệ group TrashNet train:
 | Input | 224×224, normalize mean/std ImageNet |
 | Augmentation / Class weighting | không / không |
 | Optimizer | AdamW, lr 1e-3, weight decay 1e-4, cosine |
-| Batch / Epoch | 64 / tối đa 30, early stopping patience 7 |
+| Batch / Epoch | 64 / tối đa **50** (bản chính `*_e50`), early stopping patience 7 |
 | Chọn epoch | theo `val_macro_f1` |
 | Seed | 42, 123, 2024 |
 
 Mỗi biến thể chỉ đổi protocol dữ liệu; các yếu tố còn lại giữ nguyên.
 
+> **Hai bản kết quả.** Bản chính dùng 50 epoch để đồng bộ ngân sách toàn dự án:
+> `plans/rq3/cross_dataset_e50.yaml`, `plans/rq3/source_mix_e50.yaml`,
+> config trong `configs/rq3/e50/` (tên experiment `rq3_e50_*`), kết quả ở root riêng.
+> Bản 30 epoch trước đó (`plans/rq3/cross_dataset_generalization.yaml`,
+> `plans/rq3/source_mix.yaml`) giữ lại làm phụ lục so sánh ngân sách
+> (`rq3_results_e30.md`); 0/21 run bản 50 epoch chạm mốc 50 nên kết luận không đổi.
+
 ## 3. Chạy
 
-```bash
+Bản chính (50 epoch, root riêng — khuyến nghị):
+
+```powershell
+$env:WASTE_EXPERIMENTS_ROOT = "C:\waste_classifier_experiments_e50"
+
 # một run
 uv run python -m research.rq3.train \
-  --config configs/rq3/rq3_train_realwaste_test_trashnet.yaml \
-  --plan plans/rq3/cross_dataset_generalization.yaml \
+  --config configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml \
+  --plan plans/rq3/cross_dataset_e50.yaml \
   --seed 42
 
 # cả 3 protocol × 3 seed
 uv run python scripts/run_batch.py \
-  --configs configs/rq3/rq3_train_realwaste_test_trashnet.yaml \
-            configs/rq3/rq3_train_trashnet_test_realwaste.yaml \
-            configs/rq3/rq3_train_pooled_test_each.yaml \
-  --plan plans/rq3/cross_dataset_generalization.yaml \
+  --configs configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml \
+            configs/rq3/e50/rq3_e50_train_trashnet_test_realwaste.yaml \
+            configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml \
+  --plan plans/rq3/cross_dataset_e50.yaml \
   --seeds 42 123 2024
 
 # mix-ratio × 3 seed
 uv run python scripts/run_batch.py \
-  --configs configs/rq3/rq3_mix_tn00.yaml configs/rq3/rq3_mix_tn25.yaml \
-            configs/rq3/rq3_mix_tn50.yaml configs/rq3/rq3_mix_tn75.yaml \
-  --plan plans/rq3/source_mix.yaml \
+  --configs configs/rq3/e50/rq3_e50_mix_tn00.yaml configs/rq3/e50/rq3_e50_mix_tn25.yaml \
+            configs/rq3/e50/rq3_e50_mix_tn50.yaml configs/rq3/e50/rq3_e50_mix_tn75.yaml \
+  --plan plans/rq3/source_mix_e50.yaml \
   --seeds 42 123 2024
 ```
+
+Bản 30 epoch (phụ lục) dùng `configs/rq3/*.yaml` và `plans/rq3/*.yaml` (không có `e50`),
+kết quả cũ vẫn tái lập được.
 
 Smoke test (1 epoch, 1 batch; không dùng cho kết quả báo cáo) phải dùng `--run-id`
 riêng, ví dụ `--run-id rq3_smoke`, và xoá run đó sau khi kiểm tra.
@@ -91,10 +107,10 @@ bằng `predictions/test.csv`, **không** đánh giá lại test lần hai:
 
 ```bash
 uv run python -m research.evaluate \
-  --config configs/rq3/rq3_train_pooled_test_each.yaml \
-  --checkpoint experiments/rq3/rq3_train_pooled_test_each_s42/checkpoints/best.pt \
+  --config configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml \
+  --checkpoint "$env:WASTE_EXPERIMENTS_ROOT\rq3\rq3_e50_train_pooled_test_each_s42\checkpoints\best.pt" \
   --split-csv data/splits/rq3/pooled.csv --split test --datasets trashnet \
-  --output-dir experiments/rq3/rq3_train_pooled_test_each_s42/evaluations/trashnet
+  --output-dir "$env:WASTE_EXPERIMENTS_ROOT\rq3\rq3_e50_train_pooled_test_each_s42\evaluations\trashnet"
 ```
 
 Lệnh trên chỉ dùng khi cần confusion matrix/prediction riêng cho một nguồn; nếu không
@@ -102,27 +118,32 @@ thì tách `predictions/test.csv` theo cột `dataset`.
 
 ## 5. Phân tích
 
-```bash
-uv run python scripts/analyze_rq3.py
+Bản chính (50 epoch):
+
+```powershell
+$env:WASTE_EXPERIMENTS_ROOT = "C:\waste_classifier_experiments_e50"
+uv run python scripts/analyze_rq3.py --arm-suffix _e50
+uv run python scripts/track_rq3.py
+```
+
+Phụ lục so sánh ngân sách 30 epoch (chạy trên root cũ):
+
+```powershell
+$env:WASTE_EXPERIMENTS_ROOT = "C:\waste_classifier_experiments"
+uv run python scripts/analyze_rq3.py --output-md docs/RQ3/rq3_results_e30.md --output-csv docs/RQ3/rq3_metrics_e30.csv --figures-dir docs/RQ3/rq3_analysis_e30 --title "Phụ lục: RQ3 với ngân sách 30 epoch"
 ```
 
 Script chỉ đọc artifact (không đánh giá lại test) và sinh:
 
-- `docs/RQ3/rq3_results.md`: bảng mean ± std theo protocol/nguồn test, so sánh pooled
-  với single-source (kèm chấm công bằng trên cùng held-out test), đường cong mix-ratio,
-  per-class F1, tỉ lệ sụp đổ dự đoán.
+- `docs/RQ3/rq3_results.md`: bảng mean ± std + CI95, môi trường/thời gian, so sánh pooled
+  với single-source (kèm chấm công bằng trên cùng held-out test và delta ghép cặp),
+  đường cong mix-ratio, per-class F1, cặp nhầm phổ biến, tỉ lệ sụp đổ dự đoán.
 - `docs/RQ3/rq3_metrics.csv`: số liệu chi tiết từng run.
-- `docs/RQ3/rq3_analysis/`: hình Macro-F1 theo nguồn, mix-ratio và confusion matrix.
+- `docs/RQ3/rq3_analysis/`: Macro-F1 theo nguồn, mix-ratio, learning curves, confusion matrix.
+- `docs/RQ3/rq3_analysis/gradcam_cross/`: Grad-CAM 4 ảnh sai của P1 và 4 ảnh của P2.
 
-Bảng theo dõi thí nghiệm (Excel) cho báo cáo:
-
-```bash
-uv run python scripts/track_rq3.py
-```
-
-Sinh `docs/RQ3/rq3_tracking.xlsx` từ artifact: sheet **Runs** (mỗi run một dòng),
-**Tổng hợp** (mean ± std theo experiment), **Kế hoạch** (baseline/variant của các
-plan RQ3), **Môi trường** (torch/CUDA/GPU/commit của từng run).
+Bảng theo dõi thí nghiệm (Excel) cho báo cáo: `scripts/track_rq3.py` sinh
+`docs/RQ3/rq3_tracking.xlsx` (sheet Runs / Tổng hợp / Kế hoạch / Môi trường).
 
 Notebook trình bày kết quả: `notebooks/rq3/analyze_rq3.ipynb` (bản PDF trong
 `docs/notebooks/rq3/`). Notebook chỉ đọc artifact và gọi `scripts/analyze_rq3.py`,
@@ -147,9 +168,9 @@ Nếu không đạt, báo cáo trung thực và phân tích domain shift, phân 
 ## 7. Trạng thái
 
 - [x] Split RQ3, plan active, config + entrypoint + test.
-- [x] Chạy P1/P2/P3 × 3 seed (9 run).
-- [x] Chạy mix-ratio 0/25/50/75% × 3 seed (12 run) — **tổng 21 run**.
-- [x] Phân tích cross-dataset, domain shift, mix-ratio, confusion matrix theo nguồn.
+- [x] Bản chính 50 epoch: P1/P2/P3 × 3 seed (9 run) + mix-ratio × 3 seed (12 run) = **21 run**.
+- [x] Bản phụ lục 30 epoch (21 run) giữ lại để so sánh ngân sách.
+- [x] Phân tích cross-dataset, domain shift, mix-ratio, learning curves, cặp nhầm, Grad-CAM.
 - [x] Tracking Excel + notebook kèm PDF.
 - [x] Thảo luận, giới hạn, kết luận và hướng dẫn tái lập ([rq3_discussion.md](rq3_discussion.md)).
 - [ ] Viết mục RQ3 trong báo cáo cuối kỳ.

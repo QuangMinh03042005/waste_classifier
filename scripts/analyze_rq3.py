@@ -329,6 +329,11 @@ def aggregate(rows: pd.DataFrame) -> pd.DataFrame:
     return frame.drop(columns="_order")
 
 
+def _pooled_experiment() -> str:
+    """Tên experiment pooled theo bộ tên hiện hành."""
+    return next(name for name, share in MIX_EXPERIMENTS.items() if share == 100)
+
+
 def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
     """So sánh pooled (100%) với single-source trên từng nguồn test."""
     if agg.empty:
@@ -336,9 +341,7 @@ def compare_pooled(agg: pd.DataFrame) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for source in SOURCES:
         single = agg[(agg["test_source"] == source) & (agg["experiment"] == SINGLE_SOURCE[source])]
-        pooled = agg[
-            (agg["test_source"] == source) & (agg["experiment"] == "rq3_train_pooled_test_each")
-        ]
+        pooled = agg[(agg["test_source"] == source) & (agg["experiment"] == _pooled_experiment())]
         if single.empty or pooled.empty:
             continue
         single_row = single.iloc[0]
@@ -369,7 +372,7 @@ def paired_delta(rows: pd.DataFrame) -> pd.DataFrame:
     records: list[dict[str, Any]] = []
     for source in SOURCES:
         pooled = rows[
-            (rows["experiment"] == "rq3_train_pooled_test_each") & (rows["test_source"] == source)
+            (rows["experiment"] == _pooled_experiment()) & (rows["test_source"] == source)
         ]
         single = rows[
             (rows["experiment"] == SINGLE_SOURCE[source]) & (rows["test_source"] == source)
@@ -787,9 +790,11 @@ def build_markdown(
     env: pd.DataFrame,
     pairs: pd.DataFrame,
     figures: list[str],
+    *,
+    title: str = "Kết quả RQ3",
 ) -> str:
     lines = [
-        "# Kết quả RQ3",
+        f"# {title}",
         "",
         "Sinh tự động bởi `scripts/analyze_rq3.py` từ artifact của các run `completed`; "
         "test chỉ được đánh giá một lần mỗi run.",
@@ -832,8 +837,10 @@ def build_markdown(
                 "GPU": env["gpu"],
                 "Torch": env["torch"],
                 "CUDA": env["cuda"],
-                "Phút/run": env["minutes_per_run"],
-                "Params": env["params"],
+                "Phút/run": env["minutes_per_run"].map(lambda value: f"{value:.1f}"),
+                "Params": env["params"].map(
+                    lambda value: f"{int(value):,}" if pd.notna(value) else None
+                ),
             }
         )
         lines.extend(
@@ -1073,6 +1080,7 @@ def main(argv: list[str] | None = None) -> int:
         default="",
         help="Hậu tố tên experiment, ví dụ _e50 cho bản 50 epoch.",
     )
+    parser.add_argument("--title", type=str, default="Kết quả RQ3")
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
@@ -1117,7 +1125,19 @@ def main(argv: list[str] | None = None) -> int:
 
     args.output_md.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.write_text(
-        build_markdown(agg, comparison, paired, dose, per_class, shift, env, pairs, figures) + "\n",
+        build_markdown(
+            agg,
+            comparison,
+            paired,
+            dose,
+            per_class,
+            shift,
+            env,
+            pairs,
+            figures,
+            title=args.title,
+        )
+        + "\n",
         encoding="utf-8",
     )
     if not agg.empty:

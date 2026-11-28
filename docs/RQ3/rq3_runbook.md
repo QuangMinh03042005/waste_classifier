@@ -12,21 +12,26 @@ Cách mở terminal: VS Code → **File → Open Folder** → chọn thư mục 
 (`Ctrl` + `` ` ``). Prompt phải có dạng `PS C:\Users\duyle\OneDrive\Desktop\waste_classifier>`.
 Không dùng `cmd` (cú pháp `$env:...` sẽ lỗi).
 
+> **Bản chính dùng 50 epoch.** Kết quả báo cáo lấy từ `configs/rq3/e50/` +
+> `plans/rq3/*_e50.yaml`, ghi vào root riêng `C:\waste_classifier_experiments_e50`.
+> Bản 30 epoch trước đó vẫn giữ nguyên ở `C:\waste_classifier_experiments` để làm phụ lục
+> so sánh ngân sách (`docs/RQ3/rq3_results_e30.md`).
+
 ## 0. Bảng việc cần làm
 
 | # | Việc | Lệnh | Thời gian | Ra ở đâu |
 |---|---|---|---:|---|
 | 1 | Kiểm tra môi trường | `uv sync` + check GPU | 1 phút | – |
 | 2 | Kiểm tra dữ liệu + split RQ3 | lệnh ở mục 1.2 | 10 giây | – |
-| 3 | Test code liên quan RQ3 | `uv run pytest tests/test_rq3_configs.py tests/test_rq3_mix_splits.py tests/test_rq3_split_integrity.py tests/test_analyze_rq3.py tests/test_track_rq3.py` | 10 giây | – |
+| 3 | Test code liên quan RQ3 | `uv run pytest tests/test_rq3_*` (liệt kê ở 1.3) | 10 giây | – |
 | 4 | Chạy thử 2 batch | `--epochs 1 --limit-batches 2` | 20 giây | `…\rq3\smoke_rq3` |
-| 5 | Chạy 1 run thật | `research.rq3.train` | 2–5 phút | `…\rq3\<experiment>_s42` |
-| 6 | Batch cross-dataset + pooled (9 run) | `scripts/run_batch.py` | **~31 phút** | `…\rq3\` |
-| 7 | Batch mix-ratio (12 run) | `scripts/run_batch.py` | **~40 phút** | `…\rq3\` |
-| 8 | Phân tích + Excel | `analyze_rq3.py`, `track_rq3.py` | 1 phút | `docs/RQ3/` |
+| 5 | Chạy 1 run thật | `research.rq3.train` | 3–5 phút | `…_e50\rq3\<experiment>_s42` |
+| 6 | Batch cross-dataset + pooled (9 run) | `scripts/run_batch.py` | **~30 phút** | `…_e50\rq3\` |
+| 7 | Batch mix-ratio (12 run) | `scripts/run_batch.py` | **~45 phút** | `…_e50\rq3\` |
+| 8 | Phân tích + Excel | `analyze_rq3.py --arm-suffix _e50`, `track_rq3.py` | 1 phút | `docs/RQ3/` |
 | 9 | Notebook + PDF (nếu cần) | `jupyter nbconvert` | 2 phút | `docs/notebooks/rq3/` |
 
-Tổng nếu chạy đủ 21 run: **~72 phút GPU** (đã đo: 70,5 phút).
+Tổng 21 run bản 50 epoch: **75,9 phút GPU** (đã đo).
 
 ## 1. Chuẩn bị (một lần)
 
@@ -42,112 +47,118 @@ Nếu ra `+cpu`/`False`: `uv sync --reinstall-package torch --reinstall-package 
 
 ### 1.2. Dữ liệu và split RQ3
 
-Dữ liệu ảnh nằm ở `C:\waste_classifier_data\raw` (do biến `WASTE_DATA_ROOT`), split RQ3
-đã commit sẵn trong `data/splits/rq3/`.
-
-Kiểm tra đường dẫn đang dùng:
+Dữ liệu ảnh ở `C:\waste_classifier_data\raw` (qua `WASTE_DATA_ROOT`), split RQ3 đã commit
+trong `data/splits/rq3/`.
 
 ```powershell
 uv run python -c "from src.utils.paths import data_root, experiments_root; print(data_root()); print(experiments_root())"
-```
-
-Kiểm tra split khớp ảnh thật (kỳ vọng `5019 0`):
-
-```powershell
 uv run python -c "from src.data.split import read_split_csv; from src.utils.paths import data_root; r=data_root(); rows=read_split_csv('data/splits/rq3/rw_to_tn.csv'); print(len(rows), sum(not (r/x.path).is_file() for x in rows))"
 ```
 
-Nếu chưa có ảnh: `uv run python -m src.data.download --dataset all`.
+Kỳ vọng: `5019 0`. Nếu chưa có ảnh: `uv run python -m src.data.download --dataset all`.
+
+Đặt root cho bản chính (chỉ trong terminal hiện tại):
+
+```powershell
+$env:WASTE_DATA_ROOT = "C:\waste_classifier_data"
+$env:WASTE_EXPERIMENTS_ROOT = "C:\waste_classifier_experiments_e50"
+```
 
 ### 1.3. Test code liên quan RQ3
 
 ```powershell
-uv run pytest tests/test_rq3_configs.py tests/test_rq3_mix_splits.py tests/test_rq3_split_integrity.py tests/test_analyze_rq3.py tests/test_track_rq3.py
+uv run pytest tests/test_rq3_configs.py tests/test_rq3_mix_splits.py tests/test_rq3_split_integrity.py tests/test_analyze_rq3.py tests/test_track_rq3.py tests/test_make_rq3_bundle.py
 ```
 
-Kỳ vọng: `53 passed` (kiểm tra config khớp plan, split không leakage, phân tích, Excel).
+Kỳ vọng: tất cả pass.
 
 ## 2. Chạy thử (20 giây, không dùng cho báo cáo)
 
 ```powershell
-uv run python -m research.rq3.train --config configs/rq3/rq3_mix_tn25.yaml --plan plans/rq3/source_mix.yaml --seed 42 --run-id smoke_rq3 --epochs 1 --limit-batches 2
+uv run python -m research.rq3.train --config configs/rq3/e50/rq3_e50_mix_tn25.yaml --plan plans/rq3/source_mix_e50.yaml --seed 42 --run-id smoke_rq3 --epochs 1 --limit-batches 2
 ```
 
-Kỳ vọng in ra `Run: ...\rq3\smoke_rq3`, `Best val Macro-F1: 0.0xxx`.
-Xoá sau khi xem:
+Xoá sau khi xem: `Remove-Item -Recurse -Force "$env:WASTE_EXPERIMENTS_ROOT\rq3\smoke_rq3"`.
+
+## 3. Chạy 1 run thật
 
 ```powershell
-Remove-Item -Recurse -Force "$env:WASTE_EXPERIMENTS_ROOT\rq3\smoke_rq3"
+uv run python -m research.rq3.train --config configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml --plan plans/rq3/cross_dataset_e50.yaml --seed 42
 ```
 
-## 3. Chạy 1 run thật (để xem learning curve và artifact)
-
-```powershell
-uv run python -m research.rq3.train --config configs/rq3/rq3_train_pooled_test_each.yaml --plan plans/rq3/cross_dataset_generalization.yaml --seed 42
-```
-
-- Khoảng 5 phút. Kỳ vọng `Test Macro-F1` ≈ 0,89–0,91.
-- Kết quả: `…\rq3\rq3_train_pooled_test_each_s42\` gồm `run.json`, `config.yaml`, `plan.yaml`,
-  `environment.json`, `history.jsonl`, `metrics.json`, `checkpoints\best.pt`, `predictions\test.csv`.
+- Khoảng 5 phút; kỳ vọng `Test Macro-F1` ≈ 0,88–0,90.
+- Kết quả: `…_e50\rq3\rq3_e50_train_pooled_test_each_s42\` (9 file: run.json, config.yaml,
+  plan.yaml, environment.json, history.jsonl, metrics.json, checkpoints/{best,last}.pt,
+  predictions/test.csv).
 
 ## 4. Chạy đủ 21 run
 
-### 4.1. Cross-dataset + pooled (9 run, ~31 phút)
+### 4.1. Cross-dataset + pooled (9 run, ~30 phút)
 
 ```powershell
-uv run python scripts/run_batch.py --configs configs/rq3/rq3_train_realwaste_test_trashnet.yaml configs/rq3/rq3_train_trashnet_test_realwaste.yaml configs/rq3/rq3_train_pooled_test_each.yaml --plan plans/rq3/cross_dataset_generalization.yaml --seeds 42 123 2024
+uv run python scripts/run_batch.py --configs configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml configs/rq3/e50/rq3_e50_train_trashnet_test_realwaste.yaml configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml --plan plans/rq3/cross_dataset_e50.yaml --seeds 42 123 2024
 ```
 
-### 4.2. Mix-ratio (12 run, ~40 phút)
+### 4.2. Mix-ratio (12 run, ~45 phút)
 
 ```powershell
-uv run python scripts/run_batch.py --configs configs/rq3/rq3_mix_tn00.yaml configs/rq3/rq3_mix_tn25.yaml configs/rq3/rq3_mix_tn50.yaml configs/rq3/rq3_mix_tn75.yaml --plan plans/rq3/source_mix.yaml --seeds 42 123 2024
+uv run python scripts/run_batch.py --configs configs/rq3/e50/rq3_e50_mix_tn00.yaml configs/rq3/e50/rq3_e50_mix_tn25.yaml configs/rq3/e50/rq3_e50_mix_tn50.yaml configs/rq3/e50/rq3_e50_mix_tn75.yaml --plan plans/rq3/source_mix_e50.yaml --seeds 42 123 2024
 ```
 
-> **Hai batch dùng hai plan khác nhau.** Config mix dùng `source_mix.yaml`; config
-> cross/pooled dùng `cross_dataset_generalization.yaml`. Đổi lẫn sẽ bị
-> `PlanMismatchError`.
+> Hai batch dùng **hai plan khác nhau**. Config `*_mix_*` dùng `source_mix_e50.yaml`;
+> config cross/pooled dùng `cross_dataset_e50.yaml`. Đổi lẫn sẽ bị `PlanMismatchError`.
 
 Batch tự **skip** run đã xong và **resume** run dở. Nếu bị đứt, chạy lại đúng lệnh trên.
 
-### 4.3. Muốn chạy lại từ đầu mà không đụng kết quả cũ
+### 4.3. Chạy lại từ đầu mà không đụng kết quả cũ
 
-Runner không cho ghi đè (`RunExistsError`). Dùng root riêng cho bản tự kiểm tra:
+Runner không cho ghi đè (`RunExistsError`). Dùng root riêng:
 
 ```powershell
 $env:WASTE_EXPERIMENTS_ROOT = "C:\waste_classifier_runs_selfcheck"
 ```
 
-Sau đó chạy lại lệnh ở mục 4.1/4.2. Biến này chỉ có tác dụng trong terminal hiện tại.
-
 ## 5. Phân tích kết quả + bảng Excel
 
 ```powershell
-uv run python scripts/analyze_rq3.py
+uv run python scripts/analyze_rq3.py --arm-suffix _e50
 uv run python scripts/track_rq3.py
+```
+
+Phụ lục so sánh ngân sách 30 epoch (chạy trên root cũ):
+
+```powershell
+$env:WASTE_EXPERIMENTS_ROOT = "C:\waste_classifier_experiments"
+uv run python scripts/analyze_rq3.py --output-md docs/RQ3/rq3_results_e30.md --output-csv docs/RQ3/rq3_metrics_e30.csv --figures-dir docs/RQ3/rq3_analysis_e30 --title "Phụ lục: RQ3 với ngân sách 30 epoch"
 ```
 
 | File sinh ra | Nội dung |
 |---|---|
-| `docs/RQ3/rq3_results.md` | bảng mean ± std, CI95, delta ghép cặp, đường cong mix-ratio, per-class F1, hình |
-| `docs/RQ3/rq3_metrics.csv` | metric từng run |
-| `docs/RQ3/rq3_analysis/test_macro_f1.png` | so sánh Macro-F1 theo nguồn test |
-| `docs/RQ3/rq3_analysis/dose_response.png` | Macro-F1 theo tỉ lệ TrashNet (0→100%) |
-| `docs/RQ3/rq3_analysis/confusion_matrices.png` | confusion matrix từng protocol × nguồn |
+| `docs/RQ3/rq3_results.md` | mean ± std + CI95, môi trường/thời gian, pooled vs single-source, delta ghép cặp, mix-ratio, per-class, cặp nhầm, hình |
+| `docs/RQ3/rq3_metrics.csv` | metric từng run (bản chính) |
+| `docs/RQ3/rq3_analysis/*.png` | Macro-F1 theo nguồn, dose-response, **learning curves mix/cross**, confusion matrix |
+| `docs/RQ3/rq3_analysis/gradcam_cross/` | 4 ảnh Grad-CAM sai của P1 + 4 của P2 |
 | `docs/RQ3/rq3_tracking.xlsx` | 4 sheet: Runs / Tổng hợp / Kế hoạch / Môi trường |
 
-`track_rq3.py` phải in `Runs: 21 (completed 21)` (nếu bạn chạy đủ 3 seed).
+`track_rq3.py` phải in `Runs: 21 (completed 21)` (bản chính).
 
-### 5.1. Đóng gói để upload Google Drive
+### 5.1. Grad-CAM cho ảnh sai (không train lại)
+
+```powershell
+uv run python scripts/gradcam.py --run "$env:WASTE_EXPERIMENTS_ROOT\rq3\rq3_e50_train_realwaste_test_trashnet_s42" --num 8
+uv run python scripts/gradcam.py --run "$env:WASTE_EXPERIMENTS_ROOT\rq3\rq3_e50_train_trashnet_test_realwaste_s42" --num 8
+```
+
+Ảnh lưu trong `...\figures\gradcam\`; chép 4 ảnh mỗi arm vào `docs/RQ3/rq3_analysis/gradcam_cross/` nếu muốn commit.
+
+### 5.2. Đóng gói để upload Google Drive
 
 ```powershell
 uv run python scripts/make_rq3_bundle.py
 ```
 
-Kết quả: thư mục `dist\rq3_upload_<ngày_giờ>\` và file `.zip` cùng tên (~2 MB) + `.sha256`.
-Kéo cả thư mục (hoặc file zip) lên Drive. Nội dung: `INDEX.md`, `docs/RQ3/`, PDF notebook,
-`configs/`, `plans/`, `data/splits/rq3/`, code liên quan, `runs/rq3/<run>/` (metadata +
-predictions, **không** checkpoint). Cần checkpoint thì thêm `--checkpoints best`.
+Sinh `dist\rq3_upload_<ngày_giờ>\` + `.zip` (~2 MB) và `.sha256`: gồm docs, config, plan,
+split, code, `runs/rq3/<run>/` (metadata + predictions, không checkpoint).
 
 ## 6. Notebook + PDF (cần khi nộp)
 
@@ -160,7 +171,7 @@ uv run jupyter nbconvert --clear-output --inplace notebooks/rq3/analyze_rq3.ipyn
 PDF cần MiKTeX + Pandoc (xem `docs/gpu_local.md` §6). Notebook phải commit ở trạng thái
 sạch output, kèm PDF.
 
-## 7. Kiểm tra "chạy đúng"
+## 7. Kiểm tra "chạy đúng" (bản 50 epoch)
 
 | Kiểm tra | Kỳ vọng |
 |---|---|
@@ -168,14 +179,15 @@ sạch output, kèm PDF.
 | `…\checkpoints\best.pt` | có, ~6 MB |
 | `…\predictions\test.csv` | 2.390 dòng (P1) / 3.092 (P2) / 823 (pooled, mix) |
 | `environment.json` | `torch 2.15.0+cu132`, GPU của bạn |
-| Macro-F1 test (dao động ±0,01–0,03) | P1 0,27–0,32 · P2 0,45–0,50 · pooled 0,89–0,91 |
-| TrashNet held-out theo mix | 0% ≈0,37 · 25% ≈0,79 · 50% ≈0,84 · 75% ≈0,86 · 100% ≈0,89 |
+| Macro-F1 test (dao động ±0,01–0,03) | P1 0,26–0,31 · P2 0,46–0,49 · pooled 0,88–0,90 |
+| TrashNet held-out theo mix | 0% ≈0,38 · 25% ≈0,79 · 50% ≈0,84 · 75% ≈0,86 · 100% ≈0,88 |
+| Epoch cuối | 10–34 (không run nào chạm 50 — early stopping) |
 
 ## 8. Lỗi thường gặp (riêng RQ3)
 
 | Lỗi | Nguyên nhân | Xử lý |
 |---|---|---|
-| `PlanMismatchError: Experiment ... không có trong plan` | mix ↔ plan sai | mix → `source_mix.yaml`; còn lại → `cross_dataset_generalization.yaml` |
+| `PlanMismatchError: Experiment ... không có trong plan` | mix ↔ plan sai | mix → `source_mix_e50.yaml`; còn lại → `cross_dataset_e50.yaml` |
 | `PlanMismatchError: Seed ... không có trong plan` | seed lạ | RQ3 chỉ 42 / 123 / 2024 |
 | `RunExistsError` | run đã tồn tại | đổi `--run-id` hoặc đổi `WASTE_EXPERIMENTS_ROOT` |
 | `FileNotFoundError: Thiếu N ảnh` | `WASTE_DATA_ROOT` sai | đặt lại biến, mở terminal mới |
@@ -196,7 +208,8 @@ run; không đổi tiêu chí sau khi xem test; không sửa/xoá run cũ.
 
 ## 10. Kết quả để trình bày
 
-- `docs/RQ3/rq3_results.md` – số liệu chính.
+- `docs/RQ3/rq3_results.md` – số liệu chính (bản 50 epoch).
+- `docs/RQ3/rq3_results_e30.md` – phụ lục so sánh ngân sách 30 epoch.
 - `docs/RQ3/rq3_discussion.md` – thảo luận, giới hạn, kết luận.
 - `docs/RQ3/rq3_overview.md` – protocol, cách chạy, trạng thái.
 - `docs/RQ3/rq3_tracking.xlsx` – bảng theo dõi 21 run.

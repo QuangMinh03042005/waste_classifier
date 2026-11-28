@@ -2,6 +2,10 @@
 
 Entrypoint: `research/rq1/train.py`, `research/rq2/train.py`. Engine: `src/training/runner.py`.
 
+Mỗi RQ có entrypoint mỏng dùng chung engine: `research/rq1/train.py` (RQ1),
+`research/rq3/train.py` (RQ3, split ở `data/splits/rq3/` — xem
+[RQ3/rq3_overview.md](RQ3/rq3_overview.md)). RQ2 dùng entrypoint RQ1 với config riêng.
+
 ## Chạy
 
 ```bash
@@ -262,6 +266,23 @@ python scripts/analyze_rq1.py
 ```
 
 Sinh `docs/RQ1/rq1_results.md` + hình trong `docs/RQ1/rq1_analysis/`.
+
+## Phân tích RQ3
+
+```bash
+python scripts/analyze_rq3.py
+python scripts/track_rq3.py
+```
+
+Sinh `docs/RQ3/rq3_results.md`, `docs/RQ3/rq3_metrics.csv`, hình trong
+`docs/RQ3/rq3_analysis/` và bảng theo dõi Excel `docs/RQ3/rq3_tracking.xlsx`;
+chỉ đọc artifact, không đánh giá lại test.
+
+Split mix-ratio (RealWaste 100% + TrashNet 0/25/50/75%):
+
+```bash
+python scripts/make_rq3_mix_splits.py
+```
 
 ## Đo efficiency
 

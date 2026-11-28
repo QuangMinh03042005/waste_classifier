@@ -8,7 +8,11 @@ from src.utils import paths
 from src.utils.env import environment_info
 
 
-def test_default_paths_point_to_project_root() -> None:
+def test_default_paths_point_to_project_root(monkeypatch) -> None:
+    # Test mặc định phải độc lập với biến môi trường của máy đang chạy.
+    for name in ("WASTE_DATA_ROOT", "WASTE_EXPERIMENTS_ROOT", "WASTE_SPLITS_DIR"):
+        monkeypatch.delenv(name, raising=False)
+
     root = paths.project_root()
     assert paths.data_root() == root / "data"
     assert paths.raw_root() == root / "data" / "raw"

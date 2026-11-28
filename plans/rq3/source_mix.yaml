@@ -1,0 +1,83 @@
+schema_version: "1.0"
+plan_id: rq3_source_mix
+rq: rq3
+title: "Tỉ lệ dữ liệu nguồn thứ hai ảnh hưởng thế nào đến tổng quát hóa"
+author: "Lê Thành Duy"
+created_at: "2026-11-21"
+status: active
+
+question: >-
+  Khi giữ nguyên toàn bộ dữ liệu RealWaste, cần bổ sung bao nhiêu phần trăm dữ liệu
+  TrashNet vào train để mô hình đạt được khả năng phân loại tốt trên cả hai nguồn?
+
+hypothesis: >-
+  Macro-F1 trên TrashNet held-out tăng khi tăng tỉ lệ TrashNet trong train, nhưng
+  phần lớn cải thiện đến sớm: mức 25-50% đã gần mức 100%, trong khi Macro-F1 trên
+  RealWaste giảm không đáng kể.
+
+expected_result: >-
+  Đường cong dose-response tăng nhanh từ 0% đến 50% rồi bão hòa; RealWaste giảm
+  nhẹ khi tăng tỉ lệ TrashNet.
+
+failure_plan: >-
+  Nếu đường cong không đơn điệu hoặc RealWaste giảm mạnh, phân tích phân phối lớp
+  của phần TrashNet được chọn, mất cân bằng lớp giữa hai nguồn và chất lượng ảnh.
+  Báo cáo trung thực, không đổi tiêu chí sau khi xem test.
+
+baseline:
+  experiment: rq3_mix_tn00
+  description: "RealWaste 100%, không có TrashNet trong train; test giữ nguyên held-out của cả hai nguồn."
+
+variants:
+  - experiment: rq3_mix_tn25
+    change: "Thêm 25% số group TrashNet train vào train (RealWaste vẫn 100%)."
+    fixed:
+      - "split v1 cho val/test: RealWaste 466+463, TrashNet 360+360"
+      - "MobileNetV3_small pretrained ImageNet, không augmentation, không class weighting"
+      - "AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 30 epoch, patience 7"
+      - "seed 42, 123, 2024"
+  - experiment: rq3_mix_tn50
+    change: "Thêm 50% số group TrashNet train vào train (RealWaste vẫn 100%)."
+    fixed:
+      - "split v1 cho val/test: RealWaste 466+463, TrashNet 360+360"
+      - "MobileNetV3_small pretrained ImageNet, không augmentation, không class weighting"
+      - "AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 30 epoch, patience 7"
+      - "seed 42, 123, 2024"
+  - experiment: rq3_mix_tn75
+    change: "Thêm 75% số group TrashNet train vào train (RealWaste vẫn 100%)."
+    fixed:
+      - "split v1 cho val/test: RealWaste 466+463, TrashNet 360+360"
+      - "MobileNetV3_small pretrained ImageNet, không augmentation, không class weighting"
+      - "AdamW, lr 1e-3, weight decay 1e-4, cosine, batch 64, tối đa 30 epoch, patience 7"
+      - "seed 42, 123, 2024"
+
+comparison:
+  metric: macro_f1
+  secondary: [accuracy, per_class_f1, balanced_accuracy]
+  test_policy: "Test held-out của từng nguồn chỉ đánh giá một lần mỗi run; không dùng test để chọn epoch."
+  success_criterion: >-
+    Macro-F1 TrashNet held-out tăng >= 0.05 khi tỉ lệ TrashNet đi từ 0% lên 25%;
+    ở mức 50% đạt >= 0.80 và Macro-F1 RealWaste giảm <= 0.03 so với mức 0%.
+
+data:
+  train_datasets: [realwaste, trashnet]
+  test_dataset: "held-out test của từng nguồn trong split v1"
+  splits_version: v1
+  class_names: [cardboard, glass, metal, paper, plastic]
+
+seeds: [42, 123, 2024]
+
+budget:
+  max_epochs: 30
+  batch_size: 64
+  estimated_minutes_per_run: 5
+
+risks: >-
+  Phần TrashNet được chọn có thể làm lệch phân phối lớp ở các mức tỉ lệ thấp dù đã
+  stratify theo lớp và chọn theo group; phương sai giữa seed có thể lớn ở mức 25%.
+
+notes: >-
+  Mức 100% tương ứng experiment rq3_train_pooled_test_each của plan
+  rq3_cross_dataset_generalization, dùng làm mốc tham chiếu (không chạy lại).
+  Val dùng cả hai nguồn (826 ảnh) nên model selection có dùng val TrashNet nhưng
+  không dùng test.

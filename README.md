@@ -71,6 +71,9 @@ Nội dung thực hiện:
 
 Ghi chú: GD hiện chỉ dùng làm **external test cho RQ1**, không tham gia train RQ3.
 
+Tài liệu chi tiết: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md), thảo luận và
+giới hạn: [docs/RQ3/rq3_discussion.md](docs/RQ3/rq3_discussion.md).
+
 ## 4. Dataset
 
 ### 4.1. Nguồn dữ liệu
@@ -312,7 +315,8 @@ waste-classifier/
 
 ## 11. Cài đặt và tải dữ liệu
 
-Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/).
+Yêu cầu: Python 3.12 và [uv](https://docs.astral.sh/uv/). Trên Windows có GPU NVIDIA,
+`uv sync` tự lấy torch bản CUDA (`cu132`) — xem [docs/gpu_local.md](docs/gpu_local.md).
 
 ```bash
 uv sync                                             # cài môi trường
@@ -326,6 +330,7 @@ uv run ruff check .                                 # lint
 
 Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. Chi tiết:
 
+- **Runbook tự chạy từng phần (kèm thời gian, cách kiểm tra): [docs/runbook.md](docs/runbook.md)**
 - Dataset: [docs/datasets.md](docs/datasets.md)
 - Mapping nhãn: [docs/label_mapping.md](docs/label_mapping.md)
 - Split: [docs/splits.md](docs/splits.md)
@@ -335,9 +340,12 @@ Dữ liệu vào `data/raw/`, GD external vào `data/external/`; không commit. 
 - Cấu trúc báo cáo cuối kỳ: [docs/report/outline.md](docs/report/outline.md)
 - Training: [docs/training.md](docs/training.md), [docs/models.md](docs/models.md)
 - RQ1: [docs/RQ1/rq1_overview.md](docs/RQ1/rq1_overview.md)
+- RQ3: [docs/RQ3/rq3_overview.md](docs/RQ3/rq3_overview.md),
+  [thảo luận](docs/RQ3/rq3_discussion.md)
 - Demo: [docs/demo.md](docs/demo.md)
 
-Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghiệm:
+Training trên GPU: xem [docs/colab.md](docs/colab.md) (Colab) hoặc
+[docs/gpu_local.md](docs/gpu_local.md) (GPU local Windows). Kế hoạch thí nghiệm:
 [docs/experiment_plans.md](docs/experiment_plans.md). Logging:
 [docs/logging.md](docs/logging.md).
 
@@ -359,6 +367,11 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 - [x] Chẩn đoán early stopping và chạy scratch patience 20 (5 seed).
 - [x] Đồng nhất patience 20, chạy lại Custom và pretrained (5 seed).
 - [x] Phân tích RQ1, efficiency, Grad-CAM, external GD.
+- [x] RQ3 cross-dataset (P1, P2) và pooled (P3), 3 seed — 9 run.
+- [x] RQ3 mix-ratio 0/25/50/75% × 3 seed — 12 run (tổng 21 run).
+- [x] Phân tích RQ3: domain shift, chấm công bằng trên held-out, dose-response.
+- [x] Tracking Excel RQ3 và notebook RQ3 kèm PDF.
+- [x] GPU local (Windows, torch cu132) + tài liệu setup.
 
 Đang thực hiện:
 
@@ -367,7 +380,7 @@ Training trên GPU: xem [docs/colab.md](docs/colab.md). Kế hoạch thí nghi�
 Chưa bắt đầu:
 
 - [ ] RQ2: full, no-augmentation, no-class-weighting.
-- [ ] RQ3: cross-dataset và pooled.
+- [ ] Viết mục RQ3 trong báo cáo cuối kỳ.
 - [ ] Phân tích tổng hợp, hình, kết luận.
 - [x] Demo Streamlit.
 - [ ] Báo cáo và slide.

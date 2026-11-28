@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-11-20T17:57:26.881143+00:00",
+  "source_split": "C:\\Users\\duyle\\OneDrive\\Desktop\\waste_classifier\\data\\splits\\v1\\split.csv",
+  "seed": 42,
+  "trashnet_train_groups": 1651,
+  "mixes": {
+    "mix_tn_00": {
+      "trashnet_share": 0.0,
+      "trashnet_train_groups": 0,
+      "counts": {
+        "test": 823,
+        "train": 2163,
+        "val": 826
+      },
+      "by_split_dataset": {
+        "test/realwaste": 463,
+        "test/trashnet": 360,
+        "train/realwaste": 2163,
+        "val/realwaste": 466,
+        "val/trashnet": 360
+      }
+    },
+    "mix_tn_25": {
+      "trashnet_share": 0.25,
+      "trashnet_train_groups": 413,
+      "counts": {
+        "test": 823,
+        "train": 2577,
+        "val": 826
+      },
+      "by_split_dataset": {
+        "test/realwaste": 463,
+        "test/trashnet": 360,
+        "train/realwaste": 2163,
+        "train/trashnet": 414,
+        "val/realwaste": 466,
+        "val/trashnet": 360
+      }
+    },
+    "mix_tn_50": {
+      "trashnet_share": 0.5,
+      "trashnet_train_groups": 826,
+      "counts": {
+        "test": 823,
+        "train": 2995,
+        "val": 826
+      },
+      "by_split_dataset": {
+        "test/realwaste": 463,
+        "test/trashnet": 360,
+        "train/realwaste": 2163,
+        "train/trashnet": 832,
+        "val/realwaste": 466,
+        "val/trashnet": 360
+      }
+    },
+    "mix_tn_75": {
+      "trashnet_share": 0.75,
+      "trashnet_train_groups": 1238,
+      "counts": {
+        "test": 823,
+        "train": 3416,
+        "val": 826
+      },
+      "by_split_dataset": {
+        "test/realwaste": 463,
+        "test/trashnet": 360,
+        "train/realwaste": 2163,
+        "train/trashnet": 1253,
+        "val/realwaste": 466,
+        "val/trashnet": 360
+      }
+    }
+  }
+}

@@ -37,54 +37,81 @@ from src.data.labels import CANONICAL_CLASSES  # noqa: E402
 from src.utils.paths import experiments_root as default_experiments_root  # noqa: E402
 from src.utils.paths import splits_dir  # noqa: E402
 
-PROTOCOLS = {
-    "rq3_train_realwaste_test_trashnet": {
-        "label": "RealWaste → TrashNet",
-        "train": "realwaste",
-        "tests": ["trashnet"],
-    },
-    "rq3_train_trashnet_test_realwaste": {
-        "label": "TrashNet → RealWaste",
-        "train": "trashnet",
-        "tests": ["realwaste"],
-    },
-    "rq3_train_pooled_test_each": {
-        "label": "Pooled (TrashNet 100%)",
-        "train": "pooled",
-        "tests": ["realwaste", "trashnet"],
-    },
-    "rq3_mix_tn00": {
-        "label": "Mix: TrashNet 0%",
-        "train": "realwaste",
-        "tests": ["realwaste", "trashnet"],
-    },
-    "rq3_mix_tn25": {
-        "label": "Mix: TrashNet 25%",
-        "train": "realwaste+trashnet",
-        "tests": ["realwaste", "trashnet"],
-    },
-    "rq3_mix_tn50": {
-        "label": "Mix: TrashNet 50%",
-        "train": "realwaste+trashnet",
-        "tests": ["realwaste", "trashnet"],
-    },
-    "rq3_mix_tn75": {
-        "label": "Mix: TrashNet 75%",
-        "train": "realwaste+trashnet",
-        "tests": ["realwaste", "trashnet"],
-    },
-}
-SINGLE_SOURCE = {
-    "realwaste": "rq3_train_trashnet_test_realwaste",
-    "trashnet": "rq3_train_realwaste_test_trashnet",
-}
-MIX_EXPERIMENTS = {
-    "rq3_mix_tn00": 0,
-    "rq3_mix_tn25": 25,
-    "rq3_mix_tn50": 50,
-    "rq3_mix_tn75": 75,
-    "rq3_train_pooled_test_each": 100,
-}
+
+def _protocols_for(suffix: str) -> dict[str, dict[str, Any]]:
+    """Định nghĩa protocol theo bộ tên experiment (`suffix` rỗng hoặc `_e50`)."""
+    prefix = f"rq3{suffix}"
+    return {
+        f"{prefix}_train_realwaste_test_trashnet": {
+            "label": "RealWaste → TrashNet",
+            "train": "realwaste",
+            "tests": ["trashnet"],
+        },
+        f"{prefix}_train_trashnet_test_realwaste": {
+            "label": "TrashNet → RealWaste",
+            "train": "trashnet",
+            "tests": ["realwaste"],
+        },
+        f"{prefix}_train_pooled_test_each": {
+            "label": "Pooled (TrashNet 100%)",
+            "train": "pooled",
+            "tests": ["realwaste", "trashnet"],
+        },
+        f"{prefix}_mix_tn00": {
+            "label": "Mix: TrashNet 0%",
+            "train": "realwaste",
+            "tests": ["realwaste", "trashnet"],
+        },
+        f"{prefix}_mix_tn25": {
+            "label": "Mix: TrashNet 25%",
+            "train": "realwaste+trashnet",
+            "tests": ["realwaste", "trashnet"],
+        },
+        f"{prefix}_mix_tn50": {
+            "label": "Mix: TrashNet 50%",
+            "train": "realwaste+trashnet",
+            "tests": ["realwaste", "trashnet"],
+        },
+        f"{prefix}_mix_tn75": {
+            "label": "Mix: TrashNet 75%",
+            "train": "realwaste+trashnet",
+            "tests": ["realwaste", "trashnet"],
+        },
+    }
+
+
+def _single_source_for(suffix: str) -> dict[str, str]:
+    prefix = f"rq3{suffix}"
+    return {
+        "realwaste": f"{prefix}_train_trashnet_test_realwaste",
+        "trashnet": f"{prefix}_train_realwaste_test_trashnet",
+    }
+
+
+def _mixes_for(suffix: str) -> dict[str, int]:
+    prefix = f"rq3{suffix}"
+    return {
+        f"{prefix}_mix_tn00": 0,
+        f"{prefix}_mix_tn25": 25,
+        f"{prefix}_mix_tn50": 50,
+        f"{prefix}_mix_tn75": 75,
+        f"{prefix}_train_pooled_test_each": 100,
+    }
+
+
+PROTOCOLS = _protocols_for("")
+SINGLE_SOURCE = _single_source_for("")
+MIX_EXPERIMENTS = _mixes_for("")
+
+
+def configure_names(suffix: str = "") -> None:
+    """Chọn bộ tên experiment cho toàn script, ví dụ `_e50`."""
+    global PROTOCOLS, SINGLE_SOURCE, MIX_EXPERIMENTS
+    PROTOCOLS = _protocols_for(suffix)
+    SINGLE_SOURCE = _single_source_for(suffix)
+    MIX_EXPERIMENTS = _mixes_for(suffix)
+
+
 SOURCES = ("realwaste", "trashnet")
 SUCCESS_DELTA = 0.02
 T_CRITICAL = {
@@ -122,7 +149,7 @@ def _load_json(path: Path) -> dict[str, Any] | None:
 
 
 def load_runs(root: Path) -> dict[str, list[dict[str, Any]]]:
-    """Đọc mọi run completed của RQ3, kèm predictions nếu có."""
+    """Đọc mọi run completed của RQ3, kèm history, environment và predictions."""
     data: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for experiment in PROTOCOLS:
         for run_file in sorted((root / "rq3").glob(f"{experiment}_s*/run.json")):
@@ -130,6 +157,17 @@ def load_runs(root: Path) -> dict[str, list[dict[str, Any]]]:
             if run.get("status") != "completed":
                 continue
             metrics = _load_json(run_file.with_name("metrics.json")) or {}
+            environment = _load_json(run_file.with_name("environment.json")) or {}
+            history_file = run_file.with_name("history.jsonl")
+            history = (
+                [
+                    json.loads(line)
+                    for line in history_file.read_text(encoding="utf-8").splitlines()
+                    if line.strip()
+                ]
+                if history_file.is_file()
+                else []
+            )
             predictions_file = run_file.with_name("predictions") / "test.csv"
             predictions = pd.read_csv(predictions_file) if predictions_file.is_file() else None
             data[experiment].append(
@@ -137,6 +175,8 @@ def load_runs(root: Path) -> dict[str, list[dict[str, Any]]]:
                     "run_dir": run_file.parent,
                     "run": run,
                     "metrics": metrics,
+                    "environment": environment,
+                    "history": history,
                     "predictions": predictions,
                 }
             )
@@ -461,6 +501,132 @@ def prediction_shift(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
+def confusion_pairs(data: dict[str, list[dict[str, Any]]], top: int = 3) -> pd.DataFrame:
+    """Cặp (nhãn thật → nhãn đoán) bị nhầm nhiều nhất, cộng dồn các seed."""
+    records: list[dict[str, Any]] = []
+    for experiment, runs in data.items():
+        info = PROTOCOLS[experiment]
+        for source in info["tests"]:
+            errors: Counter[tuple[str, str]] = Counter()
+            totals: Counter[str] = Counter()
+            for run in runs:
+                predictions = run["predictions"]
+                if predictions is None or predictions.empty:
+                    continue
+                subset = predictions[predictions["dataset"] == source]
+                for true_label, pred_label in zip(
+                    subset["true_label"], subset["pred_label"], strict=True
+                ):
+                    totals[str(true_label)] += 1
+                    if true_label != pred_label:
+                        errors[(str(true_label), str(pred_label))] += 1
+            for (true_label, pred_label), count in errors.most_common(top):
+                records.append(
+                    {
+                        "label": info["label"],
+                        "test_source": source,
+                        "true_label": true_label,
+                        "pred_label": pred_label,
+                        "count": count,
+                        "share_of_true": count / totals[true_label],
+                    }
+                )
+    return pd.DataFrame(records)
+
+
+def environment_table(data: dict[str, list[dict[str, Any]]]) -> pd.DataFrame:
+    """GPU/torch/CUDA và thời gian huấn luyện trung bình của từng experiment."""
+    records: list[dict[str, Any]] = []
+    for experiment, runs in data.items():
+        if not runs:
+            continue
+        torch_info = (runs[0].get("environment") or {}).get("torch") or {}
+        durations = [float(run["run"].get("duration_sec") or 0.0) for run in runs if run.get("run")]
+        records.append(
+            {
+                "label": PROTOCOLS[experiment]["label"],
+                "experiment": experiment,
+                "n_runs": len(runs),
+                "gpu": torch_info.get("device_name"),
+                "torch": torch_info.get("version"),
+                "cuda": torch_info.get("cuda_version"),
+                "minutes_per_run": round(sum(durations) / max(len(durations), 1) / 60, 1),
+                "params": (runs[0]["run"].get("model") or {}).get("params"),
+            }
+        )
+    return pd.DataFrame(records)
+
+
+def learning_curves(
+    data: dict[str, list[dict[str, Any]]],
+    figures: Path,
+    experiments: list[str],
+    filename: str,
+) -> list[str]:
+    """Đường cong train/val loss và val Macro-F1 (mean ± std trên các seed)."""
+    selected = [(name, data.get(name, [])) for name in experiments]
+    selected = [(name, runs) for name, runs in selected if runs]
+    if not selected:
+        return []
+
+    figure, axes = plt.subplots(1, 2, figsize=(11, 4.2))
+    colors = plt.get_cmap("tab10")
+    for index, (experiment, runs) in enumerate(selected):
+        color = colors(index % 10)
+        label = PROTOCOLS[experiment]["label"]
+        train_series = [
+            [record["loss"] for record in run["history"] if record.get("phase") == "train"]
+            for run in runs
+        ]
+        val_series = [
+            [record["loss"] for record in run["history"] if record.get("phase") == "val"]
+            for run in runs
+        ]
+        f1_series = [
+            [record["macro_f1"] for record in run["history"] if record.get("phase") == "val"]
+            for run in runs
+        ]
+
+        def _mean_std(series: list[list[float]]) -> tuple[np.ndarray, np.ndarray]:
+            length = max((len(values) for values in series), default=0)
+            if not length:
+                return np.array([]), np.array([])
+            matrix = np.full((len(series), length), np.nan)
+            for row, values in enumerate(series):
+                matrix[row, : len(values)] = values
+            return np.nanmean(matrix, axis=0), np.nanstd(matrix, axis=0)
+
+        for axis, series, linestyle, suffix in (
+            (axes[0], train_series, "-", "train"),
+            (axes[0], val_series, "--", "val"),
+            (axes[1], f1_series, "-", "val"),
+        ):
+            mean, std = _mean_std(series)
+            if not mean.size:
+                continue
+            epochs = np.arange(1, len(mean) + 1)
+            axis.plot(epochs, mean, color=color, linestyle=linestyle, label=f"{label} ({suffix})")
+            if suffix == "val":
+                axis.fill_between(epochs, mean - std, mean + std, color=color, alpha=0.12)
+
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Loss")
+    axes[0].set_title("Train / validation loss")
+    axes[0].grid(alpha=0.3)
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Validation Macro-F1")
+    axes[1].set_title("Validation Macro-F1")
+    axes[1].set_ylim(0, 1)
+    axes[1].grid(alpha=0.3)
+    for axis in axes:
+        axis.legend(fontsize=7)
+    figure.tight_layout()
+    path = figures / filename
+    figure.savefig(path, dpi=160)
+    plt.close(figure)
+    return [path.name]
+
+
 def _confusion_panels(data: dict[str, list[dict[str, Any]]], figures: Path) -> list[str]:
     panels: list[tuple[str, np.ndarray]] = []
     for experiment, runs in data.items():
@@ -618,6 +784,8 @@ def build_markdown(
     dose: pd.DataFrame,
     per_class: pd.DataFrame,
     shift: pd.DataFrame,
+    env: pd.DataFrame,
+    pairs: pd.DataFrame,
     figures: list[str],
 ) -> str:
     lines = [
@@ -655,6 +823,27 @@ def build_markdown(
         }
     )
     lines.extend(["## Tổng hợp", "", _markdown_table(summary, list(summary.columns)), ""])
+
+    if not env.empty:
+        env_table = pd.DataFrame(
+            {
+                "Protocol": env["label"],
+                "n run": env["n_runs"],
+                "GPU": env["gpu"],
+                "Torch": env["torch"],
+                "CUDA": env["cuda"],
+                "Phút/run": env["minutes_per_run"],
+                "Params": env["params"],
+            }
+        )
+        lines.extend(
+            [
+                "## Môi trường và thời gian",
+                "",
+                _markdown_table(env_table, list(env_table.columns)),
+                "",
+            ]
+        )
     lines.extend(
         [
             "## Lưu ý phương pháp",
@@ -817,6 +1006,27 @@ def build_markdown(
             ["## Per-class F1 trên test", "", _markdown_table(pivot, list(pivot.columns)), ""]
         )
 
+    if not pairs.empty:
+        pairs_table = pd.DataFrame(
+            {
+                "Protocol": pairs["label"],
+                "Test": pairs["test_source"],
+                "Nhãn thật → đoán": pairs["true_label"] + " → " + pairs["pred_label"],
+                "Số ảnh": pairs["count"],
+                "Tỉ lệ trên lớp thật": pairs["share_of_true"].round(3),
+            }
+        )
+        lines.extend(
+            [
+                "## Cặp nhầm phổ biến",
+                "",
+                "Cộng dồn 3 seed; tỉ lệ tính trên số ảnh thật của lớp đó.",
+                "",
+                _markdown_table(pairs_table, list(pairs_table.columns)),
+                "",
+            ]
+        )
+
     if not shift.empty:
         table = pd.DataFrame(
             {
@@ -857,12 +1067,19 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Split v1 dùng để lấy held-out test khi chấm công bằng (mặc định data/splits/v1).",
     )
+    parser.add_argument(
+        "--arm-suffix",
+        type=str,
+        default="",
+        help="Hậu tố tên experiment, ví dụ _e50 cho bản 50 epoch.",
+    )
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
+    configure_names(args.arm_suffix)
     split_csv = args.split_csv or (splits_dir() / "v1" / "split.csv")
     data = load_runs(args.experiments_root.resolve())
     rows = _run_rows(data, heldout_test_paths(split_csv))
@@ -872,16 +1089,35 @@ def main(argv: list[str] | None = None) -> int:
     dose = dose_response(agg)
     per_class = per_class_table(rows)
     shift = prediction_shift(data)
+    env = environment_table(data)
+    pairs = confusion_pairs(data)
 
     args.figures_dir.mkdir(parents=True, exist_ok=True)
     figures: list[str] = []
     figures.extend(_bar_by_source(agg, args.figures_dir))
     figures.extend(_dose_figure(dose, args.figures_dir))
+    pooled_name = next(name for name, share in MIX_EXPERIMENTS.items() if share == 100)
+    figures.extend(
+        learning_curves(
+            data,
+            args.figures_dir,
+            list(MIX_EXPERIMENTS),
+            "learning_curves_mix.png",
+        )
+    )
+    figures.extend(
+        learning_curves(
+            data,
+            args.figures_dir,
+            [*SINGLE_SOURCE.values(), pooled_name],
+            "learning_curves_cross.png",
+        )
+    )
     figures.extend(_confusion_panels(data, args.figures_dir))
 
     args.output_md.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.write_text(
-        build_markdown(agg, comparison, paired, dose, per_class, shift, figures) + "\n",
+        build_markdown(agg, comparison, paired, dose, per_class, shift, env, pairs, figures) + "\n",
         encoding="utf-8",
     )
     if not agg.empty:

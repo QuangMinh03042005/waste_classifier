@@ -73,9 +73,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _group_of(experiment: str) -> str:
-    if experiment.startswith("rq3_mix_"):
+    if "mix_" in experiment:
         return "Mix-ratio"
-    if experiment == "rq3_train_pooled_test_each":
+    if "pooled" in experiment:
         return "Pooled"
     return "Cross-dataset"
 
@@ -353,13 +353,13 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Đã ghi {path}")
     print(f"Runs: {len(runs)} (completed {completed}) | Tổng hợp: {len(summary)} dòng")
     print(f"Kế hoạch: {len(plans)} dòng | Plan: {len(plan_paths)} file")
-    missing = [name for name in ("rq3_mix_tn00", "rq3_mix_tn25", "rq3_mix_tn50", "rq3_mix_tn75")]
-    seen = defaultdict(int)
+    seen: dict[str, int] = defaultdict(int)
     for row in runs:
         if row["Trạng thái"] == "completed":
             seen[row["Experiment"]] += 1
-    if any(seen[name] < 3 for name in missing):
-        print("Chưa đủ 3 seed cho: " + ", ".join(f"{name}({seen[name]})" for name in missing))
+    short = [f"{name}({count})" for name, count in sorted(seen.items()) if count < 3]
+    if short:
+        print("Chưa đủ 3 seed cho: " + ", ".join(short))
     return 0
 
 

@@ -17,7 +17,11 @@ from analyze_rq3 import (  # noqa: E402
     ci95,
     compare_pooled,
     compute_metrics,
+    configure_names,
+    confusion_pairs,
     domain_gap,
+    environment_table,
+    learning_curves,
     load_runs,
     paired_delta,
     prediction_shift,
@@ -58,6 +62,32 @@ def _make_run(
         for index, (dataset, true_label, pred_label) in enumerate(samples)
     ]
     pd.DataFrame(rows).to_csv(run_dir / "predictions" / "test.csv", index=False)
+    history = []
+    for epoch in range(1, 4):
+        history.append({"phase": "train", "epoch": epoch, "loss": 1.0 - epoch * 0.2})
+        history.append(
+            {
+                "phase": "val",
+                "epoch": epoch,
+                "loss": 1.1 - epoch * 0.2,
+                "macro_f1": 0.5 + epoch * 0.1,
+            }
+        )
+    (run_dir / "history.jsonl").write_text(
+        "\n".join(json.dumps(record) for record in history) + "\n", encoding="utf-8"
+    )
+    (run_dir / "environment.json").write_text(
+        json.dumps(
+            {
+                "torch": {
+                    "version": "2.15.0+cu132",
+                    "cuda_version": "13.2",
+                    "device_name": "NVIDIA GeForce RTX 5070",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
     return run_dir
 
 
@@ -156,3 +186,65 @@ def test_prediction_shift_phat_hien_sup_do(tmp_path: Path) -> None:
     shift = prediction_shift(load_runs(tmp_path))
     assert shift.iloc[0]["top_predicted"] == "cardboard"
     assert shift.iloc[0]["top_share"] == pytest.approx(1.0)
+
+
+def test_confusion_pairs_dem_loi(tmp_path: Path) -> None:
+    samples = [
+        ("trashnet", "glass", "cardboard"),
+        ("trashnet", "glass", "glass"),
+        ("trashnet", "glass", "cardboard"),
+    ]
+    _make_run(tmp_path, "rq3_train_realwaste_test_trashnet", 42, samples)
+
+    pairs = confusion_pairs(load_runs(tmp_path))
+    first = pairs.iloc[0]
+    assert first["true_label"] == "glass"
+    assert first["pred_label"] == "cardboard"
+    assert first["count"] == 2
+    assert first["share_of_true"] == pytest.approx(2 / 3)
+
+
+def test_environment_table_doc_gpu_va_thoi_gian(tmp_path: Path) -> None:
+    _make_run(
+        tmp_path,
+        "rq3_mix_tn25",
+        42,
+        [("trashnet", "glass", "glass"), ("realwaste", "metal", "metal")],
+    )
+    table = environment_table(load_runs(tmp_path))
+    assert len(table) == 1
+    row = table.iloc[0]
+    assert row["gpu"] == "NVIDIA GeForce RTX 5070"
+    assert row["torch"] == "2.15.0+cu132"
+    assert row["cuda"] == "13.2"
+    assert row["params"] == 1_500_000
+    assert row["minutes_per_run"] >= 0
+
+
+def test_learning_curves_tao_hinh(tmp_path: Path) -> None:
+    _make_run(tmp_path, "rq3_mix_tn00", 42, [("trashnet", "glass", "glass")])
+    figures = tmp_path / "figures"
+    figures.mkdir()
+
+    files = learning_curves(
+        load_runs(tmp_path), figures, ["rq3_mix_tn00"], "learning_curves_mix.png"
+    )
+    assert files == ["learning_curves_mix.png"]
+    assert (figures / "learning_curves_mix.png").stat().st_size > 0
+
+
+def test_configure_names_e50(tmp_path: Path) -> None:
+    import analyze_rq3 as module
+
+    try:
+        configure_names("_e50")
+        assert "rq3_e50_mix_tn25" in module.PROTOCOLS
+        assert module.SINGLE_SOURCE["trashnet"] == "rq3_e50_train_realwaste_test_trashnet"
+
+        _make_run(tmp_path, "rq3_e50_mix_tn25", 42, [("trashnet", "glass", "glass")])
+        data = load_runs(tmp_path)
+        assert "rq3_e50_mix_tn25" in data
+        assert data["rq3_e50_mix_tn25"][0]["history"]
+    finally:
+        configure_names("")
+        assert "rq3_e50_mix_tn25" not in module.PROTOCOLS

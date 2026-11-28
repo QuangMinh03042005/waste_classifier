@@ -87,11 +87,13 @@ def _make_run(root: Path, experiment: str, seed: int, correct_rate: float) -> Pa
 
 def test_collect_runs_doc_artifact(tmp_path: Path) -> None:
     _make_run(tmp_path, "rq3_mix_tn00", 42, correct_rate=1.0)
-    _make_run(tmp_path, "rq3_mix_tn00", 123, correct_rate=0.5)
+    _make_run(tmp_path, "rq3_e50_mix_tn25", 42, correct_rate=1.0)
 
     rows = collect_runs(tmp_path)
     assert len(rows) == 2
-    first = rows[0]
+    groups = {row["Experiment"]: row["Nhóm"] for row in rows}
+    assert groups["rq3_e50_mix_tn25"] == "Mix-ratio"
+    first = next(row for row in rows if row["Experiment"] == "rq3_mix_tn00")
     assert first["Nhóm"] == "Mix-ratio"
     assert first["Experiment"] == "rq3_mix_tn00"
     assert first["Train"] == 2163

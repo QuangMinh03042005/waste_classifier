@@ -862,7 +862,8 @@ def build_markdown(
             "tương ứng.",
             "- So sánh công bằng dùng cách chấm single-source **trên cùng held-out test** "
             "(mục dưới): chỉ lọc predictions đã có, không đánh giá lại test.",
-            "- CI95 tính theo phân phối t với n=3 nên khá rộng. Hiệu số nhỏ hơn CI (ví dụ giữa "
+            "- CI95 tính theo phân phối t với số seed thực tế của từng arm (3 cho mix-ratio, "
+            "5 cho 3 protocol chính) nên vẫn khá rộng. Hiệu số nhỏ hơn CI (ví dụ giữa "
             "các mức mix gần nhau) **không** nên đọc là khác biệt thực.",
             "- Có nhiều biến thể × nhiều chỉ số nhưng không hiệu chỉnh multiple comparisons; "
             "các so sánh ngoài tiêu chí đăng ký chỉ mang tính exploratory.",
@@ -943,7 +944,7 @@ def build_markdown(
                     "### Delta ghép cặp theo seed",
                     "",
                     "Cùng seed nên khử được phần lớn phương sai giữa seed; dùng để kiểm tra "
-                    "delta có lớn hơn nhiễu hay không (n=3, không báo p-value).",
+                    "delta có lớn hơn nhiễu hay không (n nhỏ, không báo p-value).",
                     "",
                     _markdown_table(paired_table, list(paired_table.columns)),
                     "",
@@ -1027,7 +1028,7 @@ def build_markdown(
             [
                 "## Cặp nhầm phổ biến",
                 "",
-                "Cộng dồn 3 seed; tỉ lệ tính trên số ảnh thật của lớp đó.",
+                "Cộng dồn toàn bộ seed của từng arm; tỉ lệ tính trên số ảnh thật của lớp đó.",
                 "",
                 _markdown_table(pairs_table, list(pairs_table.columns)),
                 "",

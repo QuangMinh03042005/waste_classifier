@@ -26,12 +26,12 @@ Không dùng `cmd` (cú pháp `$env:...` sẽ lỗi).
 | 3 | Test code liên quan RQ3 | `uv run pytest tests/test_rq3_*` (liệt kê ở 1.3) | 10 giây | – |
 | 4 | Chạy thử 2 batch | `--epochs 1 --limit-batches 2` | 20 giây | `…\rq3\smoke_rq3` |
 | 5 | Chạy 1 run thật | `research.rq3.train` | 3–5 phút | `…_e50\rq3\<experiment>_s42` |
-| 6 | Batch cross-dataset + pooled (9 run) | `scripts/run_batch.py` | **~30 phút** | `…_e50\rq3\` |
+| 6 | Batch cross-dataset + pooled (15 run, 5 seed) | `scripts/run_batch.py` | **~50 phút** | `…_e50\rq3\` |
 | 7 | Batch mix-ratio (12 run) | `scripts/run_batch.py` | **~45 phút** | `…_e50\rq3\` |
 | 8 | Phân tích + Excel | `analyze_rq3.py --arm-suffix _e50`, `track_rq3.py` | 1 phút | `docs/RQ3/` |
 | 9 | Notebook + PDF (nếu cần) | `jupyter nbconvert` | 2 phút | `docs/notebooks/rq3/` |
 
-Tổng 21 run bản 50 epoch: **75,9 phút GPU** (đã đo).
+Tổng 27 run bản 50 epoch: **93,3 phút GPU** (đã đo).
 
 ## 1. Chuẩn bị (một lần)
 
@@ -91,12 +91,12 @@ uv run python -m research.rq3.train --config configs/rq3/e50/rq3_e50_train_poole
   plan.yaml, environment.json, history.jsonl, metrics.json, checkpoints/{best,last}.pt,
   predictions/test.csv).
 
-## 4. Chạy đủ 21 run
+## 4. Chạy đủ 27 run
 
-### 4.1. Cross-dataset + pooled (9 run, ~30 phút)
+### 4.1. Cross-dataset + pooled (15 run, ~50 phút)
 
 ```powershell
-uv run python scripts/run_batch.py --configs configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml configs/rq3/e50/rq3_e50_train_trashnet_test_realwaste.yaml configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml --plan plans/rq3/cross_dataset_e50.yaml --seeds 42 123 2024
+uv run python scripts/run_batch.py --configs configs/rq3/e50/rq3_e50_train_realwaste_test_trashnet.yaml configs/rq3/e50/rq3_e50_train_trashnet_test_realwaste.yaml configs/rq3/e50/rq3_e50_train_pooled_test_each.yaml --plan plans/rq3/cross_dataset_e50.yaml --seeds 42 123 2024 7 3407
 ```
 
 ### 4.2. Mix-ratio (12 run, ~45 phút)
@@ -140,7 +140,7 @@ uv run python scripts/analyze_rq3.py --output-md docs/RQ3/rq3_results_e30.md --o
 | `docs/RQ3/rq3_analysis/gradcam_cross/` | 4 ảnh Grad-CAM sai của P1 + 4 của P2 |
 | `docs/RQ3/rq3_tracking.xlsx` | 4 sheet: Runs / Tổng hợp / Kế hoạch / Môi trường |
 
-`track_rq3.py` phải in `Runs: 21 (completed 21)` (bản chính).
+`track_rq3.py` phải in `Runs: 27 (completed 27)` (bản chính).
 
 ### 5.1. Grad-CAM cho ảnh sai (không train lại)
 
@@ -179,7 +179,7 @@ sạch output, kèm PDF.
 | `…\checkpoints\best.pt` | có, ~6 MB |
 | `…\predictions\test.csv` | 2.390 dòng (P1) / 3.092 (P2) / 823 (pooled, mix) |
 | `environment.json` | `torch 2.15.0+cu132`, GPU của bạn |
-| Macro-F1 test (dao động ±0,01–0,03) | P1 0,26–0,31 · P2 0,46–0,49 · pooled 0,88–0,90 |
+| Macro-F1 test (dao động ±0,01–0,03) | P1 0,24–0,34 · P2 0,43–0,50 · pooled 0,88–0,91 |
 | TrashNet held-out theo mix | 0% ≈0,38 · 25% ≈0,79 · 50% ≈0,84 · 75% ≈0,86 · 100% ≈0,88 |
 | Epoch cuối | 10–34 (không run nào chạm 50 — early stopping) |
 
@@ -212,5 +212,5 @@ run; không đổi tiêu chí sau khi xem test; không sửa/xoá run cũ.
 - `docs/RQ3/rq3_results_e30.md` – phụ lục so sánh ngân sách 30 epoch.
 - `docs/RQ3/rq3_discussion.md` – thảo luận, giới hạn, kết luận.
 - `docs/RQ3/rq3_overview.md` – protocol, cách chạy, trạng thái.
-- `docs/RQ3/rq3_tracking.xlsx` – bảng theo dõi 21 run.
+- `docs/RQ3/rq3_tracking.xlsx` – bảng theo dõi 27 run.
 - `docs/notebooks/rq3/analyze_rq3.pdf` – notebook đã chạy.

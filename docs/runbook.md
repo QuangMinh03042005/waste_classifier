@@ -80,7 +80,7 @@ Kỳ vọng: `uv 0.13.9 ...`. Nếu báo *"uv is not recognized"*: đóng hẳn 
 | 3 | Tải/kiểm tra dữ liệu | `src.data.download`, script kiểm tra | 0–20 phút | 5.482 ảnh khớp split |
 | 4 | RQ1: 3 arm × 5 seed | `scripts/run_batch.py` | ~2–3 giờ (ước tính) | 15 run |
 | 5 | RQ1 phụ: efficiency, Grad-CAM, tổng hợp | `scripts/*.py` | ~10 phút | bảng + hình |
-| 6 | RQ3: 3 protocol × 3 seed (bản 50 epoch) | `scripts/run_batch.py` | **~30 phút** | 9 run |
+| 6 | RQ3: 3 protocol × 5 seed (bản 50 epoch) | `scripts/run_batch.py` | **~50 phút** | 15 run |
 | 7 | RQ3: mix-ratio × 3 seed (bản 50 epoch) | `scripts/run_batch.py` | **~45 phút** | 12 run |
 | 8 | RQ3: phân tích + tracking | `scripts/analyze_rq3.py --arm-suffix _e50`, `scripts/track_rq3.py` | 1 phút | `rq3_results.md`, `rq3_tracking.xlsx` |
 | 9 | Notebook + PDF | `jupyter nbconvert` | 2 phút | `.pdf` trong `docs/notebooks/rq3/` |

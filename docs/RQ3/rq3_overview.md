@@ -50,7 +50,7 @@ Giữ nguyên 100% train RealWaste, tăng dần tỉ lệ group TrashNet train:
 | Optimizer | AdamW, lr 1e-3, weight decay 1e-4, cosine |
 | Batch / Epoch | 64 / tối đa **50** (bản chính `*_e50`), early stopping patience 7 |
 | Chọn epoch | theo `val_macro_f1` |
-| Seed | 42, 123, 2024 |
+| Seed | 42, 123, 2024 + **7, 3407** cho 3 protocol chính (mix-ratio giữ 3 seed) |
 
 Mỗi biến thể chỉ đổi protocol dữ liệu; các yếu tố còn lại giữ nguyên.
 
@@ -59,7 +59,7 @@ Mỗi biến thể chỉ đổi protocol dữ liệu; các yếu tố còn lại
 > config trong `configs/rq3/e50/` (tên experiment `rq3_e50_*`), kết quả ở root riêng.
 > Bản 30 epoch trước đó (`plans/rq3/cross_dataset_generalization.yaml`,
 > `plans/rq3/source_mix.yaml`) giữ lại làm phụ lục so sánh ngân sách
-> (`rq3_results_e30.md`); 0/21 run bản 50 epoch chạm mốc 50 nên kết luận không đổi.
+> (`rq3_results_e30.md`); 0/27 run bản 50 epoch chạm mốc 50 nên kết luận không đổi.
 
 ## 3. Chạy
 
@@ -168,8 +168,8 @@ Nếu không đạt, báo cáo trung thực và phân tích domain shift, phân 
 ## 7. Trạng thái
 
 - [x] Split RQ3, plan active, config + entrypoint + test.
-- [x] Bản chính 50 epoch: P1/P2/P3 × 3 seed (9 run) + mix-ratio × 3 seed (12 run) = **21 run**.
-- [x] Bản phụ lục 30 epoch (21 run) giữ lại để so sánh ngân sách.
+- [x] Bản chính 50 epoch: P1/P2/P3 × **5 seed** (15 run) + mix-ratio × 3 seed (12 run) = **27 run**.
+- [x] Bản phụ lục 30 epoch (21 run) giữ lại để so sánh ngân sách (so sánh trên cùng 3 seed).
 - [x] Phân tích cross-dataset, domain shift, mix-ratio, learning curves, cặp nhầm, Grad-CAM.
 - [x] Tracking Excel + notebook kèm PDF.
 - [x] Thảo luận, giới hạn, kết luận và hướng dẫn tái lập ([rq3_discussion.md](rq3_discussion.md)).
